@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "767365318867",
+    "project_id": "family-messenger-7db02",
+    "storage_bucket": "family-messenger-7db02.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767365318867:android:dc0316bb23d79d23ba6c26",
+        "android_client_info": {
+          "package_name": "com.android.kotlin.familymessagingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3a043YyG1fo-bnBgbWB_aLjLoKHhvYds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

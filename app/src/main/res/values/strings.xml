@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Family Messaging App</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="vietnam" translatable="false"> Việt Nam</string>
+    <string name="english">English</string>
+    <string name="email" translatable="false">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="login_email_false_message">Account information or password is incorrect</string>
+    <string name="sign_up_message">Don\'t have an account. Sign up now</string>
+    <string name="login_with_google_account">Login with Google Account</string>
+    <string name="forget_password">Forget password ?</string>
+    <string name="login_title">Login Your account</string>
+
+    <string name="setting">Setting</string>
+    <string name="logout">Log out</string>
+    <string name="logout_message">Are you sure you want to logout ?</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_account">Delete account</string>
+    <string name="edit_my_information">Edit my information</string>
+    <string name="author">Developed by hoangmanhlong</string>
+    <string name="my_account">My account</string>
+    <string name="about">About</string>
+    <string name="language">Language</string>
+
+    <string name="search_hint">Search a conversation, friend or group</string>
+
+<!--    Home-->
+    <string name="chat">Chats</string>
+    <string name="groups">Groups</string>
+    <string name="friends">Friends</string>
+    <string name="contact">Contact</string>
+    <string name="notification">Notification</string>
+    <string name="personal">Personal</string>
+    
+<!--    Register-->
+    <string name="Sign_up_title">Sign up Your Account</string>
+    <string name="sign_up">Sign up</string>
+
+    <string name="network_not_available_title">No Internet Connection</string>
+    <string name="network_not_available_message">Please check your internet connection and try again</string>
+    <string name="account_already_exists">Account already exists</string>
+    <string name="try_again">Try again</string>
+
+</resources>
