@@ -18,6 +18,9 @@
         <action
             android:id="@+id/action_loginFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_loginWithEmailFragment"
+            app:destination="@id/loginWithEmailFragment" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
@@ -27,6 +30,9 @@
         <action
             android:id="@+id/action_homeFragment_to_chatRoomFragment"
             app:destination="@id/chatRoomFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_personalFragment"
+            app:destination="@id/personalFragment" />
     </fragment>
     <fragment
         android:id="@+id/personalFragment"
@@ -42,4 +48,9 @@
         android:id="@+id/searchFragment"
         android:name="com.android.kotlin.familymessagingapp.view.SearchFragment"
         android:label="SearchFragment" />
+    <fragment
+        android:id="@+id/loginWithEmailFragment"
+        android:name="com.android.kotlin.familymessagingapp.view.LoginWithEmailFragment"
+        android:label="fragment_login_with_email"
+        tools:layout="@layout/fragment_login_with_email" />
 </navigation>

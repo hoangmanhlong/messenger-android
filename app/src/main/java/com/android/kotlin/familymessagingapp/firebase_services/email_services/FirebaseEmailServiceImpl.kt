@@ -1,40 +1,14 @@
-package com.android.kotlin.familymessagingapp.firebase_services
+package com.android.kotlin.familymessagingapp.firebase_services.email_services
 
-import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.android.kotlin.familymessagingapp.model.FirebaseCallStatus
-import com.android.kotlin.familymessagingapp.model.UserData
-import com.android.kotlin.familymessagingapp.utils.Constant
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import javax.inject.Inject
 
-class FirebaseEmailServiceImpl @Inject constructor(
-    private val constant: Constant
-) : FirebaseEmailService {
+class FirebaseEmailServiceImpl : FirebaseEmailService {
 
-//    override val currentUser: Flow<UserData?>
-//        get() = callbackFlow {
-//            val listener = FirebaseAuth.AuthStateListener { auth ->
-//                this.trySend(auth.currentUser?.let { firebaseUser ->
-//                    Log.d(TAG, ": ")
-//                })
-//            }
-//            Firebase.auth.addAuthStateListener(listener)
-//            awaitClose { Firebase.auth.removeAuthStateListener(listener) }
-//        }
-
-    override val currentUserid: String
-        get() = Firebase.auth.currentUser?.uid.orEmpty()
-
-    override fun hasUser(): Boolean = Firebase.auth.currentUser != null
+    private fun hasUser(): Boolean = Firebase.auth.currentUser != null
 
     override suspend fun signIn(email: String, password: String): Boolean {
         return try {

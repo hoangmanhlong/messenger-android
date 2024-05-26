@@ -14,8 +14,6 @@ class MainActivity : AppCompatActivity() {
 
     private var _binding: ActivityMainBinding? = null
 
-    private val mainDestinations = listOf(R.id.homeFragment, R.id.personalFragment)
-
     private val binding get() = _binding!!
 
     private lateinit var navController: NavController
@@ -26,19 +24,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         val navHostFragment = supportFragmentManager
             .findFragmentById(binding.appContainer.id) as NavHostFragment
-
         navController = navHostFragment.navController
-        binding.bottomNavigation.setupWithNavController(navController)
-
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            binding.bottomNavigation.visibility =
-                if (mainDestinations.contains(destination.id)) View.VISIBLE else View.GONE
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
-
-    fun openNavigationView() = binding.drawerLayout.open()
 }

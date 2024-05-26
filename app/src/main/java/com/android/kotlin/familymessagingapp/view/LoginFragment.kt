@@ -1,35 +1,39 @@
 package com.android.kotlin.familymessagingapp.view
 
-import android.app.Dialog
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.StringRes
-import androidx.core.widget.addTextChangedListener
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
-import com.android.kotlin.familymessagingapp.model.FirebaseCallStatus
-import com.android.kotlin.familymessagingapp.utils.AppDialog
-import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.Screen
 import com.android.kotlin.familymessagingapp.viewmodel.LoginViewModel
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
 
     private val viewModel: LoginViewModel by viewModels()
 
+    private val loginWithGoogleAccountLauncher =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                viewModel.signInWithActivityResult(result)
+            }
+        }
+
     private var _binding: FragmentLoginBinding? = null
 
     private val binding get() = _binding!!
-
-    private var dialog: Dialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,62 +41,44 @@ class LoginFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
-        dialog = activity?.let { AppDialog.createLoadingDialog(it) }
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
-
-        viewModel.loginAuthenticationCallStatus.observe(this.viewLifecycleOwner) { callStatus ->
-            callStatus?.let {
-                when (callStatus) {
-                    is FirebaseCallStatus.Error -> {
-                        binding.tvLoginError.visibility = View.VISIBLE
-                        dialog?.dismiss()
-                    }
-
-                    FirebaseCallStatus.Calling -> dialog?.show()
-                    FirebaseCallStatus.Success -> dialog?.dismiss()
-                }
-            }
-        }
-
         viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
-            val currentDestinationId = findNavController().currentDestination?.id
-            if (authenticated && currentDestinationId != null) {
-                findNavController().popBackStack(currentDestinationId, true)
-                findNavController().navigate(R.id.homeFragment)
+            if (authenticated) navigateToHomeScreen()
+        }
+
+        binding.btLoginWithGoogleAccount.setOnClickListener { onLoginWithGoogleAccountButtonClick() }
+        binding.tvSignUp.setOnClickListener { navigateToSignUpScreen() }
+        binding.btLoginWithEmail.setOnClickListener { navigateToUserProfile() }
+    }
+
+    private fun onLoginWithGoogleAccountButtonClick() {
+        context?.let { context ->
+            NetworkChecker.checkNetwork(context) {
+                viewModel.launchGoogleSignIn(loginWithGoogleAccountLauncher)
             }
         }
+    }
 
-        viewModel.loginButtonState.observe(this.viewLifecycleOwner) {
-            binding.btLogin.isEnabled = it
-        }
+    private fun navigateToHomeScreen() {
+        findNavController().popBackStack(Screen.LoginScreen.screenId, true)
+        findNavController().navigate(R.id.homeFragment)
+    }
 
-        binding.etEmail.addTextChangedListener {
-            if (binding.tvLoginError.visibility == View.VISIBLE)
-                binding.tvLoginError.visibility = View.GONE
-            viewModel.setEmail(it.toString().trim())
-        }
-        binding.etPassword.addTextChangedListener {
-            if (binding.tvLoginError.visibility == View.VISIBLE)
-                binding.tvLoginError.visibility = View.GONE
-            viewModel.setPassword(it.toString().trim())
-        }
+    private fun navigateToSignUpScreen() {
+        findNavController().navigate(Screen.LoginScreen.navigateToSignUpAccountScreenRouteName())
+    }
 
-        binding.btLogin.setOnClickListener {
-            context?.let { NetworkChecker.checkNetwork(it) { viewModel.login() } }
-        }
-        binding.tvSignUp.setOnClickListener { findNavController().navigate(R.id.action_loginFragment_to_registerFragment) }
+    private fun navigateToUserProfile() {
+        findNavController().navigate(Screen.LoginScreen.navigateToSignInWithEmailScreenRouteName())
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        dialog = null
     }
 }

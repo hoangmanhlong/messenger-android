@@ -15,11 +15,11 @@ object NetworkChecker {
         return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    fun checkNetwork(context: Context, callback: () -> Unit) {
-        if (isNetworkAvailable(context = context)) callback()
+    fun checkNetwork(context: Context, actionWhenNetworkAvailable: () -> Unit) {
+        if (isNetworkAvailable(context = context)) actionWhenNetworkAvailable()
         else AppDialog.showNetworkNotAvailableDialog(
             context = context,
-            onPositiveClick = { checkNetwork(context, callback) },
+            onPositiveClick = { checkNetwork(context, actionWhenNetworkAvailable) },
             onNegativeClick = {},
             onCancelListener = {}
         ).show()

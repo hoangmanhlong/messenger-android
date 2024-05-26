@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "767365318867",
+    "firebase_url": "https://family-messenger-7db02-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "family-messenger-7db02",
     "storage_bucket": "family-messenger-7db02.appspot.com"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.android.kotlin.familymessagingapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "767365318867-1clpa03ujo0ck6u25uqaoonk5nonrm05.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.kotlin.familymessagingapp",
+            "certificate_hash": "eb95b93ef7a5af2cd195ab349511d972ba8fe8a7"
+          }
+        },
+        {
+          "client_id": "767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC3a043YyG1fo-bnBgbWB_aLjLoKHhvYds"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

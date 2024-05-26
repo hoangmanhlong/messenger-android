@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <item
-        android:id="@+id/qrMenuItem"
-        android:enabled="true"
-        app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_qr_code"
-        android:title="@string/search_hint" />
+        android:id="@+id/profile"
+        android:title=""
+        tools:icon="@tools:sample/avatars"
+        app:showAsAction="always" />
+
 </menu>

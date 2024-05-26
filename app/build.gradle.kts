@@ -8,7 +8,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("androidx.navigation.safeargs.kotlin")
     id("dagger.hilt.android.plugin")
-
+    id("kotlin-parcelize")
 }
 
 android {
@@ -83,6 +83,12 @@ dependencies {
 
     implementation(libs.gson)
 
+    // Google Sign In SDK
+    implementation(libs.play.services.auth.v2050)
+
+    debugImplementation(libs.leakcanary.android)
+
+    implementation(libs.glide)
 }
 
 kapt {
