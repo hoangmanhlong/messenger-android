@@ -41,6 +41,7 @@
     <!--    Register-->
     <string name="Sign_up_title">Sign up Your Account</string>
     <string name="sign_up">Sign up</string>
+    <string name="password_text_helper">Password must be greater than 6 characters</string>
 
     <string name="network_not_available_title">No Internet Connection</string>
     <string name="network_not_available_message">Please check your internet connection and try again</string>

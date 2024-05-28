@@ -3,11 +3,9 @@ package com.android.kotlin.familymessagingapp.view
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.NonNull
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -49,12 +47,12 @@ class HomeFragment : Fragment() {
             if (!authenticated) {
                 findNavController().popBackStack()
                 findNavController().navigate(R.id.loginFragment)
+            } else {
+                context?.let { context -> loadImage(context, R.drawable.baohong) }
             }
         }
 
-        context?.let { context -> loadImage(context, R.drawable.baohong) }
-
-        binding.searchTopBar.setOnMenuItemClickListener {
+        binding.searchBar.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.profile -> {
                     findNavController().navigate(Screen.HomeScreen.navigateToSettingScreen())
@@ -95,7 +93,9 @@ class HomeFragment : Fragment() {
                         dataSource: DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
-                        renderProfileImage(resource)
+                        _binding?.let {
+                            renderProfileImage(resource)
+                        }
                         return true
                     }
 
@@ -107,7 +107,7 @@ class HomeFragment : Fragment() {
 
     private fun renderProfileImage(resource: Drawable) {
         lifecycleScope.launch(Dispatchers.Main) { //Running on Main/UI thread
-            binding.searchTopBar.menu.findItem(R.id.profile).icon = resource
+            binding.searchBar.menu.findItem(R.id.profile).icon = resource
         }
     }
 }

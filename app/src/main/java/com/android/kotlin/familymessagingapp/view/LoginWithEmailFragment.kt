@@ -11,7 +11,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginWithEmailBinding
-import com.android.kotlin.familymessagingapp.model.FirebaseCallStatus
 import com.android.kotlin.familymessagingapp.utils.AppDialog
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
@@ -29,7 +28,7 @@ class LoginWithEmailFragment : Fragment() {
     private val binding get() = _binding!!
 
 
-    private var dialog: Dialog? = null
+    private var _loadingDialog: Dialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,7 +36,7 @@ class LoginWithEmailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginWithEmailBinding.inflate(inflater, container, false)
-        dialog = activity?.let { AppDialog.createLoadingDialog(it) }
+        _loadingDialog = activity?.let { AppDialog.createLoadingDialog(it) }
         return binding.root
     }
 
@@ -52,18 +51,8 @@ class LoginWithEmailFragment : Fragment() {
             }
         }
 
-        _viewModel.loginAuthenticationCallStatus.observe(this.viewLifecycleOwner) { callStatus ->
-            callStatus?.let {
-                when (callStatus) {
-                    is FirebaseCallStatus.Error -> {
-                        binding.tvLoginError.visibility = View.VISIBLE
-                        dialog?.dismiss()
-                    }
-
-                    FirebaseCallStatus.Calling -> dialog?.show()
-                    FirebaseCallStatus.Success -> dialog?.dismiss()
-                }
-            }
+        _viewModel.loadingStatus.observe(this.viewLifecycleOwner) { isLoading ->
+            showLoadingDialog(isLoading)
         }
 
         _viewModel.loginButtonState.observe(this.viewLifecycleOwner) {
@@ -86,12 +75,24 @@ class LoginWithEmailFragment : Fragment() {
             _viewModel.setPassword(it.toString().trim())
         }
 
+        binding.tvSignUp.setOnClickListener { navigateToSignUpScreen() }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+    }
+
+    private fun navigateToSignUpScreen() {
+        findNavController().navigate(Screen.LoginWithEmailScreen.navigateToSignUpAccountWithEmailScreen())
+    }
+
+    private fun showLoadingDialog(isShow: Boolean) {
+        _loadingDialog?.let {
+            if (isShow) it.show()
+            else it.dismiss()
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        dialog = null
+        _loadingDialog = null
     }
 }

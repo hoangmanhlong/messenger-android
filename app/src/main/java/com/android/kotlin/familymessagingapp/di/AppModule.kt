@@ -5,12 +5,15 @@ import com.android.kotlin.familymessagingapp.firebase_services.email_services.Fi
 import com.android.kotlin.familymessagingapp.firebase_services.email_services.FirebaseEmailServiceImpl
 import com.android.kotlin.familymessagingapp.firebase_services.google_services.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.firebase_services.google_services.FirebaseGoogleServiceImpl
-import com.android.kotlin.familymessagingapp.repository.MessengerRepository
-import com.android.kotlin.familymessagingapp.repository.MessengerRepositoryImpl
+import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,11 +26,15 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth = Firebase.auth
+
+    @Provides
+    @Singleton
     fun provideMessengerRepository(
         firebaseGoogleService: FirebaseGoogleService,
         firebaseEmailService: FirebaseEmailService
-    ): MessengerRepository =
-        MessengerRepositoryImpl(firebaseGoogleService, firebaseEmailService)
+    ): FirebaseAuthenticationRepository =
+        FirebaseAuthenticationRepositoryImpl(firebaseGoogleService, firebaseEmailService)
 
     @Provides
     @Singleton
@@ -37,8 +44,12 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGoogleService(application: Application, signInClient: SignInClient): FirebaseGoogleService =
-        FirebaseGoogleServiceImpl(application, signInClient)
+    fun provideGoogleService(
+        auth: FirebaseAuth,
+        application: Application,
+        signInClient: SignInClient
+    ): FirebaseGoogleService =
+        FirebaseGoogleServiceImpl(auth, application, signInClient)
 
     @Singleton
     @Provides
@@ -46,5 +57,6 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provinceFirebaseEmailService(): FirebaseEmailService = FirebaseEmailServiceImpl()
+    fun provinceFirebaseEmailService(auth: FirebaseAuth): FirebaseEmailService =
+        FirebaseEmailServiceImpl(auth)
 }

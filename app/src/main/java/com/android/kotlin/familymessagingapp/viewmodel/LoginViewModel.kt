@@ -8,11 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.model.FirebaseCallStatus
-import com.android.kotlin.familymessagingapp.repository.MessengerRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.utils.singleArgViewModelFactory
-import com.android.kotlin.familymessagingapp.utils.RegexUtils
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,11 +20,11 @@ import javax.inject.Inject
  * work such as fetching network results can continue through configuration changes and deliver
  * results after the new Fragment or Activity is available.
  *
- * @param _repository ...
+ * @param _firebaseAuthenticationRepository ...
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val _repository: MessengerRepository
+    private val _firebaseAuthenticationRepository: FirebaseAuthenticationRepository
 ) : ViewModel() {
 
     companion object {
@@ -39,26 +36,37 @@ class LoginViewModel @Inject constructor(
         val FACTORY = singleArgViewModelFactory(::LoginViewModel)
     }
 
+    private val _loadingStatus: MutableLiveData<Boolean> = MutableLiveData(false)
+    val loadingStatus: LiveData<Boolean> = _loadingStatus
+
     private val _authenticationStatus: MutableLiveData<Boolean> =
-        MutableLiveData(_repository.hasUser())
+        MutableLiveData(_firebaseAuthenticationRepository.hasUser())
     val authenticationStatus: LiveData<Boolean> = _authenticationStatus
 
     fun signInWithActivityResult(activityResult: ActivityResult) {
+        updateLoadingStatus(true)
         viewModelScope.launch {
-            val signInResult = _repository.firebaseGoogleService.signInWithIntent(activityResult.data ?: return@launch)
+            val signInResult = _firebaseAuthenticationRepository.firebaseGoogleService.signInWithIntent(activityResult.data ?: return@launch)
+            updateLoadingStatus(false)
             _authenticationStatus.value = signInResult.data != null
         }
     }
 
     fun launchGoogleSignIn(launcher: ActivityResultLauncher<IntentSenderRequest>) {
+        updateLoadingStatus(true)
         viewModelScope.launch {
             launcher.launch(
                 IntentSenderRequest
                     .Builder(signIn() ?: return@launch)
                     .build()
             )
+            updateLoadingStatus(false)
         }
     }
 
-    private suspend fun signIn(): IntentSender? = _repository.firebaseGoogleService.signIn()
+    private fun updateLoadingStatus(isLoading: Boolean) {
+        _loadingStatus.value = isLoading
+    }
+
+    private suspend fun signIn(): IntentSender? = _firebaseAuthenticationRepository.firebaseGoogleService.signIn()
 }

@@ -3,16 +3,16 @@ package com.android.kotlin.familymessagingapp.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.android.kotlin.familymessagingapp.model.FirebaseCallStatus
-import com.android.kotlin.familymessagingapp.repository.MessengerRepository
+import androidx.lifecycle.viewModelScope
+import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.utils.RegexUtils
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginWithEmailViewModel @Inject constructor(
-    private val _repository: MessengerRepository
+    private val _firebaseAuthenticationRepository: FirebaseAuthenticationRepository
 ) : ViewModel() {
 
     /**
@@ -25,15 +25,14 @@ class LoginWithEmailViewModel @Inject constructor(
      */
     private var _password: String? = ""
 
-    private val _loginAuthenticationCallStatus: MutableLiveData<FirebaseCallStatus> =
-        MutableLiveData()
-    val loginAuthenticationCallStatus: LiveData<FirebaseCallStatus> = _loginAuthenticationCallStatus
+    private val _loadingStatus: MutableLiveData<Boolean> = MutableLiveData(false)
+    val loadingStatus: LiveData<Boolean> = _loadingStatus
 
     private val _loginButtonState: MutableLiveData<Boolean> = MutableLiveData(isValidInput())
     val loginButtonState: LiveData<Boolean> = _loginButtonState
 
     private val _authenticationStatus: MutableLiveData<Boolean> =
-        MutableLiveData(_repository.hasUser())
+        MutableLiveData(_firebaseAuthenticationRepository.hasUser())
     val authenticationStatus: LiveData<Boolean> = _authenticationStatus
 
 
@@ -76,17 +75,14 @@ class LoginWithEmailViewModel @Inject constructor(
      */
     fun loginWithEmail() {
         if (isValidEmailAndPassword()) {
-            _loginAuthenticationCallStatus.value = FirebaseCallStatus.Calling
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(_email!!, _password!!)
-                .addOnSuccessListener {
-                    _loginAuthenticationCallStatus.value = FirebaseCallStatus.Success
-                    _authenticationStatus.value = _repository.hasUser()
-                }
-                .addOnFailureListener { exception ->
-                    _loginAuthenticationCallStatus.value = FirebaseCallStatus.Error(exception)
-                }
+            _loadingStatus.value = true
+            viewModelScope.launch {
+                _authenticationStatus.value = _firebaseAuthenticationRepository
+                    .firebaseEmailService.signIn(_email!!, _password!!)
+                _loadingStatus.value = false
+            }
         } else {
-            _loginAuthenticationCallStatus.value = FirebaseCallStatus.Error(null)
+            _authenticationStatus.value = false
         }
     }
 

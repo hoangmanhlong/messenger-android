@@ -39,23 +39,6 @@ class RegisterFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
-//        _viewModel.loginAuthenticationCallStatus.observe(this.viewLifecycleOwner) { callStatus ->
-//            callStatus?.let {
-//                when (callStatus) {
-//                    FirebaseCallStatus.LOADING -> dialog?.show()
-//                    FirebaseCallStatus.ERROR -> {
-//                        dialog?.dismiss()
-//                        binding.tvLoginError.visibility = View.VISIBLE
-//                    }
-//
-//                    FirebaseCallStatus.SUCCESS -> {
-//                        dialog?.dismiss()
-//                        findNavController().popBackStack(R.id.loginFragment, true)
-//                        findNavController().navigate(R.id.homeFragment)
-//                    }
-//                }
-//            }
-//        }
 
         binding.btSignUp.setOnClickListener { _viewModel.signup() }
     }

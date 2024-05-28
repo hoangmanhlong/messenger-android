@@ -7,24 +7,20 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
 class FirebaseGoogleServiceImpl(
+    private val auth: FirebaseAuth,
     private val context: Context,
     private val oneTapClient: SignInClient
 ) : FirebaseGoogleService {
 
-    private val auth = Firebase.auth
-
     override suspend fun signIn(): IntentSender? {
         val result = try {
-            oneTapClient.beginSignIn(
-                buildSignInRequest()
-            ).await()
+            oneTapClient.beginSignIn(buildSignInRequest()).await()
         } catch(e: Exception) {
             e.printStackTrace()
             if(e is CancellationException) throw e

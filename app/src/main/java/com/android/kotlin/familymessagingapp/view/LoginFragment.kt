@@ -1,23 +1,22 @@
 package com.android.kotlin.familymessagingapp.view
 
 import android.app.Activity
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
+import com.android.kotlin.familymessagingapp.utils.AppDialog
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
 import com.android.kotlin.familymessagingapp.viewmodel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -35,12 +34,15 @@ class LoginFragment : Fragment() {
 
     private val binding get() = _binding!!
 
+    private var _loadingDialog: Dialog? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
+        activity?.let { _loadingDialog = AppDialog.createLoadingDialog(it) }
         return binding.root
     }
 
@@ -51,9 +53,13 @@ class LoginFragment : Fragment() {
             if (authenticated) navigateToHomeScreen()
         }
 
+        viewModel.loadingStatus.observe(this.viewLifecycleOwner) { isLoading ->
+            showLoadingDialog(isLoading)
+        }
+
         binding.btLoginWithGoogleAccount.setOnClickListener { onLoginWithGoogleAccountButtonClick() }
-        binding.tvSignUp.setOnClickListener { navigateToSignUpScreen() }
-        binding.btLoginWithEmail.setOnClickListener { navigateToUserProfile() }
+
+        binding.btLoginWithEmail.setOnClickListener { navigateToSignInWithEmailScreen() }
     }
 
     private fun onLoginWithGoogleAccountButtonClick() {
@@ -69,16 +75,20 @@ class LoginFragment : Fragment() {
         findNavController().navigate(R.id.homeFragment)
     }
 
-    private fun navigateToSignUpScreen() {
-        findNavController().navigate(Screen.LoginScreen.navigateToSignUpAccountScreenRouteName())
+    private fun navigateToSignInWithEmailScreen() {
+        findNavController().navigate(Screen.LoginScreen.navigateToSignInWithEmailScreenRouteName())
     }
 
-    private fun navigateToUserProfile() {
-        findNavController().navigate(Screen.LoginScreen.navigateToSignInWithEmailScreenRouteName())
+    private fun showLoadingDialog(isShow: Boolean) {
+        _loadingDialog?.let {
+            if (isShow) it.show()
+            else it.dismiss()
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _loadingDialog = null
         _binding = null
     }
 }

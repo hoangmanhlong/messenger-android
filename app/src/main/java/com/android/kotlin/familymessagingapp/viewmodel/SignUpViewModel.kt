@@ -43,9 +43,7 @@ class SignUpViewModel @Inject constructor(
     fun signup() {
         viewModelScope.launch {
             val signupResult = firebaseEmailService.signUp(email!!, password!!)
-            when(signupResult) {
 
-            }
         }
     }
 }

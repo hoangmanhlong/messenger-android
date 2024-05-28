@@ -9,6 +9,7 @@ plugins {
     id("androidx.navigation.safeargs.kotlin")
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -72,6 +73,9 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     //noinspection UseTomlInstead
     implementation("com.google.firebase:firebase-storage")
+
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
     //Dagger - Hilt
     implementation(libs.hilt.android)
