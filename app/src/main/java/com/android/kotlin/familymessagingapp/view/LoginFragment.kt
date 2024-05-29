@@ -12,7 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
-import com.android.kotlin.familymessagingapp.utils.AppDialog
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
 import com.android.kotlin.familymessagingapp.viewmodel.LoginViewModel
@@ -42,7 +42,7 @@ class LoginFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
-        activity?.let { _loadingDialog = AppDialog.createLoadingDialog(it) }
+        activity?.let { _loadingDialog = DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
 
@@ -71,6 +71,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun navigateToHomeScreen() {
+        requireContext()
         findNavController().popBackStack(Screen.LoginScreen.screenId, true)
         findNavController().navigate(R.id.homeFragment)
     }

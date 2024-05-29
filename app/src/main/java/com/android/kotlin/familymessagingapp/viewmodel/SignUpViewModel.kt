@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.firebase_services.email_services.FirebaseEmailService
+import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.utils.RegexUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

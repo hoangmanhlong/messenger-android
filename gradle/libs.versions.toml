@@ -3,6 +3,7 @@ androidGradlePlugin = "8.2.1"
 appcompat = "1.6.1"
 constraintlayout = "2.1.4"
 coreKtx = "1.12.0"
+coreSplashscreen = "1.0.1"
 datastorePreferences = "1.0.0"
 datastorePreferencesCore = "1.1.1"
 datastorePreferencesVersion = "1.1.1"
@@ -22,11 +23,14 @@ material = "1.11.0"
 navigationSafeArgsGradlePlugin = "2.7.7"
 playServicesAuth = "21.2.0"
 playServicesAuthVersion = "20.5.0"
+firebaseMessagingKtx = "24.0.0"
+workRuntimeKtx = "2.9.0"
 
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferencesCore" }
 androidx-datastore-preferences-v111 = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesVersion" }
@@ -51,6 +55,8 @@ leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", ve
 material = { module = "com.google.android.material:material", version.ref = "material" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 play-services-auth-v2050 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

@@ -9,7 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
-import com.android.kotlin.familymessagingapp.utils.AppDialog
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.viewmodel.SettingViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -57,7 +57,7 @@ class PersonalFragment : Fragment() {
         context?.let {
             NetworkChecker.checkNetwork(it) {
                 isDialogShowing = true
-                AppDialog.createCommonDialog(
+                DialogUtils.createCommonDialog(
                     context = requireContext(),
                     title = R.string.logout,
                     message = R.string.logout_message,

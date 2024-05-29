@@ -8,7 +8,7 @@ import androidx.annotation.StringRes
 import com.android.kotlin.familymessagingapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-object AppDialog {
+object DialogUtils {
     fun createLoadingDialog(context: Context): Dialog {
         val dialog = Dialog(context)
         dialog.setContentView(R.layout.progress_indicator)

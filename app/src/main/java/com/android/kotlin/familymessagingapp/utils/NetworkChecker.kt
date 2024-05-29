@@ -17,7 +17,7 @@ object NetworkChecker {
 
     fun checkNetwork(context: Context, actionWhenNetworkAvailable: () -> Unit) {
         if (isNetworkAvailable(context = context)) actionWhenNetworkAvailable()
-        else AppDialog.showNetworkNotAvailableDialog(
+        else DialogUtils.showNetworkNotAvailableDialog(
             context = context,
             onPositiveClick = { checkNetwork(context, actionWhenNetworkAvailable) },
             onNegativeClick = {},

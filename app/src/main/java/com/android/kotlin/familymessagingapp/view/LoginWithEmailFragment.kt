@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginWithEmailBinding
-import com.android.kotlin.familymessagingapp.utils.AppDialog
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
@@ -36,7 +36,7 @@ class LoginWithEmailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginWithEmailBinding.inflate(inflater, container, false)
-        _loadingDialog = activity?.let { AppDialog.createLoadingDialog(it) }
+        _loadingDialog = activity?.let { DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
 

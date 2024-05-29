@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.firebase_services.email_services
+package com.android.kotlin.familymessagingapp.firebase_services.email_authentication
 
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.tasks.await

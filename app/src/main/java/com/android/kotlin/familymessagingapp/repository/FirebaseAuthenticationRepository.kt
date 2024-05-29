@@ -1,7 +1,7 @@
 package com.android.kotlin.familymessagingapp.repository
 
-import com.android.kotlin.familymessagingapp.firebase_services.email_services.FirebaseEmailService
-import com.android.kotlin.familymessagingapp.firebase_services.google_services.FirebaseGoogleService
+import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
+import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 

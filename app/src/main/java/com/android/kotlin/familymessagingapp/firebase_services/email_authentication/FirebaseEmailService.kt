@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.firebase_services.email_services
+package com.android.kotlin.familymessagingapp.firebase_services.email_authentication
 
 interface FirebaseEmailService {
     suspend fun signIn(email: String, password: String): Boolean

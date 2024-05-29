@@ -55,10 +55,12 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // Navigation
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
 
@@ -76,6 +78,7 @@ dependencies {
 
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging.ktx)
 
     //Dagger - Hilt
     implementation(libs.hilt.android)
@@ -93,6 +96,8 @@ dependencies {
     debugImplementation(libs.leakcanary.android)
 
     implementation(libs.glide)
+
+    implementation(libs.androidx.core.splashscreen)
 }
 
 kapt {

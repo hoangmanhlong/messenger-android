@@ -18,7 +18,7 @@ private const val AUTHENTICATION_PREFERENCES_NAME = "layout_preferences"
 
 // Create a DataStore instance using the preferencesDataStore delegate, with the Context as
 // receiver.
-private val Context.dataStore : DataStore<Preferences> by preferencesDataStore(
+val Context.dataStore : DataStore<Preferences> by preferencesDataStore(
     name = AUTHENTICATION_PREFERENCES_NAME
 )
 

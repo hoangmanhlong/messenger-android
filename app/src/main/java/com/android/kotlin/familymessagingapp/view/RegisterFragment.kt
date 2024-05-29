@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.databinding.FragmentRegisterBinding
-import com.android.kotlin.familymessagingapp.utils.AppDialog
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.viewmodel.SignUpViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +31,7 @@ class RegisterFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRegisterBinding.inflate(inflater, container, false)
-        dialog = activity?.let { AppDialog.createLoadingDialog(it) }
+        dialog = activity?.let { DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
 

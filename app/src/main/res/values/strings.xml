@@ -1,5 +1,9 @@
 <resources>
     <string name="web_client_id">767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com</string>
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="fcm_message">FCM Message</string>
+
+
     <string name="app_name">Family Messaging App</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

@@ -1,10 +1,12 @@
 package com.android.kotlin.familymessagingapp.di
 
 import android.app.Application
-import com.android.kotlin.familymessagingapp.firebase_services.email_services.FirebaseEmailService
-import com.android.kotlin.familymessagingapp.firebase_services.email_services.FirebaseEmailServiceImpl
-import com.android.kotlin.familymessagingapp.firebase_services.google_services.FirebaseGoogleService
-import com.android.kotlin.familymessagingapp.firebase_services.google_services.FirebaseGoogleServiceImpl
+import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.data.local.data_store.dataStore
+import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
+import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailServiceImpl
+import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
+import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleServiceImpl
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
@@ -41,6 +43,10 @@ object AppModule {
     fun provideSignInClient(application: Application): SignInClient =
         Identity.getSignInClient(application)
 
+    @Provides
+    @Singleton
+    fun provideAppDataStore(application: Application): AppDataStore =
+        AppDataStore(application.dataStore)
 
     @Provides
     @Singleton
@@ -53,7 +59,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provinceDataReference(): DatabaseReference = FirebaseDatabase.getInstance().reference
+    fun provinceRealtimeDatabaseReference(): DatabaseReference =
+        FirebaseDatabase.getInstance().reference
 
     @Singleton
     @Provides

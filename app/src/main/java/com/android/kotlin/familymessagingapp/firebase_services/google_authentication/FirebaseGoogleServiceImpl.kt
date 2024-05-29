@@ -1,14 +1,20 @@
-package com.android.kotlin.familymessagingapp.firebase_services.google_services
+package com.android.kotlin.familymessagingapp.firebase_services.google_authentication
 
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
@@ -21,9 +27,9 @@ class FirebaseGoogleServiceImpl(
     override suspend fun signIn(): IntentSender? {
         val result = try {
             oneTapClient.beginSignIn(buildSignInRequest()).await()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
+            if (e is CancellationException) throw e
             null
         }
         return result?.pendingIntent?.intentSender
@@ -47,9 +53,9 @@ class FirebaseGoogleServiceImpl(
                 },
                 errorMessage = null
             )
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
+            if (e is CancellationException) throw e
             SignInResult(
                 data = null,
                 errorMessage = e.message
@@ -61,9 +67,9 @@ class FirebaseGoogleServiceImpl(
         try {
             oneTapClient.signOut().await()
             auth.signOut()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            if(e is CancellationException) throw e
+            if (e is CancellationException) throw e
         }
     }
 
