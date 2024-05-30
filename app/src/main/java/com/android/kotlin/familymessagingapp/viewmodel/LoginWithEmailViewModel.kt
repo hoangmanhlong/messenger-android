@@ -3,6 +3,7 @@ package com.android.kotlin.familymessagingapp.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.utils.RegexUtils
@@ -12,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginWithEmailViewModel @Inject constructor(
-    private val _firebaseAuthenticationRepository: FirebaseAuthenticationRepository
+    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository
 ) : ViewModel() {
 
     /**
@@ -31,9 +32,8 @@ class LoginWithEmailViewModel @Inject constructor(
     private val _loginButtonState: MutableLiveData<Boolean> = MutableLiveData(isValidInput())
     val loginButtonState: LiveData<Boolean> = _loginButtonState
 
-    private val _authenticationStatus: MutableLiveData<Boolean> =
-        MutableLiveData(_firebaseAuthenticationRepository.hasUser())
-    val authenticationStatus: LiveData<Boolean> = _authenticationStatus
+    val authenticationStatus: LiveData<Boolean> =
+        firebaseAuthenticationRepository.authenticated.asLiveData()
 
 
     /**
@@ -77,12 +77,14 @@ class LoginWithEmailViewModel @Inject constructor(
         if (isValidEmailAndPassword()) {
             _loadingStatus.value = true
             viewModelScope.launch {
-                _authenticationStatus.value = _firebaseAuthenticationRepository
-                    .firebaseEmailService.signIn(_email!!, _password!!)
-                _loadingStatus.value = false
+                val result = firebaseAuthenticationRepository
+                    .firebaseEmailService
+                    .signIn(_email!!, _password!!)
+                // if sign in status is true => result observe by observer 'authenticationStatus'
+                // If sign in status is false => dismiss dialog
+                if (!result) _loadingStatus.value = false
+
             }
-        } else {
-            _authenticationStatus.value = false
         }
     }
 

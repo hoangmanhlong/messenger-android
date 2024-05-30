@@ -89,6 +89,7 @@ class LoginFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        showLoadingDialog(false)
         _loadingDialog = null
         _binding = null
     }

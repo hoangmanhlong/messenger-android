@@ -14,34 +14,23 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 
-private const val AUTHENTICATION_PREFERENCES_NAME = "layout_preferences"
+private const val APP_PREFERENCES_NAME = "APP_PREFERENCES_NAME"
 
 // Create a DataStore instance using the preferencesDataStore delegate, with the Context as
 // receiver.
 val Context.dataStore : DataStore<Preferences> by preferencesDataStore(
-    name = AUTHENTICATION_PREFERENCES_NAME
+    name = APP_PREFERENCES_NAME
 )
 
-class AppDataStore(private val preference_datastore: DataStore<Preferences>) {
+class AppDataStore(private val preferenceDatastore: DataStore<Preferences>) {
 
-    private val IS_AUTHENTICATE_BY_EMAIL = booleanPreferencesKey(Constant.IS_AUTHENTICATE_BY_EMAIL_KEY)
+    companion object {
+        val IS_AUTHENTICATE_BY_EMAIL = booleanPreferencesKey(Constant.IS_AUTHENTICATE_BY_EMAIL_KEY)
+        val ARE_NOTIFICATION_ENABLED = booleanPreferencesKey(Constant.ARE_NOTIFICATION_ENABLED)
+    }
 
-//    val preferenceFlow: Flow<Boolean> = preference_datastore.data
-//        .catch {
-//            if (it is IOException) {
-//                it.printStackTrace()
-//                emit(emptyPreferences())
-//            } else {
-//                throw it
-//            }
-//        }
-//        .map { preferences ->
-//            // On the first run of the app, we will use LinearLayoutManager by default
-//            preferences[IS_LINEAR_LAYOUT_MANAGER] ?: true
-//        }
-//
     fun getBooleanPreferenceFlow(key: Preferences.Key<Boolean>): Flow<Boolean> {
-        return preference_datastore.data
+        return preferenceDatastore.data
             .catch {
                 if (it is IOException) {
                     it.printStackTrace()
@@ -52,9 +41,10 @@ class AppDataStore(private val preference_datastore: DataStore<Preferences>) {
             }
             .map { preferences ->
                 // On the first run of the app, we will use LinearLayoutManager by default
-                preferences[key] ?: true
+                preferences[key] ?: false
             }
     }
+
 
     suspend fun saveBoolean(context: Context, key:  Preferences.Key<Boolean>, value: Boolean) {
         context.dataStore.edit { preferences ->

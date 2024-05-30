@@ -11,6 +11,7 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.Screen
 import com.android.kotlin.familymessagingapp.viewmodel.SettingViewModel
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class PersonalFragment : Fragment() {
 
-    private val viewModel: SettingViewModel by viewModels()
+    private val _viewModel: SettingViewModel by viewModels()
 
     private var _binding: FragmentPersonalBinding? = null
 
@@ -32,6 +33,7 @@ class PersonalFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPersonalBinding.inflate(inflater, container, false)
+        binding.fragment = this@PersonalFragment
         return binding.root
     }
 
@@ -41,6 +43,19 @@ class PersonalFragment : Fragment() {
             if (!isDialogShowing!!) onLogoutViewClick()
         }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+
+        _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) {
+            if (!it) {
+                findNavController().apply {
+                    popBackStack(Screen.HomeScreen.screenId, true)
+                    navigate(Screen.LoginScreen.screenId)
+                }
+            }
+        }
+
+        _viewModel.areNotificationsEnabledLiveData.observe(this.viewLifecycleOwner) { areNotificationsEnabled ->
+            binding.areNotificationsEnabled = areNotificationsEnabled
+        }
     }
 
     override fun onDestroyView() {
@@ -64,11 +79,7 @@ class PersonalFragment : Fragment() {
                     cancelable = true,
                     positiveButtonLabel = R.string.ok,
                     negativeButtonLabel = R.string.cancel,
-                    onPositiveClick = {
-                        FirebaseAuth.getInstance().signOut()
-                        findNavController().popBackStack(R.id.homeFragment, true)
-                        findNavController().navigate(R.id.loginFragment)
-                    },
+                    onPositiveClick = { _viewModel.logout() },
                     onNegativeClick = {
                         isDialogShowing = false
                         Unit

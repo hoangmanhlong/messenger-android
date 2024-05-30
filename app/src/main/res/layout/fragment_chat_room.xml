@@ -42,7 +42,8 @@
             android:ellipsize="end"
             android:padding="8dp"
             android:singleLine="true"
-            android:text="Hoang Manh Long"
+            tools:text="@string/author"
+            style="@style/TextAppearance.Material3.LabelLarge"
             android:textSize="20sp"
             android:textStyle="bold" />
 

@@ -6,22 +6,18 @@ import android.content.IntentSender
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.UserData
-import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
 class FirebaseGoogleServiceImpl(
     private val auth: FirebaseAuth,
     private val context: Context,
-    private val oneTapClient: SignInClient
+    private val oneTapClient: SignInClient,
+    private val appDataStore: AppDataStore
 ) : FirebaseGoogleService {
 
     override suspend fun signIn(): IntentSender? {
@@ -41,6 +37,7 @@ class FirebaseGoogleServiceImpl(
         val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
         return try {
             val user = auth.signInWithCredential(googleCredentials).await().user
+            appDataStore.saveBoolean(context, AppDataStore.IS_AUTHENTICATE_BY_EMAIL, false)
             SignInResult(
                 data = user?.run {
                     UserData(

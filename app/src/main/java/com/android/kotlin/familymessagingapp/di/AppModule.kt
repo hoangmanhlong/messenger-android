@@ -7,8 +7,8 @@ import com.android.kotlin.familymessagingapp.firebase_services.email_authenticat
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailServiceImpl
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleServiceImpl
+import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
-import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepositoryImpl
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
@@ -36,7 +36,12 @@ object AppModule {
         firebaseGoogleService: FirebaseGoogleService,
         firebaseEmailService: FirebaseEmailService
     ): FirebaseAuthenticationRepository =
-        FirebaseAuthenticationRepositoryImpl(firebaseGoogleService, firebaseEmailService)
+        FirebaseAuthenticationRepository(firebaseGoogleService, firebaseEmailService)
+
+    @Provides
+    @Singleton
+    fun provideDataMemoryRepository(appDataStore: AppDataStore): DataMemoryRepository =
+        DataMemoryRepository(appDataStore)
 
     @Provides
     @Singleton
@@ -53,9 +58,10 @@ object AppModule {
     fun provideGoogleService(
         auth: FirebaseAuth,
         application: Application,
-        signInClient: SignInClient
+        signInClient: SignInClient,
+        appDataStore: AppDataStore
     ): FirebaseGoogleService =
-        FirebaseGoogleServiceImpl(auth, application, signInClient)
+        FirebaseGoogleServiceImpl(auth, application, signInClient, appDataStore)
 
     @Singleton
     @Provides
@@ -64,6 +70,10 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provinceFirebaseEmailService(auth: FirebaseAuth): FirebaseEmailService =
-        FirebaseEmailServiceImpl(auth)
+    fun provinceFirebaseEmailService(
+        application: Application,
+        auth: FirebaseAuth,
+        appDataStore: AppDataStore
+    ): FirebaseEmailService =
+        FirebaseEmailServiceImpl(application, auth, appDataStore)
 }

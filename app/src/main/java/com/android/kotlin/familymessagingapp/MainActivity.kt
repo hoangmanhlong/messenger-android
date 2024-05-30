@@ -1,15 +1,15 @@
 package com.android.kotlin.familymessagingapp
 
 import android.os.Bundle
-import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
+import com.android.kotlin.familymessagingapp.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -18,12 +18,10 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
-
-        } else {
-
-        }
+        _viewModel.saveNotificationStatus(this, isGranted)
     }
+
+    private val _viewModel: MainViewModel by viewModels()
 
     private var _binding: ActivityMainBinding? = null
 
@@ -41,6 +39,7 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(binding.appContainer.id) as NavHostFragment
         navController = navHostFragment.navController
         PermissionUtils.askNotificationPermission(this, requestPermissionLauncher)
+        _viewModel.saveNotificationStatus(this, PermissionUtils.areNotificationsEnabled(this))
     }
 
     override fun onSupportNavigateUp(): Boolean {

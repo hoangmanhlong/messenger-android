@@ -92,6 +92,7 @@ class LoginWithEmailFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        showLoadingDialog(false)
         _binding = null
         _loadingDialog = null
     }
