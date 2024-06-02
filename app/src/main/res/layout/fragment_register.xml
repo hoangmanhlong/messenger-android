@@ -36,12 +36,19 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:layout_width="wrap_content"
+            style="@style/TextAppearance.Material3.HeadlineLarge"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="10dp"
             android:text="@string/Sign_up_title"
-            android:textSize="30sp"
             android:textStyle="bold" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/signup_description" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -66,11 +73,11 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="16dp"
             android:hint="@string/password"
-            app:helperText="@string/password_text_helper"
             app:boxCornerRadiusBottomEnd="26dp"
             app:boxCornerRadiusBottomStart="26dp"
             app:boxCornerRadiusTopEnd="26dp"
-            app:boxCornerRadiusTopStart="26dp">
+            app:boxCornerRadiusTopStart="26dp"
+            app:helperText="@string/password_text_helper">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPassword"

@@ -18,18 +18,27 @@ private const val APP_PREFERENCES_NAME = "APP_PREFERENCES_NAME"
 
 // Create a DataStore instance using the preferencesDataStore delegate, with the Context as
 // receiver.
-val Context.dataStore : DataStore<Preferences> by preferencesDataStore(
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = APP_PREFERENCES_NAME
 )
 
-class AppDataStore(private val preferenceDatastore: DataStore<Preferences>) {
+class AppDataStore(
+    private val context: Context,
+    private val preferenceDatastore: DataStore<Preferences>
+) {
 
     companion object {
+        val IS_THE_ENGLISH_LANGUAGE_DISPLAYED =
+            booleanPreferencesKey(Constant.IS_THE_ENGLISH_LANGUAGE_DISPLAYED)
         val IS_AUTHENTICATE_BY_EMAIL = booleanPreferencesKey(Constant.IS_AUTHENTICATE_BY_EMAIL_KEY)
         val ARE_NOTIFICATION_ENABLED = booleanPreferencesKey(Constant.ARE_NOTIFICATION_ENABLED)
+        val IS_THE_FIRST_LAUNCH = booleanPreferencesKey(Constant.IS_THE_FIRST_LAUNCH)
     }
 
-    fun getBooleanPreferenceFlow(key: Preferences.Key<Boolean>): Flow<Boolean> {
+    fun getBooleanPreferenceFlow(
+        key: Preferences.Key<Boolean>,
+        defaultValue: Boolean?
+    ): Flow<Boolean?> {
         return preferenceDatastore.data
             .catch {
                 if (it is IOException) {
@@ -40,13 +49,12 @@ class AppDataStore(private val preferenceDatastore: DataStore<Preferences>) {
                 }
             }
             .map { preferences ->
-                // On the first run of the app, we will use LinearLayoutManager by default
-                preferences[key] ?: false
+                // On the first run of the app, preferences[key] is null, so we can use default Value
+                preferences[key] ?: defaultValue
             }
     }
 
-
-    suspend fun saveBoolean(context: Context, key:  Preferences.Key<Boolean>, value: Boolean) {
+    suspend fun saveBoolean(key: Preferences.Key<Boolean>, value: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[key] = value
         }

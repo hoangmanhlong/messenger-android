@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.view
+package com.android.kotlin.familymessagingapp.components.home
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -13,12 +13,13 @@ import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.utils.Screen
-import com.android.kotlin.familymessagingapp.viewmodel.HomeViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,15 +48,21 @@ class HomeFragment : Fragment() {
             if (!authenticated) {
                 findNavController().popBackStack()
                 findNavController().navigate(R.id.loginFragment)
-            } else {
-                context?.let { context -> loadImage(context, R.drawable.baohong) }
+            }
+        }
+
+        viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
+            it?.let {user ->
+                context?.let { context ->
+                    loadImage(context, user.userAvatar ?: R.drawable.ic_broken_image)
+                }
             }
         }
 
         binding.searchBar.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.profile -> {
-                    findNavController().navigate(Screen.HomeScreen.navigateToSettingScreen())
+                    findNavController().navigate(Screen.HomeScreen.toProfile())
                     true
                 }
 
@@ -75,6 +82,8 @@ class HomeFragment : Fragment() {
                 .load(photo)
                 .centerCrop()
                 .circleCrop()
+                .placeholder(R.drawable.loading_animation)
+                .error(R.drawable.ic_broken_image)
                 .sizeMultiplier(0.50f) //optional
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(
@@ -106,7 +115,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun renderProfileImage(resource: Drawable) {
-        lifecycleScope.launch(Dispatchers.Main) { //Running on Main/UI thread
+        lifecycleScope.launch {
             binding.searchBar.menu.findItem(R.id.profile).icon = resource
         }
     }

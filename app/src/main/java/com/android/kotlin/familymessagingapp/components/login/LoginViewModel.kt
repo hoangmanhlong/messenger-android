@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.viewmodel
+package com.android.kotlin.familymessagingapp.components.login
 
 import android.content.IntentSender
 import androidx.activity.result.ActivityResult
@@ -9,9 +9,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
-import com.android.kotlin.familymessagingapp.utils.singleArgViewModelFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,30 +26,26 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository
+    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository,
+    dataMemoryRepository: DataMemoryRepository
 ) : ViewModel() {
 
-    companion object {
-        /**
-         * Factory for creating [LoginViewModel]
-         *
-         * @param arg the repository to pass to [LoginViewModel]
-         */
-        val FACTORY = singleArgViewModelFactory(::LoginViewModel)
-    }
+    val isTheEnglishLanguageDisplayedLiveData =
+        dataMemoryRepository.isTheEnglishLanguageDisplayedFlow.asLiveData()
 
-    private val _loadingStatus: MutableLiveData<Boolean> = MutableLiveData(false)
+    private val _loadingStatus = MutableLiveData(false)
     val loadingStatus: LiveData<Boolean> = _loadingStatus
 
-    val authenticationStatus: LiveData<Boolean> =
-        firebaseAuthenticationRepository.authenticated.asLiveData()
+    private val _authenticationStatus= MutableLiveData(false)
+    val authenticationStatus: LiveData<Boolean> = _authenticationStatus
 
     fun signInWithActivityResult(activityResult: ActivityResult) {
         updateLoadingStatus(true)
         viewModelScope.launch {
-            firebaseAuthenticationRepository
+            val result = firebaseAuthenticationRepository
                 .firebaseGoogleService
                 .signInWithIntent(activityResult.data ?: return@launch)
+            _authenticationStatus.value = result.data != null
         }
     }
 
@@ -68,5 +65,6 @@ class LoginViewModel @Inject constructor(
         _loadingStatus.value = isLoading
     }
 
-    private suspend fun signIn(): IntentSender? = firebaseAuthenticationRepository.firebaseGoogleService.signIn()
+    private suspend fun signIn(): IntentSender? =
+        firebaseAuthenticationRepository.firebaseGoogleService.signIn()
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="author">Hoàng Mạnh Long</string>
+    <string name="vietnam" translatable="false"> Việt Nam</string>
+    <string name="email" translatable="false">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="login">Đăng nhập</string>
+    <string name="login_with_email">Đăng nhập với email</string>
+    <string name="login_intro">Kết nối dễ dàng với gia đình và bạn bè của bạn trên khắp các quốc gia</string>
+    <string name="login_email_false_message">Thông tin tài khoản hoặc mật khẩu không chính xác</string>
+    <string name="sign_up_message">Không có tài khoản?. Đăng ký ngay</string>
+    <string name="login_with_google_account">Đăng nhập với Google</string>
+    <string name="forget_password">Quên mật khẩu?</string>
+    <string name="login_title">Đăng nhập tài khoản của bạn</string>
+
+    <!--Select Language Screen-->
+    <string name="select_language">Chọn ngôn ngữ</string>
+    <string name="vietnamese">Việt Nam</string>
+    <string name="english">Tiếng Anh</string>
+    <string name="save">Lưu</string>
+
+    <string name="setting">Cài đặt</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="logout_message">Bạn có chắc muốn đăng xuất?</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Hủy bỏ</string>
+    <string name="delete_account">Xóa tài khoản</string>
+    <string name="my_account">Tài khoản của tôi</string>
+    <string name="about">Thông tin</string>
+    <string name="language">Ngôn ngữ</string>
+
+    <string name="search">Search</string>
+    <string name="notification">Thông báo</string>
+
+    <!--    Register-->
+    <string name="Sign_up_title">Đăng ký tài khoản của bạn</string>
+    <string name="sign_up">Đăng ký</string>
+    <string name="password_text_helper">Mật khẩu phải dài hơn 6 ký tự</string>
+
+    <string name="network_not_available_title">Không có kết nối Internet</string>
+    <string name="network_not_available_message">Vui lòng kiểm tra kết nối Internet và thử lại</string>
+    <string name="account_already_exists">Tài khoản đã tồn tại</string>
+    <string name="try_again">Thử lại</string>
+
+    <string name="signup_description">Đăng ký Family Messaging bằng tài khoản email của bạn</string>
+
+</resources>

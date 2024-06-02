@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.view
+package com.android.kotlin.familymessagingapp.components.profile
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,18 +8,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.components.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
-import com.android.kotlin.familymessagingapp.viewmodel.SettingViewModel
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class PersonalFragment : Fragment() {
+class UserProfileFragment : Fragment() {
 
-    private val _viewModel: SettingViewModel by viewModels()
+    private val _viewModel: UserProfileViewModel by viewModels()
 
     private var _binding: FragmentPersonalBinding? = null
 
@@ -33,7 +32,7 @@ class PersonalFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPersonalBinding.inflate(inflater, container, false)
-        binding.fragment = this@PersonalFragment
+        binding.fragment = this@UserProfileFragment
         return binding.root
     }
 
@@ -43,6 +42,14 @@ class PersonalFragment : Fragment() {
             if (!isDialogShowing!!) onLogoutViewClick()
         }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+
+        _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) {
+            binding.isTheEnglishLanguageDisplayed = it
+        }
+
+        _viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
+            it?.let { binding.userData = it }
+        }
 
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) {
             if (!it) {
@@ -73,7 +80,7 @@ class PersonalFragment : Fragment() {
             NetworkChecker.checkNetwork(it) {
                 isDialogShowing = true
                 DialogUtils.createCommonDialog(
-                    context = requireContext(),
+                    context = it,
                     title = R.string.logout,
                     message = R.string.logout_message,
                     cancelable = true,
@@ -91,5 +98,12 @@ class PersonalFragment : Fragment() {
                 ).show()
             }
         }
+    }
+
+    fun onSelectLanguageViewClick() {
+        SelectLanguageBottomSheetDialogFragment().show(
+            this.parentFragmentManager,
+            SelectLanguageBottomSheetDialogFragment.TAG
+        )
     }
 }

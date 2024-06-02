@@ -15,7 +15,7 @@ class FirebaseEmailServiceImpl @Inject constructor(
     override suspend fun signIn(email: String, password: String): Boolean {
         return try {
             auth.signInWithEmailAndPassword(email, password).await()
-            appDataStore.saveBoolean(context, AppDataStore.IS_AUTHENTICATE_BY_EMAIL, true)
+            appDataStore.saveBoolean(AppDataStore.IS_AUTHENTICATE_BY_EMAIL, true)
             true
         } catch (e: Exception) {
             false

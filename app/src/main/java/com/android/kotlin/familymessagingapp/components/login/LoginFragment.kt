@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.view
+package com.android.kotlin.familymessagingapp.components.login
 
 import android.app.Activity
 import android.app.Dialog
@@ -11,22 +11,26 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.components.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
-import com.android.kotlin.familymessagingapp.viewmodel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
 
-    private val viewModel: LoginViewModel by viewModels()
+    private val _viewModel: LoginViewModel by viewModels()
 
     private val loginWithGoogleAccountLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.signInWithActivityResult(result)
+                context?.let { context ->
+                    NetworkChecker.checkNetwork(context) {
+                        _viewModel.signInWithActivityResult(result)
+                    }
+                }
             }
         }
 
@@ -42,6 +46,7 @@ class LoginFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
+        binding.fragment = this@LoginFragment
         activity?.let { _loadingDialog = DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
@@ -49,40 +54,43 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
+        _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
             if (authenticated) navigateToHomeScreen()
         }
 
-        viewModel.loadingStatus.observe(this.viewLifecycleOwner) { isLoading ->
+        _viewModel.loadingStatus.observe(this.viewLifecycleOwner) { isLoading ->
             showLoadingDialog(isLoading)
         }
 
-        binding.btLoginWithGoogleAccount.setOnClickListener { onLoginWithGoogleAccountButtonClick() }
+        _viewModel.isTheEnglishLanguageDisplayedLiveData.observe(this.viewLifecycleOwner) {
+            binding.isTheEnglishLanguageDisplayed = it
+        }
 
-        binding.btLoginWithEmail.setOnClickListener { navigateToSignInWithEmailScreen() }
+        binding.btLoginWithGoogleAccount.root.setOnClickListener { onLoginWithGoogleAccountButtonClick() }
+
+//        binding.btLoginWithEmail.setOnClickListener { navigateToSignInWithEmailScreen() }
     }
 
     private fun onLoginWithGoogleAccountButtonClick() {
         context?.let { context ->
             NetworkChecker.checkNetwork(context) {
-                viewModel.launchGoogleSignIn(loginWithGoogleAccountLauncher)
+                _viewModel.launchGoogleSignIn(loginWithGoogleAccountLauncher)
             }
         }
     }
 
     private fun navigateToHomeScreen() {
-        requireContext()
         findNavController().popBackStack(Screen.LoginScreen.screenId, true)
-        findNavController().navigate(R.id.homeFragment)
+        findNavController().navigate(Screen.HomeScreen.screenId)
     }
 
     private fun navigateToSignInWithEmailScreen() {
-        findNavController().navigate(Screen.LoginScreen.navigateToSignInWithEmailScreenRouteName())
+        findNavController().navigate(Screen.LoginScreen.toSignInWithEmail())
     }
 
     private fun showLoadingDialog(isShow: Boolean) {
         _loadingDialog?.let {
-            if (isShow) it.show()
+            if (isShow && !it.isShowing) it.show()
             else it.dismiss()
         }
     }
@@ -92,5 +100,12 @@ class LoginFragment : Fragment() {
         showLoadingDialog(false)
         _loadingDialog = null
         _binding = null
+    }
+
+    fun onSelectLanguageViewClick() {
+        SelectLanguageBottomSheetDialogFragment().show(
+            this.parentFragmentManager,
+            SelectLanguageBottomSheetDialogFragment.TAG
+        )
     }
 }

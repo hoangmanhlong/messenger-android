@@ -6,12 +6,15 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
+// Bug:
+// UserData does not define a no-argument constructor. If you are using ProGuard, make sure these constructors are not stripped.
+// Solution: init properties = null
 @Parcelize
 @IgnoreExtraProperties
 data class UserData(
-    @Expose @SerializedName("uid") val uid: String,
-    @Expose @SerializedName("username") val username: String?,
-    @Expose @SerializedName("email") val email: String?,
-    @Expose @SerializedName("phone_number") val phoneNumber: String?,
-    @Expose @SerializedName("user_avatar") val userAvatar: String?
+    @Expose @SerializedName("uid") val uid: String? = null,
+    @Expose @SerializedName("username") val username: String? = null,
+    @Expose @SerializedName("email") val email: String? = null,
+    @Expose @SerializedName("phone_number") val phoneNumber: String? = null,
+    @Expose @SerializedName("user_avatar") val userAvatar: String? = null
 ) : Parcelable

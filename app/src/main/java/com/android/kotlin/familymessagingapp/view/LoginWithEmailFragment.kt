@@ -80,7 +80,7 @@ class LoginWithEmailFragment : Fragment() {
     }
 
     private fun navigateToSignUpScreen() {
-        findNavController().navigate(Screen.LoginWithEmailScreen.navigateToSignUpAccountWithEmailScreen())
+        findNavController().navigate(Screen.LoginWithEmailScreen.toSignUpWithEmail())
     }
 
     private fun showLoadingDialog(isShow: Boolean) {

@@ -12,7 +12,7 @@
         tools:layout="@layout/fragment_chat_room" />
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.android.kotlin.familymessagingapp.view.LoginFragment"
+        android:name="com.android.kotlin.familymessagingapp.components.login.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
         <action
@@ -21,7 +21,7 @@
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.android.kotlin.familymessagingapp.view.HomeFragment"
+        android:name="com.android.kotlin.familymessagingapp.components.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action
@@ -33,7 +33,7 @@
     </fragment>
     <fragment
         android:id="@+id/personalFragment"
-        android:name="com.android.kotlin.familymessagingapp.view.PersonalFragment"
+        android:name="com.android.kotlin.familymessagingapp.components.profile.UserProfileFragment"
         android:label="fragment_setting"
         tools:layout="@layout/fragment_personal" />
     <fragment

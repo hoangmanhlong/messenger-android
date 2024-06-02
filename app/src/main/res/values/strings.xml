@@ -1,46 +1,39 @@
 <resources>
-    <string name="author">Hoang Long</string>
-    <string name="web_client_id">767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com</string>
+    <string name="author">Hoang Manh Long</string>
+    <string name="web_client_id" translatable="false">767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
-    <string name="fcm_message">FCM Message</string>
+    <string name="fcm_message" translatable="false">FCM Message</string>
+    <string name="app_name" translatable="false">Family Messaging App</string>
 
-
-    <string name="app_name">Family Messaging Ap p</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
+<!--    Login Screen-->
     <string name="vietnam" translatable="false"> Việt Nam</string>
-    <string name="english">English</string>
     <string name="email" translatable="false">Email</string>
+    <string name="login_with_email">Login with Email</string>
+    <string name="login_with_google_account">Login with Google</string>
+    <string name="login_intro">Connect easily with your family and friends over countries</string>
+
     <string name="password">Password</string>
     <string name="login">Login</string>
-    <string name="login_with_email">Login with Email</string>
+
     <string name="login_email_false_message">Account information or password is incorrect</string>
     <string name="sign_up_message">Don\'t have an account. Sign up now</string>
-    <string name="login_with_google_account">Login with Google Account</string>
+
     <string name="forget_password">Forget password ?</string>
     <string name="login_title">Login Your account</string>
 
     <string name="setting">Setting</string>
     <string name="logout">Log out</string>
-    <string name="logout_message">Are you sure you want to logout ?</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="delete_account">Delete account</string>
-    <string name="edit_my_information">Edit my information</string>
     <string name="my_account">My account</string>
     <string name="about">About</string>
     <string name="language">Language</string>
 
     <string name="search">Search</string>
 
-    <!--    Home-->
-    <string name="chat">Chats</string>
-    <string name="groups">Groups</string>
-    <string name="friends">Friends</string>
-    <string name="contact">Contact</string>
     <string name="notification">Notification</string>
-    <string name="personal">Personal</string>
 
     <!--    Register-->
     <string name="Sign_up_title">Sign up Your Account</string>
@@ -51,5 +44,12 @@
     <string name="network_not_available_message">Please check your internet connection and try again</string>
     <string name="account_already_exists">Account already exists</string>
     <string name="try_again">Try again</string>
+
+    <string name="select_language">Select language</string>
+    <string name="vietnamese">Vietnamese</string>
+    <string name="english">English</string>
+    <string name="save">Save</string>
+
+    <string name="signup_description">Sign up your Family Messaging with your email account</string>
 
 </resources>

@@ -1,28 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".components.select_language.login.LoginFragment">
 
     <data>
 
         <variable
-            name="isVietnamese"
+            name="fragment"
+            type="com.android.kotlin.familymessagingapp.components.login.LoginFragment" />
+
+        <variable
+            name="isTheEnglishLanguageDisplayed"
             type="Boolean" />
 
         <import type="android.view.View" />
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        tools:context=".view.LoginFragment">
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide03"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.2" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/guide03">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_intro" />
+
+            <TextView
+                android:layout_marginTop="16dp"
+                style="@style/TextAppearance.Material3.TitleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="32dp"
+                android:text="@string/login_intro"
+                android:textStyle="bold"
+                android:textAlignment="center" />
+        </LinearLayout>
 
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:background="?attr/selectableItemBackground"
+            android:onClick="@{() -> fragment.onSelectLanguageViewClick()}"
+            android:padding="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -31,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:visibility="@{isVietnamese ? View.VISIBLE : View.GONE}">
+                android:visibility="@{isTheEnglishLanguageDisplayed ? View.GONE : View.VISIBLE}">
 
                 <ImageView
                     android:layout_width="22dp"
@@ -42,8 +76,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="@string/vietnam"
-                    tools:text="Vietnamese" />
+                    android:text="@string/vietnamese"
+                    tools:text="@string/vietnamese" />
             </LinearLayout>
 
             <LinearLayout
@@ -51,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:visibility="@{isVietnamese ? View.GONE : View.VISIBLE}">
+                android:visibility="@{isTheEnglishLanguageDisplayed ? View.VISIBLE : View.GONE}">
 
                 <ImageView
                     android:layout_width="22dp"
@@ -63,32 +97,29 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="@string/english"
-                    tools:text="Vietnamese" />
+                    tools:text="@string/english" />
             </LinearLayout>
         </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipToPadding="false"
             android:orientation="vertical"
             android:padding="32dp"
             app:layout_constraintBottom_toBottomOf="parent">
 
-            <Button
-                android:id="@+id/btLoginWithEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/login_with_email"
-                android:textStyle="bold" />
+<!--            <Button-->
+<!--                android:id="@+id/btLoginWithEmail"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginBottom="8dp"-->
+<!--                android:text="@string/login_with_email"-->
+<!--                android:textStyle="bold" />-->
 
-            <Button
+            <include
                 android:id="@+id/btLoginWithGoogleAccount"
-                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/login_with_google_account"
-                android:textStyle="bold" />
+                layout="@layout/layout_google_button" />
 
         </LinearLayout>
 
