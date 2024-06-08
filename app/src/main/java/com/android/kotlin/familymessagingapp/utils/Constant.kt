@@ -2,6 +2,8 @@ package com.android.kotlin.familymessagingapp.utils
 
 object Constant {
 
+    const val TOKEN_KEY = "TOKEN_KEY"
+
     const val VIETNAM_COUNTRY_CODE = "vi"
 
     const val ENGLISH_COUNTRY_CODE = "en-US"

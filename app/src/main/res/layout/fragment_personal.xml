@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".components.profile.UserProfileFragment">
+    tools:context=".screen.profile.UserProfileFragment">
 
     <data>
 
@@ -22,7 +22,7 @@
 
         <variable
             name="fragment"
-            type="com.android.kotlin.familymessagingapp.components.profile.UserProfileFragment" />
+            type="com.android.kotlin.familymessagingapp.screen.profile.UserProfileFragment" />
     </data>
 
     <androidx.core.widget.NestedScrollView

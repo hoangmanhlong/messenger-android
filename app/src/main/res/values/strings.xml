@@ -5,10 +5,11 @@
     <string name="fcm_message" translatable="false">FCM Message</string>
     <string name="app_name" translatable="false">Family Messaging App</string>
 
-<!--    Login Screen-->
+    <!--    Login Screen-->
+    <string name="or">Or</string>
     <string name="vietnam" translatable="false"> Việt Nam</string>
     <string name="email" translatable="false">Email</string>
-    <string name="login_with_email">Login with Email</string>
+    <string name="login_with_email">Login with my account</string>
     <string name="login_with_google_account">Login with Google</string>
     <string name="login_intro">Connect easily with your family and friends over countries</string>
 
@@ -16,7 +17,7 @@
     <string name="login">Login</string>
 
     <string name="login_email_false_message">Account information or password is incorrect</string>
-    <string name="sign_up_message">Don\'t have an account. Sign up now</string>
+    <string name="sign_up_message">Don\'t have an account? Sign up now</string>
 
     <string name="forget_password">Forget password ?</string>
     <string name="login_title">Login Your account</string>
@@ -36,6 +37,7 @@
     <string name="notification">Notification</string>
 
     <!--    Register-->
+    <string name="username">Username</string>
     <string name="Sign_up_title">Sign up Your Account</string>
     <string name="sign_up">Sign up</string>
     <string name="password_text_helper">Password must be greater than 6 characters</string>

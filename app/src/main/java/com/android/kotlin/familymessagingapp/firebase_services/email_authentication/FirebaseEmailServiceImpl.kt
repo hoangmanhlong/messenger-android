@@ -7,7 +7,6 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FirebaseEmailServiceImpl @Inject constructor(
-    private val context: Context,
     private val auth: FirebaseAuth,
     private val appDataStore: AppDataStore
 ) : FirebaseEmailService {

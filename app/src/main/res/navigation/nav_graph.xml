@@ -7,21 +7,24 @@
 
     <fragment
         android:id="@+id/chatRoomFragment"
-        android:name="com.android.kotlin.familymessagingapp.view.ChatRoomFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.chatroom.ChatRoomFragment"
         android:label="fragment_chat_room"
         tools:layout="@layout/fragment_chat_room" />
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.android.kotlin.familymessagingapp.components.login.LoginFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.login.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
         <action
             android:id="@+id/action_loginFragment_to_loginWithEmailFragment"
             app:destination="@id/loginWithEmailFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.android.kotlin.familymessagingapp.components.home.HomeFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
         <action
@@ -33,17 +36,17 @@
     </fragment>
     <fragment
         android:id="@+id/personalFragment"
-        android:name="com.android.kotlin.familymessagingapp.components.profile.UserProfileFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.profile.UserProfileFragment"
         android:label="fragment_setting"
         tools:layout="@layout/fragment_personal" />
     <fragment
         android:id="@+id/registerFragment"
-        android:name="com.android.kotlin.familymessagingapp.view.RegisterFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.register.RegisterFragment"
         android:label="fragment_register"
         tools:layout="@layout/fragment_register" />
     <fragment
         android:id="@+id/loginWithEmailFragment"
-        android:name="com.android.kotlin.familymessagingapp.view.LoginWithEmailFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.login_username_password.LoginWithUsernamePasswordFragment"
         android:label="fragment_login_with_email"
         tools:layout="@layout/fragment_login_with_email" >
         <action

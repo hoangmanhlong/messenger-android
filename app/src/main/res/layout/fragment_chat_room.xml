@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".view.ChatRoomFragment">
+    tools:context=".screen.chatroom.ChatRoomFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -107,14 +107,11 @@
 
         <Button
             android:id="@+id/btSend"
-            style="?attr/materialIconButtonFilledStyle"
+            style="?attr/materialIconButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_send"
-            app:iconSize="30dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:iconSize="26dp" />
     </LinearLayout>
 
 </LinearLayout>

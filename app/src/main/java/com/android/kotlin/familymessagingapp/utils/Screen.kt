@@ -4,7 +4,9 @@ import com.android.kotlin.familymessagingapp.R
 
 sealed class Screen(val screenId: Int) {
     data object LoginScreen : Screen(R.id.loginFragment) {
-        fun toSignInWithEmail(): Int = R.id.action_loginFragment_to_loginWithEmailFragment
+        fun toSignInYourAccount(): Int = R.id.action_loginFragment_to_loginWithEmailFragment
+
+        fun toRegister(): Int = R.id.action_loginFragment_to_registerFragment
     }
 
     data object HomeScreen : Screen(R.id.homeFragment) {
@@ -13,5 +15,9 @@ sealed class Screen(val screenId: Int) {
 
     data object LoginWithEmailScreen : Screen(R.id.loginWithEmailFragment) {
         fun toSignUpWithEmail(): Int = R.id.action_loginWithEmailFragment_to_registerFragment
+    }
+
+    data object Register : Screen(R.id.registerFragment) {
+
     }
 }
