@@ -2,6 +2,12 @@ package com.android.kotlin.familymessagingapp.utils
 
 object Constant {
 
+    const val BASE_URL = "https://developer.android.com/"
+
+    const val DURATION_TIMEOUT = 60
+
+    const val ROOM_DATABASE_NAME = "app_database"
+
     const val TOKEN_KEY = "TOKEN_KEY"
 
     const val VIETNAM_COUNTRY_CODE = "vi"

@@ -1,12 +1,21 @@
 package com.android.kotlin.familymessagingapp.activity
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.NetworkCallback
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
+import android.util.TypedValue
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,11 +25,19 @@ class MainActivity : AppCompatActivity() {
 
     private val _viewModel: MainViewModel by viewModels()
 
+//    private lateinit var connectivityManager: ConnectivityManager
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         _viewModel.saveNotificationStatus(isGranted)
     }
+
+//    private val networkRequest = NetworkRequest.Builder()
+//        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+//        .build();
+//
+//    private lateinit var networkCallback: NetworkCallback
 
     private var _binding: ActivityMainBinding? = null
 
@@ -34,12 +51,39 @@ class MainActivity : AppCompatActivity() {
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         _viewModel.executeTheJobOnFirstRun()
+//        networkListener()
         val navHostFragment = supportFragmentManager
             .findFragmentById(binding.appContainer.id) as NavHostFragment
         navController = navHostFragment.navController
         PermissionUtils.askNotificationPermission(this, requestPermissionLauncher)
         _viewModel.saveNotificationStatus(PermissionUtils.areNotificationsEnabled(this))
     }
+
+//    override fun onStart() {
+//        super.onStart()
+//        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+//    }
+//
+//    override fun onStop() {
+//        super.onStop()
+//        connectivityManager.unregisterNetworkCallback(networkCallback)
+//    }
+//
+//    private fun networkListener() {
+//        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+//        networkCallback = object : NetworkCallback() {
+//            override fun onAvailable(network: Network) {
+//                super.onAvailable(network)
+//                this@MainActivity.window?.statusBarColor = getPrimaryColor(this@MainActivity)
+//            }
+//
+//            override fun onLost(network: Network) {
+//                super.onLost(network)
+//                this@MainActivity.window?.statusBarColor =
+//                    ContextCompat.getColor(this@MainActivity, R.color.md_theme_light_error)
+//            }
+//        }
+//    }
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
@@ -49,4 +93,11 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         _binding = null
     }
+
+//    fun getPrimaryColor(context: Context): Int {
+//        val typedValue = TypedValue()
+//        val theme = context.theme
+//        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
+//        return typedValue.data
+//    }
 }

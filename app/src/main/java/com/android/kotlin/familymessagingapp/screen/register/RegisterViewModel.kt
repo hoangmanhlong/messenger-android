@@ -52,13 +52,13 @@ class RegisterViewModel @Inject constructor(
     fun signup() {
         _isLoading.value = true
         viewModelScope.launch {
-            val result: Result<ObjectResponse> = try {
+            val result = try {
                 appRepository.register(username!!, password!!)
             } catch (e: Exception) {
                 Result.Error(e)
             }
             when (result) {
-                is Result.Success<ObjectResponse> -> {
+                is Result.Success<Any> -> {
                     _isLoading.value = false
                     _isRegisterSuccess.value = true
                 }

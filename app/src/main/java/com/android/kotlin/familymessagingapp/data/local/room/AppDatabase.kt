@@ -6,10 +6,5 @@ import com.android.kotlin.familymessagingapp.data.local.room.entities.MessageEnt
 
 @Database(entities = [MessageEntity::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract val dao: AppDao
-
-    companion object {
-        const val DATABASE_NAME = "app_database"
-    }
 }

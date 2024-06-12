@@ -92,8 +92,8 @@ class LoginWithUsernamePasswordViewModel @Inject constructor(
                 when (result) {
                     is Result.Success<ObjectResponse> -> {
                         try {
-                            val loginRes: LoginRes = (result.data.data as LoginRes)
-                            loginRes.token?.let {
+                            val data = result.data as LoginRes
+                            data.token?.let {
                                 appDataStore.saveString(AppDataStore.TOKEN, it)
                             }
 
