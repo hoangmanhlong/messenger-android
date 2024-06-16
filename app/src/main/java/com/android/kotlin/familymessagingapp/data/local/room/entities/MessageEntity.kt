@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import com.android.kotlin.familymessagingapp.model.MessageStatus
 import com.android.kotlin.familymessagingapp.model.MessageType
 
-@Entity(tableName = "messages")
+@Entity(tableName = "message")
 data class MessageEntity(
     @PrimaryKey
     val messageId: Long,

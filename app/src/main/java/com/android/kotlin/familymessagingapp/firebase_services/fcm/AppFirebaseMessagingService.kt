@@ -9,8 +9,14 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
+import androidx.work.workDataOf
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.data.local.work.SaveFCMTokenToLocalAndSendToServerWorker
+import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -72,11 +78,15 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
      */
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed token: $token")
-
-        // If you want to send messages to this application instance or
-        // manage this apps subscriptions on the server side, send the
+        //  Save Totken into dataStore and send the
         // FCM registration token to your app server.
-        sendRegistrationToServer(token)
+
+        val uploadWorkRequest: WorkRequest =
+            OneTimeWorkRequestBuilder<SaveFCMTokenToLocalAndSendToServerWorker>()
+                .setInputData(workDataOf(Constant.FCM_TOKEN_KEY to token))
+                .build()
+
+        WorkManager.getInstance(application).enqueue(uploadWorkRequest)
     }
     // [END on_new_token]
 

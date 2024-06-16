@@ -36,6 +36,7 @@ class AppDataStore(
         val ARE_NOTIFICATION_ENABLED = booleanPreferencesKey(Constant.ARE_NOTIFICATION_ENABLED)
         val IS_THE_FIRST_LAUNCH = booleanPreferencesKey(Constant.IS_THE_FIRST_LAUNCH)
         val TOKEN = stringPreferencesKey(Constant.TOKEN_KEY)
+        val FCM_TOKEN = stringPreferencesKey(Constant.FCM_TOKEN_KEY)
     }
 
     fun getBooleanPreferenceFlow(

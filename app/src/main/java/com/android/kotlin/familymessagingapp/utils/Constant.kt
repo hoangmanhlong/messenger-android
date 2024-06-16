@@ -2,6 +2,8 @@ package com.android.kotlin.familymessagingapp.utils
 
 object Constant {
 
+    const val FCM_TOKEN_KEY = "FCM_TOKEN_KEY"
+
     const val BASE_URL = "https://developer.android.com/"
 
     const val DURATION_TIMEOUT = 60

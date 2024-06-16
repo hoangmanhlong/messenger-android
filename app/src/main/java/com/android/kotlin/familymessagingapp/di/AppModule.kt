@@ -5,7 +5,8 @@ import androidx.room.Room
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.data_store.dataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
-import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.AppApi
+import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
+import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailServiceImpl
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
@@ -15,7 +16,6 @@ import com.android.kotlin.familymessagingapp.repository.AppRepository
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
@@ -29,10 +29,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -41,26 +37,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAppRepository(appService: AppApi): AppRepository =
+    fun provideAppRepository(appService: BackendApiService): AppRepository =
         AppRepository(appService)
 
     @Provides
     @Singleton
-    fun provideAppApiService(application: Application): AppApi {
-        val okhttpBuilder = OkHttpClient.Builder()
-            .connectTimeout(Constant.DURATION_TIMEOUT.toLong(), TimeUnit.SECONDS)
-            .readTimeout(Constant.DURATION_TIMEOUT.toLong(), TimeUnit.SECONDS)
-            .addInterceptor(ChuckerInterceptor(application))
-            .build()
-
-        return Retrofit.Builder()
-//        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(Constant.BASE_URL)
-            .client(okhttpBuilder)
-            .build()
-            .create(AppApi::class.java)
-    }
+    fun provideAppApiService(application: Application): BackendApiService =
+        AppRetrofitClient(application).retrofit
 
     @Provides
     @Singleton
