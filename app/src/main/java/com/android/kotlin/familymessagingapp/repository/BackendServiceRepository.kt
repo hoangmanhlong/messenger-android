@@ -9,7 +9,7 @@ import com.android.kotlin.familymessagingapp.utils.StringUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class AppRepository(
+class BackendServiceRepository(
     private val backend: BackendApiService
 ) {
     suspend fun register(username: String, password: String): Result<ObjectResponse> {

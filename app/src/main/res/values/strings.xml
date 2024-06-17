@@ -9,7 +9,6 @@
     <string name="or">Or</string>
     <string name="vietnam" translatable="false"> Việt Nam</string>
     <string name="email" translatable="false">Email</string>
-    <string name="login_with_email">Login with my account</string>
     <string name="login_with_google_account">Login with Google</string>
     <string name="login_intro">Connect easily with your family and friends over countries</string>
 
@@ -20,7 +19,7 @@
     <string name="sign_up_message">Don\'t have an account? Sign up now</string>
 
     <string name="forget_password">Forget password ?</string>
-    <string name="login_title">Login Your account</string>
+    <string name="login_with_email">Login with Email</string>
 
     <string name="setting">Setting</string>
     <string name="logout">Log out</string>
@@ -38,9 +37,11 @@
 
     <!--    Register-->
     <string name="username">Username</string>
-    <string name="Sign_up_title">Sign up Your Account</string>
+    <string name="register_with_email">Register with Email</string>
     <string name="sign_up">Sign up</string>
     <string name="password_text_helper">Password must be greater than 6 characters</string>
+    <string name="email_exist">Email already exists. Please use another email</string>
+    <string name="other_error">An error occurred. Please try again</string>
 
     <string name="network_not_available_title">No Internet Connection</string>
     <string name="network_not_available_message">Please check your internet connection and try again</string>

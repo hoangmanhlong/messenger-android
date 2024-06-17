@@ -5,7 +5,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.repository.AppRepository
+import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.assisted.Assisted
@@ -17,7 +17,7 @@ class SaveFCMTokenToLocalAndSendToServerWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val dataStore: AppDataStore,
-    private val appRepository: AppRepository
+    private val backendServiceRepository: BackendServiceRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -26,7 +26,7 @@ class SaveFCMTokenToLocalAndSendToServerWorker @AssistedInject constructor(
             dataStore.saveString(AppDataStore.TOKEN, fcmToken)
             val userToken = dataStore.getStringPreferenceFlow(AppDataStore.FCM_TOKEN, null).first()
             userToken?.let { token ->
-                appRepository.sendFCMToken(
+                backendServiceRepository.sendFCMToken(
                     userToken = StringUtils.generateBearerToken(token),
                     fcmToken = StringUtils.generateBearerToken(fcmToken)
                 )

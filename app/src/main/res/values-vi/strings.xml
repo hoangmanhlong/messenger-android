@@ -5,13 +5,12 @@
     <string name="email" translatable="false">Email</string>
     <string name="password">Mật khẩu</string>
     <string name="login">Đăng nhập</string>
-    <string name="login_with_email">Đăng nhập với tài khoản của tôi</string>
     <string name="login_intro">Kết nối dễ dàng với gia đình và bạn bè của bạn trên khắp các quốc gia</string>
     <string name="login_email_false_message">Thông tin tài khoản hoặc mật khẩu không chính xác</string>
     <string name="sign_up_message">Không có tài khoản? Đăng ký ngay</string>
     <string name="login_with_google_account">Đăng nhập với Google</string>
     <string name="forget_password">Quên mật khẩu?</string>
-    <string name="login_title">Đăng nhập tài khoản của bạn</string>
+    <string name="login_with_email">Đăng nhập với Email</string>
 
     <!--Select Language Screen-->
     <string name="select_language">Chọn ngôn ngữ</string>
@@ -35,9 +34,11 @@
 
     <!--    Register-->
     <string name="username">Tên người dùng</string>
-    <string name="Sign_up_title">Đăng ký tài khoản của bạn</string>
+    <string name="register_with_email">Đăng ký với Email</string>
     <string name="sign_up">Đăng ký</string>
     <string name="password_text_helper">Mật khẩu phải dài hơn 6 ký tự</string>
+    <string name="email_exist">Email đã tồn tại. Vui lòng sử dụng email khác</string>
+    <string name="other_error">Có lỗi xảy ra. Vui lòng thử lại</string>
 
     <string name="network_not_available_title">Không có kết nối Internet</string>
     <string name="network_not_available_message">Vui lòng kiểm tra kết nối Internet và thử lại</string>

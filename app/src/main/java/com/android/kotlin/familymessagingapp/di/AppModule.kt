@@ -12,7 +12,7 @@ import com.android.kotlin.familymessagingapp.firebase_services.email_authenticat
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleServiceImpl
 import com.android.kotlin.familymessagingapp.firebase_services.realtime.AppRealtimeDatabaseService
-import com.android.kotlin.familymessagingapp.repository.AppRepository
+import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
@@ -37,8 +37,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAppRepository(appService: BackendApiService): AppRepository =
-        AppRepository(appService)
+    fun provideBackendServiceRepository(appService: BackendApiService): BackendServiceRepository =
+        BackendServiceRepository(appService)
 
     @Provides
     @Singleton
@@ -102,10 +102,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provinceAppRealtimeDatabaseReference(
-        authenticationRepository: FirebaseAuthenticationRepository,
+        auth: FirebaseAuth,
         databaseReference: DatabaseReference
     ): AppRealtimeDatabaseService =
-        AppRealtimeDatabaseService(authenticationRepository, databaseReference)
+        AppRealtimeDatabaseService(auth, databaseReference)
 
     @Provides
     @Singleton
@@ -115,9 +115,10 @@ object AppModule {
     @Provides
     fun provinceFirebaseEmailService(
         auth: FirebaseAuth,
-        appDataStore: AppDataStore
+        appDataStore: AppDataStore,
+        appRealtimeDatabaseService: AppRealtimeDatabaseService
     ): FirebaseEmailService =
-        FirebaseEmailServiceImpl(auth, appDataStore)
+        FirebaseEmailServiceImpl(auth, appDataStore, appRealtimeDatabaseService)
 
     @Provides
     @Singleton

@@ -4,70 +4,80 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.data.remote.dto.res.ObjectResponse
+import com.android.kotlin.familymessagingapp.model.AuthenticationStatus
+import com.android.kotlin.familymessagingapp.model.RegisterException
 import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.repository.AppRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import com.android.kotlin.familymessagingapp.utils.StringUtils
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val appRepository: AppRepository
+    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository
 ) : ViewModel() {
-    private var username: String? = ""
+    private var _email: String = ""
 
-    private var password: String? = ""
+    private var _password: String = ""
 
-    private val _isRegisterSuccess: MutableLiveData<Boolean> = MutableLiveData()
-    val isRegisterSuccess: LiveData<Boolean> = _isRegisterSuccess
+    private val _authenticationStatus: MutableLiveData<AuthenticationStatus> = MutableLiveData(AuthenticationStatus.NONE)
+    val authenticationStatus: LiveData<AuthenticationStatus> = _authenticationStatus
 
     private val _isValidEmail: MutableLiveData<Boolean> = MutableLiveData(false)
 
     private val _isValidPassword: MutableLiveData<Boolean> = MutableLiveData(false)
 
     private val _buttonRegisterStatus: MutableLiveData<Boolean> =
-        MutableLiveData(isValidUsernameAndPassword())
+        MutableLiveData(isValidEmailAndPassword())
     val buttonRegisterStatus: LiveData<Boolean> = _buttonRegisterStatus
 
     private val _isLoading: MutableLiveData<Boolean> = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    fun setUsername(email: String) {
-        this.username = email
+    private val _isUserExist: MutableLiveData<Boolean> = MutableLiveData()
+    val isUserExist: LiveData<Boolean> = _isUserExist
+
+    fun setEmail(email: String) {
+        this._email = email
         _isValidEmail.value = StringUtils.isValidEmail(email)
-        _buttonRegisterStatus.value = isValidUsernameAndPassword()
+        _buttonRegisterStatus.value = isValidEmailAndPassword()
     }
 
     fun setPassword(password: String) {
-        this.password = password
+        this._password = password
         _isValidPassword.value = password.length >= 6
-        _buttonRegisterStatus.value = isValidUsernameAndPassword()
+        _buttonRegisterStatus.value = isValidEmailAndPassword()
     }
 
-    private fun isValidUsernameAndPassword(): Boolean =
-        _isValidEmail.value == true && _isValidPassword.value == true
+    private fun isValidEmailAndPassword(): Boolean {
+        return StringUtils.isValidEmail(this._email)
+                && StringUtils.isValidPasswordLength(this._password)
+                && isValidInput()
+    }
+
+    private fun isValidInput(): Boolean = _email.isNotBlank() && _password.isNotBlank()
 
     fun signup() {
-        _isLoading.value = true
-        viewModelScope.launch {
-            val result = try {
-                appRepository.register(username!!, password!!)
-            } catch (e: Exception) {
-                Result.Error(e)
-            }
-            when (result) {
-                is Result.Success<Any> -> {
-                    _isLoading.value = false
-                    _isRegisterSuccess.value = true
+        if (isValidEmailAndPassword()) {
+            _isLoading.value = true
+            viewModelScope.launch {
+                val result: Result<Boolean> = firebaseAuthenticationRepository.firebaseEmailService
+                    .signUp(_email, _password)
+                when(result) {
+                    is Result.Success -> {
+                        _authenticationStatus.value = AuthenticationStatus.SUCCESS
+                    }
+                    is Result.Error -> {
+                        _authenticationStatus.value = AuthenticationStatus.FAILURE
+                        _isUserExist.value = result.exception is FirebaseAuthUserCollisionException
+                    }
                 }
-
-                else -> {
-                    _isLoading.value = false
-                    _isRegisterSuccess.value = false
-                }
+                _isLoading.value = false
             }
+        } else {
+            _authenticationStatus.value = AuthenticationStatus.FAILURE
         }
     }
 }

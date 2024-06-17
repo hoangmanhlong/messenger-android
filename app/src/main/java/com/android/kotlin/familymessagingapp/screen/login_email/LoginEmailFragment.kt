@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.screen.login_username_password
+package com.android.kotlin.familymessagingapp.screen.login_email
 
 import android.app.Dialog
 import android.os.Bundle
@@ -9,7 +9,9 @@ import android.view.ViewGroup
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginWithEmailBinding
+import com.android.kotlin.familymessagingapp.model.AuthenticationStatus
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
@@ -17,9 +19,9 @@ import com.android.kotlin.familymessagingapp.utils.Screen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class LoginWithUsernamePasswordFragment : Fragment() {
+class LoginEmailFragment : Fragment() {
 
-    private val _viewModel: LoginWithUsernamePasswordViewModel by viewModels()
+    private val _viewModel: LoginEmailViewModel by viewModels()
 
     private var _binding: FragmentLoginWithEmailBinding? = null
 
@@ -41,12 +43,16 @@ class LoginWithUsernamePasswordFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
 
-//        _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
-//            if (authenticated) {
-//                findNavController().popBackStack(Screen.LoginScreen.screenId, true)
-//                findNavController().navigate(R.id.homeFragment)
-//            }
-//        }
+        _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) {
+            when(it) {
+                AuthenticationStatus.SUCCESS -> {
+                    findNavController().popBackStack(Screen.LoginScreen.screenId, true)
+                    findNavController().navigate(R.id.homeFragment)
+                }
+                AuthenticationStatus.FAILURE -> binding.tvLoginError.visibility = View.VISIBLE
+                AuthenticationStatus.NONE -> binding.tvLoginError.visibility = View.GONE
+            }
+        }
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) { isLoading ->
             showLoadingDialog(isLoading)
@@ -60,10 +66,10 @@ class LoginWithUsernamePasswordFragment : Fragment() {
             context?.let { NetworkChecker.checkNetwork(it) { _viewModel.loginWithEmail() } }
         }
 
-        binding.etUsername.addTextChangedListener {
+        binding.etEmail.addTextChangedListener {
             if (binding.tvLoginError.visibility == View.VISIBLE)
                 binding.tvLoginError.visibility = View.GONE
-            _viewModel.setUsername(it.toString().trim())
+            _viewModel.setEmail(it.toString().trim())
         }
 
         binding.etPassword.addTextChangedListener {
@@ -92,5 +98,6 @@ class LoginWithUsernamePasswordFragment : Fragment() {
         showLoadingDialog(false)
         _binding = null
         _loadingDialog = null
+        _viewModel.setAuthenticationStatusNone()
     }
 }

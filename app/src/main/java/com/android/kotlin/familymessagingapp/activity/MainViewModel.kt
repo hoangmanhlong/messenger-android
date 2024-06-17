@@ -1,22 +1,13 @@
 package com.android.kotlin.familymessagingapp.activity
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.data.remote.dto.res.ObjectResponse
-import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.repository.AppRepository
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
-import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel

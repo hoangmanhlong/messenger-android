@@ -40,20 +40,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="10dp"
-            android:text="@string/Sign_up_title"
+            android:text="@string/register_with_email"
             android:textStyle="bold" />
-
-        <TextView
-            style="@style/TextAppearance.AppCompat.Body1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/signup_description" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/username"
+            android:hint="@string/email"
             app:boxCornerRadiusBottomEnd="26dp"
             app:boxCornerRadiusBottomStart="26dp"
             app:boxCornerRadiusTopEnd="26dp"
@@ -61,7 +54,7 @@
             app:endIconMode="clear_text">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etUsername"
+                android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:imeOptions="actionNext"
@@ -92,7 +85,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:text="@string/login_email_false_message"
             android:textAlignment="center"
             android:textColor="@android:color/holo_red_light"
             android:textStyle="bold"
