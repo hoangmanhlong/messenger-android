@@ -5,16 +5,17 @@ import android.content.Intent
 import android.content.IntentSender
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.firebase_services.realtime.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
-import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.storage.StorageReference
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.concurrent.CancellationException
 
 class FirebaseGoogleServiceImpl(
@@ -22,18 +23,15 @@ class FirebaseGoogleServiceImpl(
     private val context: Context,
     private val oneTapClient: SignInClient,
     private val appDataStore: AppDataStore,
-    databaseReference: DatabaseReference,
-    storageReference: StorageReference
+    private val appRealtimeDatabaseService: AppRealtimeDatabaseService,
+    private val appFirebaseStorage: AppFirebaseStorage
 ) : FirebaseGoogleService {
-
-    private val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
 
     companion object {
         const val TAG = "FirebaseGoogleServiceImpl"
     }
 
-    private val userAvatarImageRef =
-        storageReference.child(Constant.FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME)
+    private val userAvatarImageRef = appFirebaseStorage.userAvatarRef
 
     override suspend fun signIn(): IntentSender? {
         val result = try {
@@ -46,53 +44,49 @@ class FirebaseGoogleServiceImpl(
         return result?.pendingIntent?.intentSender
     }
 
-    override suspend fun signInWithIntent(intent: Intent): SignInResult {
-        val credential = oneTapClient.getSignInCredentialFromIntent(intent)
-        val googleIdToken = credential.googleIdToken
-        val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
-        var userData: UserData? = null
-        return try {
-            val user = auth.signInWithCredential(googleCredentials).await().user
-            userData = user?.run {
-                UserData(
-                    uid = uid,
-                    username = displayName,
-                    userAvatar = photoUrl?.toString(),
-                    email = email,
-                    phoneNumber = phoneNumber
-                )
-            }
+    override suspend fun signInWithIntent(intent: Intent): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val credential = oneTapClient.getSignInCredentialFromIntent(intent)
+                val googleIdToken = credential.googleIdToken
+                val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
+                val firebaseUser = auth.signInWithCredential(googleCredentials).await().user
+                firebaseUser?.let {
+                    val userData = firebaseUser.run {
+                        UserData(
+                            uid = uid,
+                            username = displayName,
+                            userAvatar = photoUrl?.toString(),
+                            email = email,
+                            phoneNumber = phoneNumber
+                        )
+                    }
+                    val userDataRef = appRealtimeDatabaseService.userDataRef
+                    val userInfoSnapshot = userDataRef.child(it.uid).get().await()
+                    if (userInfoSnapshot.value == null) {
+                        // User does not exist, update user data
+                        if (userData.userAvatar != null) {
+                            val downloadUrl = appFirebaseStorage.createDownloadUrlFromImageUrl(
+                                context,
+                                userData.userAvatar,
+                                userAvatarImageRef.child(firebaseUser.uid)
+                            )
 
-            user?.let {
-                val userInfoSnapshot = userDataRef.child(it.uid).get().await()
-                if (userInfoSnapshot.value == null) {
-//                    // User does not exist, update user data
-//                    if (userData?.userAvatar != null) {
-//                        // Upload user avatar to Firebase Storage
-//                        val avatarUri = Uri.parse(userData.userAvatar)
-//                        val storageRef = userAvatarImageRef.child(it.uid)
-//                        storageRef.putFile(avatarUri).await()
-//                        val downloadUrl = storageRef.downloadUrl.await().toString()
-//
-//                        // Update user data with avatar URL
-//                        val updatedUserData = userData.copy(userAvatar = downloadUrl)
-//                        userDataRef.child(it.uid).setValue(updatedUserData).await()
-//                    } else {
-                    userDataRef.child(it.uid).setValue(userData).await()
+                            // Update user data with avatar URL
+                            val updatedUserData = userData.copy(userAvatar = downloadUrl)
+                            userDataRef.child(firebaseUser.uid).setValue(updatedUserData).await()
+                        } else {
+                            userDataRef.child(it.uid).setValue(userData).await()
+                        }
+                    }
                 }
+                appDataStore.saveBoolean(AppDataStore.IS_AUTHENTICATE_BY_EMAIL, false)
+                Result.Success(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (e is CancellationException) throw e
+                Result.Error(e)
             }
-            appDataStore.saveBoolean(AppDataStore.IS_AUTHENTICATE_BY_EMAIL, false)
-            SignInResult(
-                data = userData,
-                errorMessage = null
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-            if (e is CancellationException) throw e
-            SignInResult(
-                data = null,
-                errorMessage = e.message
-            )
         }
     }
 

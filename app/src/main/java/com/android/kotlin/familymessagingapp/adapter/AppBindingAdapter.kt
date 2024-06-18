@@ -17,6 +17,6 @@ object AppBindingAdapter {
                 .error(R.drawable.ic_broken_image)
                 .placeholder(R.drawable.loading_animation)
                 .into(imageView)
-        } ?: imageView.setImageResource(R.drawable.ic_broken_image)
+        } ?: imageView.setImageResource(R.drawable.ic_user_default)
     }
 }

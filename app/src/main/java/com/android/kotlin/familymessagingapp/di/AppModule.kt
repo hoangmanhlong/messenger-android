@@ -11,7 +11,8 @@ import com.android.kotlin.familymessagingapp.firebase_services.email_authenticat
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailServiceImpl
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleServiceImpl
-import com.android.kotlin.familymessagingapp.firebase_services.realtime.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
@@ -23,8 +24,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -87,41 +86,41 @@ object AppModule {
         application: Application,
         signInClient: SignInClient,
         appDataStore: AppDataStore,
-        databaseReference: DatabaseReference,
-        storageReference: StorageReference
+        appRealtimeDatabaseService: AppRealtimeDatabaseService,
+        appFirebaseStorage: AppFirebaseStorage
     ): FirebaseGoogleService =
         FirebaseGoogleServiceImpl(
             auth,
             application,
             signInClient,
             appDataStore,
-            databaseReference,
-            storageReference
+            appRealtimeDatabaseService,
+            appFirebaseStorage
         )
 
     @Singleton
     @Provides
-    fun provinceAppRealtimeDatabaseReference(
-        auth: FirebaseAuth,
-        databaseReference: DatabaseReference
-    ): AppRealtimeDatabaseService =
-        AppRealtimeDatabaseService(auth, databaseReference)
-
-    @Provides
-    @Singleton
-    fun provideDatabaseReference(): DatabaseReference = FirebaseDatabase.getInstance().reference
+    fun provinceAppRealtimeDatabaseReference(auth: FirebaseAuth): AppRealtimeDatabaseService =
+        AppRealtimeDatabaseService(auth)
 
     @Singleton
     @Provides
     fun provinceFirebaseEmailService(
+        application: Application,
         auth: FirebaseAuth,
         appDataStore: AppDataStore,
-        appRealtimeDatabaseService: AppRealtimeDatabaseService
+        appRealtimeDatabaseService: AppRealtimeDatabaseService,
+        appFirebaseStorage: AppFirebaseStorage
     ): FirebaseEmailService =
-        FirebaseEmailServiceImpl(auth, appDataStore, appRealtimeDatabaseService)
+        FirebaseEmailServiceImpl(
+            application,
+            auth,
+            appDataStore,
+            appRealtimeDatabaseService,
+            appFirebaseStorage
+        )
 
     @Provides
     @Singleton
-    fun provideFirebaseStorageReference(): StorageReference =
-        FirebaseStorage.getInstance().reference
+    fun provideFirebaseStorageReference(): AppFirebaseStorage = AppFirebaseStorage()
 }

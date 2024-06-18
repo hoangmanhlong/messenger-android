@@ -51,7 +51,7 @@ class HomeFragment : Fragment() {
         viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
             it?.let {user ->
                 context?.let { context ->
-                    loadImage(context, user.userAvatar ?: R.drawable.ic_broken_image)
+                    loadImage(context, user.userAvatar ?: R.drawable.ic_user_default)
                 }
             }
         }

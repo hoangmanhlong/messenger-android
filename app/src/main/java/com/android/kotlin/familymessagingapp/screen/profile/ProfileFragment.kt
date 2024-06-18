@@ -1,6 +1,8 @@
 package com.android.kotlin.familymessagingapp.screen.profile
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,15 +12,16 @@ import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
+import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class UserProfileFragment : Fragment() {
+class ProfileFragment : Fragment() {
 
-    private val _viewModel: UserProfileViewModel by viewModels()
+    private val _viewModel: ProfileViewModel by viewModels()
 
     private var _binding: FragmentPersonalBinding? = null
 
@@ -32,7 +35,7 @@ class UserProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPersonalBinding.inflate(inflater, container, false)
-        binding.fragment = this@UserProfileFragment
+        binding.fragment = this@ProfileFragment
         return binding.root
     }
 
@@ -60,8 +63,17 @@ class UserProfileFragment : Fragment() {
             }
         }
 
+        binding.deleteAccountView.setOnClickListener {
+            onDeleteAccountViewClick()
+        }
+
         _viewModel.areNotificationsEnabledLiveData.observe(this.viewLifecycleOwner) { areNotificationsEnabled ->
             binding.areNotificationsEnabled = areNotificationsEnabled
+        }
+
+        binding.notificationView.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+
         }
     }
 
@@ -104,6 +116,13 @@ class UserProfileFragment : Fragment() {
         SelectLanguageBottomSheetDialogFragment().show(
             this.parentFragmentManager,
             SelectLanguageBottomSheetDialogFragment.TAG
+        )
+    }
+
+    private fun onDeleteAccountViewClick() {
+        ConfirmDeleteAccountFragment().show(
+            this.parentFragmentManager,
+            ConfirmDeleteAccountFragment.TAG
         )
     }
 }

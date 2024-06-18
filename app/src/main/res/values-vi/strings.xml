@@ -24,6 +24,9 @@
     <string name="ok">OK</string>
     <string name="cancel">Hủy bỏ</string>
     <string name="delete_account">Xóa tài khoản</string>
+    <string name="agree">Đồng ý</string>
+    <string name="delete_account_waring">Sau khi xóa tài khoản tài khoản của bạn sẽ bị xóa vĩnh viễn.\nBạn có chắc muốn xóa?</string>
+
     <string name="my_account">Tài khoản của tôi</string>
     <string name="about">Thông tin</string>
     <string name="language">Ngôn ngữ</string>

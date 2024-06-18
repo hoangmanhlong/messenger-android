@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="32dp"
+    android:orientation="vertical"
+    tools:context=".screen.confirm_delete_account.ConfirmDeleteAccountFragment">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextAppearance.Material3.TitleLarge"
+        android:text="@string/delete_account"
+        android:textStyle="bold"
+        android:textAlignment="center" />
+
+    <TextView
+        android:layout_marginTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_account_waring" />
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/checkboxAgree"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/agree" />
+
+    <Button
+        android:id="@+id/btConfirmDeleteAccount"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:enabled="false"
+        style="@style/Widget.Material3.Button"
+        android:text="@string/ok" />
+
+
+</LinearLayout>

@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,7 +45,10 @@ class LoginViewModel @Inject constructor(
             val result = firebaseAuthenticationRepository
                 .firebaseGoogleService
                 .signInWithIntent(activityResult.data ?: return@launch)
-            _authenticationStatus.value = result.data != null
+            when(result) {
+                is Result.Success<Boolean> -> _authenticationStatus.value = true
+                is Result.Error -> _authenticationStatus.value = false
+            }
         }
     }
 

@@ -36,7 +36,7 @@
     </fragment>
     <fragment
         android:id="@+id/personalFragment"
-        android:name="com.android.kotlin.familymessagingapp.screen.profile.UserProfileFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment"
         android:label="fragment_setting"
         tools:layout="@layout/fragment_personal" />
     <fragment
