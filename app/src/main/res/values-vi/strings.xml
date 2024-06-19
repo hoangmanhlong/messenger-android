@@ -28,6 +28,7 @@
     <string name="delete_account_waring">Sau khi xóa tài khoản tài khoản của bạn sẽ bị xóa vĩnh viễn.\nBạn có chắc muốn xóa?</string>
 
     <string name="my_account">Tài khoản của tôi</string>
+    <string name="my_profile">Thông tin của tôi</string>
     <string name="about">Thông tin</string>
     <string name="language">Ngôn ngữ</string>
 
@@ -37,6 +38,8 @@
 
     <!--    Register-->
     <string name="username">Tên người dùng</string>
+    <string name="display_name">Tên hiển thị</string>
+    <string name="phone_number">Số điện thoại</string>
     <string name="register_with_email">Đăng ký với Email</string>
     <string name="sign_up">Đăng ký</string>
     <string name="password_text_helper">Mật khẩu phải dài hơn 6 ký tự</string>

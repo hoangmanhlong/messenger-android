@@ -31,7 +31,7 @@
                     android:layout_width="@dimen/_50sdp"
                     android:layout_height="@dimen/_50sdp"
                     android:scaleType="centerCrop"
-                    tools:src="@drawable/baohong" />
+                    tools:src="@tools:sample/avatars" />
             </com.google.android.material.card.MaterialCardView>
 
             <ImageView

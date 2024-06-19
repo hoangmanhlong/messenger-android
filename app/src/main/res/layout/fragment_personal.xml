@@ -80,12 +80,11 @@
 
                             <ImageView
                                 bindNormalImage="@{userData.userAvatar}"
-                                android:id="@+id/ivUser"
+                                android:id="@+id/ivAvatar"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:contentDescription="@null"
                                 android:scaleType="centerCrop"
-                                android:src="@drawable/baohong"
                                 tools:src="@tools:sample/avatars" />
 
                         </com.google.android.material.card.MaterialCardView>

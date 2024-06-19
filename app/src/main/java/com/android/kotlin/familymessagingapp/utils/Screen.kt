@@ -17,7 +17,9 @@ sealed class Screen(val screenId: Int) {
         fun toSignUpWithEmail(): Int = R.id.action_loginWithEmailFragment_to_registerFragment
     }
 
-    data object Register : Screen(R.id.registerFragment) {
+    data object Register : Screen(R.id.registerFragment)
 
+    data object ProfileScreen : Screen(R.id.profileFragment) {
+        fun toProfileDetail(): Int = R.id.action_profileFragment_to_profileDetailFragment
     }
 }

@@ -6,13 +6,16 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
 import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
+import com.android.kotlin.familymessagingapp.screen.profile_detail.MyOpenDocumentContract
+import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
+import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
@@ -28,6 +31,7 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var isDialogShowing: Boolean? = false
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,6 +52,19 @@ class ProfileFragment : Fragment() {
 
         _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) {
             binding.isTheEnglishLanguageDisplayed = it
+        }
+
+        binding.ivAvatar.setOnClickListener {
+            val userData = _viewModel.currentUserLiveData.value
+            userData?.let {
+                val bundle = Bundle()
+                bundle.putParcelable(Constant.USER_DATA_KEY, it)
+                findNavController().navigate(
+                    Screen.ProfileScreen.toProfileDetail(),
+                    bundle
+                )
+            }
+
         }
 
         _viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {

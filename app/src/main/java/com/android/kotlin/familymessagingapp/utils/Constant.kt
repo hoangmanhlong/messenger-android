@@ -2,6 +2,8 @@ package com.android.kotlin.familymessagingapp.utils
 
 object Constant {
 
+    const val USER_DATA_KEY = "USER_DATA_KEY"
+
     const val FCM_TOKEN_KEY = "FCM_TOKEN_KEY"
 
     const val BASE_URL = "https://developer.android.com/"

@@ -32,13 +32,17 @@
             app:destination="@id/chatRoomFragment" />
         <action
             android:id="@+id/action_homeFragment_to_personalFragment"
-            app:destination="@id/personalFragment" />
+            app:destination="@id/profileFragment" />
     </fragment>
     <fragment
-        android:id="@+id/personalFragment"
+        android:id="@+id/profileFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment"
         android:label="fragment_setting"
-        tools:layout="@layout/fragment_personal" />
+        tools:layout="@layout/fragment_personal" >
+        <action
+            android:id="@+id/action_profileFragment_to_profileDetailFragment"
+            app:destination="@id/profileDetailFragment" />
+    </fragment>
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.register.RegisterFragment"
@@ -53,4 +57,9 @@
             android:id="@+id/action_loginWithEmailFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/profileDetailFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.profile_detail.ProfileDetailFragment"
+        android:label="ProfileDetailFragment"
+        tools:layout="@layout/fragment_profile_detail"/>
 </navigation>

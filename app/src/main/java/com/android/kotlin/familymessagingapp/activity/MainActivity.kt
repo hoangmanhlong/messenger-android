@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         splashScreen.setKeepOnScreenCondition { false }
+//        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
         _viewModel.executeTheJobOnFirstRun()
 //        networkListener()

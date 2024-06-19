@@ -100,8 +100,12 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provinceAppRealtimeDatabaseReference(auth: FirebaseAuth): AppRealtimeDatabaseService =
-        AppRealtimeDatabaseService(auth)
+    fun provinceAppRealtimeDatabaseReference(
+        application: Application,
+        auth: FirebaseAuth,
+        appFirebaseStorage: AppFirebaseStorage
+    ): AppRealtimeDatabaseService =
+        AppRealtimeDatabaseService(application, auth, appFirebaseStorage)
 
     @Singleton
     @Provides

@@ -58,4 +58,19 @@ class AppFirebaseStorage {
             }
         }
     }
+
+    suspend fun putUserAvatarUriToStorage(
+        context: Context,
+        imageUri: Uri,
+        storageRef: StorageReference
+    ): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                storageRef.putFile(imageUri).await()
+                storageRef.downloadUrl.await().toString()
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
 }
