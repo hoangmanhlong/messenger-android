@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.screen.profile_detail
 
 import android.net.Uri
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -19,10 +20,13 @@ class ProfileDetailViewModel @Inject constructor(
 
     private var imageUri: Uri? = null
 
-    private var userData: UserData? = null
+    private var userData: UserData = UserData()
 
     private val _isEditingStatus = MutableLiveData(false)
     val isEditingStatus = _isEditingStatus
+    
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
 
     private val _isSaveSuccess: MutableLiveData<Boolean> = MutableLiveData()
     val isSaveSuccess = _isSaveSuccess
@@ -45,9 +49,22 @@ class ProfileDetailViewModel @Inject constructor(
         )
     }
 
+    fun setDisplayName(displayName: String) {
+        userData = userData.copy(username = displayName)
+    }
+
+    fun setPhoneNumber(phoneNumber: String) {
+        userData = userData.copy(phoneNumber = phoneNumber)
+    }
+
     fun saveUserData() {
         viewModelScope.launch {
-            _isSaveSuccess.value = appRealtimeDatabaseService.saveUserData(userData!!, imageUri)
+            _isLoading.value = true
+            val saveUserDataResult = appRealtimeDatabaseService.saveUserData(userData, imageUri)
+            _isSaveSuccess.value = saveUserDataResult
+            _isEditingStatus.value = !saveUserDataResult
+
+            _isLoading.value = false
         }
     }
 

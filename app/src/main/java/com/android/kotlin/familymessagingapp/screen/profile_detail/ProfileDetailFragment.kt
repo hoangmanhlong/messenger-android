@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.app.Dialog
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
@@ -18,6 +19,7 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -25,6 +27,7 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
@@ -51,6 +54,8 @@ class ProfileDetailFragment : Fragment() {
             }
         }
 
+    private var dialog: Dialog? = null
+
     private var _binding: FragmentProfileDetailBinding? = null
 
     private val binding get() = _binding!!
@@ -62,6 +67,7 @@ class ProfileDetailFragment : Fragment() {
     ): View {
         _binding = FragmentProfileDetailBinding.inflate(inflater, container, false)
         binding.fragment = this@ProfileDetailFragment
+        activity?.let { dialog = DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
 
@@ -72,6 +78,10 @@ class ProfileDetailFragment : Fragment() {
         arguments?.getParcelable<UserData>(Constant.USER_DATA_KEY)?.let {
             _viewModel.setUserData(it)
             binding.userData = it
+        }
+
+        _viewModel.isLoading.observe(this.viewLifecycleOwner) { isLoading ->
+            showLoadingDialog(isLoading)
         }
 
         _viewModel.isEditingStatus.observe(this.viewLifecycleOwner) {
@@ -98,6 +108,21 @@ class ProfileDetailFragment : Fragment() {
         shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
 
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+
+        binding.etDisplayName.addTextChangedListener {
+            _viewModel.setDisplayName(it.toString().trim())
+        }
+
+        binding.etPhoneNumber.addTextChangedListener {
+            _viewModel.setPhoneNumber(it.toString().trim())
+        }
+    }
+
+    private fun showLoadingDialog(isShow: Boolean) {
+        dialog?.let {
+            if (isShow && !it.isShowing) it.show()
+            else it.dismiss()
+        }
     }
 
     fun isEditing(isEditing: Boolean) {

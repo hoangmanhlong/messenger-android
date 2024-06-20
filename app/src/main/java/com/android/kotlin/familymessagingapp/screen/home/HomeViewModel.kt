@@ -15,8 +15,8 @@ class HomeViewModel @Inject constructor(
     firebaseAuthenticationRepository: FirebaseAuthenticationRepository
 ) : ViewModel() {
 
-    val currentUserLiveData: LiveData<UserData?> =
-        appRealtimeDatabaseService.currentUserDataFlow.asLiveData()
+//    val currentUserLiveData: LiveData<UserData?> =
+//        appRealtimeDatabaseService.currentUserDataFlow.asLiveData()
 
     val authenticated: LiveData<Boolean> =
         firebaseAuthenticationRepository.authenticated.asLiveData()

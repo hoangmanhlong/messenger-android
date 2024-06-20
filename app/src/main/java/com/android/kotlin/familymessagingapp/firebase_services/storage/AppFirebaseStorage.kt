@@ -73,4 +73,15 @@ class AppFirebaseStorage {
             }
         }
     }
+
+    suspend fun deleteUserData(uid: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                userAvatarRef.child(uid).delete().await()
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
 }

@@ -54,7 +54,7 @@ class ProfileFragment : Fragment() {
             binding.isTheEnglishLanguageDisplayed = it
         }
 
-        binding.ivAvatar.setOnClickListener {
+        binding.userAvatarCard.setOnClickListener {
             val userData = _viewModel.currentUserLiveData.value
             userData?.let {
                 val bundle = Bundle()

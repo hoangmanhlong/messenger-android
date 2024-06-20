@@ -29,6 +29,7 @@
     <string name="delete_account">Delete account</string>
     <string name="delete_account_waring">After deleting your account, your account will be permanently deleted.\nAre you sure you want to delete?</string>
     <string name="my_account">My account</string>
+    <string name="conversation">Conversation</string>
     <string name="my_profile">My profile</string>
     <string name="about">About</string>
     <string name="language">Language</string>

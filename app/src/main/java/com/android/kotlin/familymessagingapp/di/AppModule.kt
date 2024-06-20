@@ -59,10 +59,21 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseAuthenticationRepository(
+        auth: FirebaseAuth,
         firebaseGoogleService: FirebaseGoogleService,
-        firebaseEmailService: FirebaseEmailService
+        firebaseEmailService: FirebaseEmailService,
+        appFirebaseStorage: AppFirebaseStorage,
+        appRealtimeDatabaseService: AppRealtimeDatabaseService,
+        appDataMemoryRepository: DataMemoryRepository
     ): FirebaseAuthenticationRepository =
-        FirebaseAuthenticationRepository(firebaseGoogleService, firebaseEmailService)
+        FirebaseAuthenticationRepository(
+            auth,
+            firebaseGoogleService,
+            firebaseEmailService,
+            appFirebaseStorage,
+            appRealtimeDatabaseService,
+            appDataMemoryRepository
+        )
 
     @Provides
     @Singleton

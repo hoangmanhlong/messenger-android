@@ -48,23 +48,8 @@ class HomeFragment : Fragment() {
             }
         }
 
-        viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
-            it?.let {user ->
-                context?.let { context ->
-                    loadImage(context, user.userAvatar ?: R.drawable.ic_user_default)
-                }
-            }
-        }
-
-        binding.searchBar.setOnMenuItemClickListener {
-            when (it.itemId) {
-                R.id.profile -> {
-                    findNavController().navigate(Screen.HomeScreen.toProfile())
-                    true
-                }
-
-                else -> false
-            }
+        binding.btDetail.setOnClickListener {
+            findNavController().navigate(Screen.HomeScreen.toProfile())
         }
     }
 
@@ -113,7 +98,7 @@ class HomeFragment : Fragment() {
 
     private fun renderProfileImage(resource: Drawable) {
         lifecycleScope.launch {
-            binding.searchBar.menu.findItem(R.id.profile).icon = resource
+//            binding.ivAvatar.setImageDrawable(resource)
         }
     }
 }

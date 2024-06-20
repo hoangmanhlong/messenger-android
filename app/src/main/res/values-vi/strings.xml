@@ -35,6 +35,7 @@
     <string name="search">Search</string>
     <string name="notification">Thông báo</string>
     <string name="or">Hoặc</string>
+    <string name="conversation">Cuộc trò chuyện</string>
 
     <!--    Register-->
     <string name="username">Tên người dùng</string>

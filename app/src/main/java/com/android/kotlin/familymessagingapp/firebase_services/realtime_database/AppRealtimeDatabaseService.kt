@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class AppRealtimeDatabaseService(
@@ -56,15 +57,27 @@ class AppRealtimeDatabaseService(
     suspend fun saveUserData(userData: UserData, imageUri: Uri?): Boolean {
         return withContext(Dispatchers.IO) {
             try {
+                var updatedUserData = userData
                 if (imageUri != null) {
                     val downloadUrl = appFirebaseStorage.putUserAvatarUriToStorage(
                         application,
                         imageUri,
-                        appFirebaseStorage.userAvatarRef
+                        appFirebaseStorage.userAvatarRef.child(userData.uid!!)
                     )
-                    downloadUrl?.let { userData.copy(userAvatar = downloadUrl) }
+                    updatedUserData = userData.copy(userAvatar = downloadUrl)
                 }
-                userDataRef.child(userData.uid!!).setValue(userData)
+                userDataRef.child(userData.uid!!).setValue(updatedUserData).await()
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
+    suspend fun deleteUserData(uid: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                userDataRef.child(uid).removeValue().await()
                 true
             } catch (e: Exception) {
                 false
