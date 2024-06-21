@@ -56,7 +56,7 @@
              notification message. See README(https://goo.gl/6BKBk7) for more. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/md_theme_light_onPrimary" />
+            android:resource="@color/md_theme_primary" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"

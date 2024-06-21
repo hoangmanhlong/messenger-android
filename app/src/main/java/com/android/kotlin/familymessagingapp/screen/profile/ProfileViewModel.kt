@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
-import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,12 +15,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    appRealtimeDatabaseService: AppRealtimeDatabaseService,
-    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository,
+    private val firebaseServiceRepository: FirebaseServiceRepository,
     dataMemoryRepository: DataMemoryRepository
 ) : ViewModel() {
 
-    val currentUserLiveData = appRealtimeDatabaseService.currentUserDataFlow.asLiveData()
+    val currentUserLiveData = firebaseServiceRepository
+        .appRealtimeDatabaseService
+        .currentUserDataFlow
+        .asLiveData()
 
     val isTheEnglishLanguageDisplayed = dataMemoryRepository
         .appDataStore
@@ -38,14 +40,14 @@ class ProfileViewModel @Inject constructor(
         .asLiveData()
 
     val authenticationStatus: LiveData<Boolean> =
-        firebaseAuthenticationRepository.authenticated.asLiveData()
+        firebaseServiceRepository.authenticated.asLiveData()
 
     fun logout() {
         viewModelScope.launch(Dispatchers.IO) {
             if (_authenticateTypeLiveData.value == true) {
-                firebaseAuthenticationRepository.firebaseEmailService.signOut()
+                firebaseServiceRepository.firebaseEmailService.signOut()
             } else {
-                firebaseAuthenticationRepository.firebaseGoogleService.signOut()
+                firebaseServiceRepository.firebaseGoogleService.signOut()
             }
         }
     }

@@ -11,7 +11,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
-import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,11 +22,11 @@ import javax.inject.Inject
  * work such as fetching network results can continue through configuration changes and deliver
  * results after the new Fragment or Activity is available.
  *
- * @param firebaseAuthenticationRepository ...
+ * @param firebaseServiceRepository ...
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository,
+    private val firebaseServiceRepository: FirebaseServiceRepository,
     dataMemoryRepository: DataMemoryRepository
 ) : ViewModel() {
 
@@ -42,7 +42,7 @@ class LoginViewModel @Inject constructor(
     fun signInWithActivityResult(activityResult: ActivityResult) {
         updateLoadingStatus(true)
         viewModelScope.launch {
-            val result = firebaseAuthenticationRepository
+            val result = firebaseServiceRepository
                 .firebaseGoogleService
                 .signInWithIntent(activityResult.data ?: return@launch)
             when(result) {
@@ -69,5 +69,5 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun signIn(): IntentSender? =
-        firebaseAuthenticationRepository.firebaseGoogleService.signIn()
+        firebaseServiceRepository.firebaseGoogleService.signIn()
 }

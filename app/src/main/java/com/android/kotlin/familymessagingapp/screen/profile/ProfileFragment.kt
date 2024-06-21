@@ -32,6 +32,7 @@ class ProfileFragment : Fragment() {
 
     private var isDialogShowing: Boolean? = false
 
+    private var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -97,6 +98,7 @@ class ProfileFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        confirmDeleteAccountFragment?.dismiss()
     }
 
     override fun onDestroy() {
@@ -137,7 +139,8 @@ class ProfileFragment : Fragment() {
     }
 
     private fun onDeleteAccountViewClick() {
-        ConfirmDeleteAccountFragment().show(
+        confirmDeleteAccountFragment = ConfirmDeleteAccountFragment()
+        confirmDeleteAccountFragment!!.show(
             this.parentFragmentManager,
             ConfirmDeleteAccountFragment.TAG
         )

@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="8dp"
-        android:textColor="@color/md_theme_light_onPrimary"
+        android:textColor="#ffffff"
         android:background="@drawable/bg_message_sender"
         android:text="hcfhghcvjhcvjc" />
 

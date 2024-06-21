@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.android.kotlin.familymessagingapp.databinding.FragmentConfirmDeleteAccountBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
@@ -44,18 +45,13 @@ class ConfirmDeleteAccountFragment : BottomSheetDialogFragment() {
             binding.btConfirmDeleteAccount.isEnabled = checkbox.isChecked
         }
 
-        _viewModel.deleteSuccess.observe(this.viewLifecycleOwner) {
-            if (it) this.dismiss()
-        }
-
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             showLoadingDialog(it)
         }
 
-
         binding.btConfirmDeleteAccount.setOnClickListener {
             activity?.let {
-                NetworkChecker.checkNetwork(it) {_viewModel.deleteAccount() }
+                NetworkChecker.checkNetwork(it) { _viewModel.deleteAccount() }
             }
         }
     }

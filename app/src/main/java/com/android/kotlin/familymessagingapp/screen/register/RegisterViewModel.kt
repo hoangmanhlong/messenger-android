@@ -5,9 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.AuthenticationStatus
-import com.android.kotlin.familymessagingapp.model.RegisterException
 import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val firebaseAuthenticationRepository: FirebaseAuthenticationRepository
+    private val firebaseServiceRepository: FirebaseServiceRepository
 ) : ViewModel() {
     private var _email: String = ""
 
@@ -63,7 +62,7 @@ class RegisterViewModel @Inject constructor(
         if (isValidEmailAndPassword()) {
             _isLoading.value = true
             viewModelScope.launch {
-                val result: Result<Boolean> = firebaseAuthenticationRepository.firebaseEmailService
+                val result: Result<Boolean> = firebaseServiceRepository.firebaseEmailService
                     .signUp(_email, _password)
                 when(result) {
                     is Result.Success -> {

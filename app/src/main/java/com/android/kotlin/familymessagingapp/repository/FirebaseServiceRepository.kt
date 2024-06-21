@@ -1,16 +1,15 @@
 package com.android.kotlin.familymessagingapp.repository
 
-import androidx.lifecycle.asLiveData
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -19,7 +18,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 
-class FirebaseAuthenticationRepository(
+class FirebaseServiceRepository(
     private val auth: FirebaseAuth,
     val firebaseGoogleService: FirebaseGoogleService,
     val firebaseEmailService: FirebaseEmailService,

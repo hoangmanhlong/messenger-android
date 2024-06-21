@@ -15,14 +15,12 @@ import com.android.kotlin.familymessagingapp.firebase_services.realtime_database
 import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
-import com.android.kotlin.familymessagingapp.repository.FirebaseAuthenticationRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
@@ -65,8 +63,8 @@ object AppModule {
         appFirebaseStorage: AppFirebaseStorage,
         appRealtimeDatabaseService: AppRealtimeDatabaseService,
         appDataMemoryRepository: DataMemoryRepository
-    ): FirebaseAuthenticationRepository =
-        FirebaseAuthenticationRepository(
+    ): FirebaseServiceRepository =
+        FirebaseServiceRepository(
             auth,
             firebaseGoogleService,
             firebaseEmailService,
