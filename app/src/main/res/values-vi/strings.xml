@@ -20,6 +20,7 @@
 
     <string name="setting">Cài đặt</string>
     <string name="logout">Đăng xuất</string>
+    <string name="feedback">Báo lỗi</string>
     <string name="logout_message">Bạn có chắc muốn đăng xuất?</string>
     <string name="ok">OK</string>
     <string name="cancel">Hủy bỏ</string>
@@ -32,10 +33,11 @@
     <string name="about">Thông tin</string>
     <string name="language">Ngôn ngữ</string>
 
-    <string name="search">Search</string>
+    <string name="search">Tìm kiếm</string>
     <string name="notification">Thông báo</string>
     <string name="or">Hoặc</string>
     <string name="conversation">Cuộc trò chuyện</string>
+    <string name="conversation_empty">Không có cuộc trò chuyện nào</string>
 
     <!--    Register-->
     <string name="username">Tên người dùng</string>
@@ -53,5 +55,7 @@
     <string name="try_again">Thử lại</string>
 
     <string name="signup_description">Đăng ký Family Messaging bằng tài khoản email của bạn</string>
+    <string name="avatar">Ảnh đại diện</string>
+    <string name="scan_qr_code">Quét mã QR</string>
 
 </resources>

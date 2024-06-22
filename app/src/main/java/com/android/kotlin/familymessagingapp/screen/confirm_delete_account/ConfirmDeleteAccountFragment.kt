@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.android.kotlin.familymessagingapp.databinding.FragmentConfirmDeleteAccountBinding
+import com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -15,7 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class ConfirmDeleteAccountFragment : BottomSheetDialogFragment() {
+class ConfirmDeleteAccountFragment(
+    private val fragment: ProfileFragment
+) : BottomSheetDialogFragment() {
 
     private val _viewModel: ConfirmDeleteAccountViewModel by viewModels()
 
@@ -27,46 +30,29 @@ class ConfirmDeleteAccountFragment : BottomSheetDialogFragment() {
 
     private val binding get() = _binding!!
 
-    private var dialog: Dialog? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentConfirmDeleteAccountBinding.inflate(inflater, container, false)
-        activity?.let { dialog = DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.checkboxAgree.addOnCheckedStateChangedListener { checkbox, _ ->
             binding.btConfirmDeleteAccount.isEnabled = checkbox.isChecked
         }
 
-        _viewModel.isLoading.observe(this.viewLifecycleOwner) {
-            showLoadingDialog(it)
-        }
-
         binding.btConfirmDeleteAccount.setOnClickListener {
             activity?.let {
-                NetworkChecker.checkNetwork(it) { _viewModel.deleteAccount() }
+                NetworkChecker.checkNetwork(it) {
+                    fragment.deleteAccount()
+                    this@ConfirmDeleteAccountFragment.dismiss()
+                }
             }
         }
-    }
-
-    private fun showLoadingDialog(isShow: Boolean) {
-        dialog?.let {
-            if (isShow && !it.isShowing) it.show()
-            else it.dismiss()
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        dialog?.dismiss()
-        dialog = null
-        _binding = null
     }
 }

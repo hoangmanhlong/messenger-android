@@ -4,8 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <item
+        android:id="@+id/QrCodeMenu"
+        android:icon="@drawable/ic_qr_code"
+        app:showAsAction="ifRoom"
+        android:title="@string/scan_qr_code" />
+
+    <item
         android:id="@+id/profile"
-        android:title=""
+        android:title="@string/avatar"
         tools:icon="@tools:sample/avatars"
         app:showAsAction="always" />
 

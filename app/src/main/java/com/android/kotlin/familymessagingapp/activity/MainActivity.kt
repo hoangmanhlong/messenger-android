@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.activity
 
+import android.app.Dialog
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -7,8 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     ) { isGranted: Boolean ->
         _viewModel.saveNotificationStatus(isGranted)
     }
+
+    private var dialog: Dialog? = null
 
 //    private val networkRequest = NetworkRequest.Builder()
 //        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -44,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
+        dialog = DialogUtils.createLoadingDialog(this)
         _viewModel.executeTheJobOnFirstRun()
 //        networkListener()
         val navHostFragment = supportFragmentManager
@@ -51,6 +55,29 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
         PermissionUtils.askNotificationPermission(this, requestPermissionLauncher)
         _viewModel.saveNotificationStatus(PermissionUtils.areNotificationsEnabled(this))
+
+        _viewModel.isLoading.observe(this) {
+            showLoadingDialog(it)
+        }
+    }
+
+    fun isShowLoadingDialog(isLoading: Boolean) {
+        _viewModel.setIsLoading(isLoading)
+    }
+
+    private fun showLoadingDialog(isShow: Boolean) {
+        dialog?.let {
+            if (isShow && !it.isShowing) it.show()
+            else it.dismiss()
+        }
+    }
+
+    fun isTheEnglishLanguageSelected(isTheEnglishLanguageSelected: Boolean) {
+        _viewModel.isTheEnglishLanguageSelected(isTheEnglishLanguageSelected)
+    }
+
+    fun changeLanguage() {
+        _viewModel.changeLanguage()
     }
 
 //    override fun onStart() {
@@ -85,6 +112,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        dialog = null
         _binding = null
     }
 

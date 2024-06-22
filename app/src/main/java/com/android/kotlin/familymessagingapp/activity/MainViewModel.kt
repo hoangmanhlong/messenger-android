@@ -1,9 +1,15 @@
 package com.android.kotlin.familymessagingapp.activity
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
+import com.android.kotlin.familymessagingapp.utils.Constant
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -30,6 +36,44 @@ class MainViewModel @Inject constructor(
                 AppDataStore.ARE_NOTIFICATION_ENABLED,
                 enabled
             )
+        }
+    }
+
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    fun setIsLoading(isLoading: Boolean) {
+        _isLoading.value = isLoading
+    }
+
+    val isTheEnglishLanguageDisplayed: LiveData<Boolean?> = dataMemoryRepository
+        .isTheEnglishLanguageDisplayedFlow
+        .asLiveData()
+
+    private var _isTheEnglishLanguageSelected = isTheEnglishLanguageDisplayed.value ?: true
+
+    // Update selected by User
+    fun isTheEnglishLanguageSelected(isTheEnglishLanguageSelected: Boolean) {
+        _isTheEnglishLanguageSelected = isTheEnglishLanguageSelected
+    }
+
+    fun changeLanguage() {
+        // if selected language different current language saved in Local then make the change language
+        // else close fragment
+        if (_isTheEnglishLanguageSelected != isTheEnglishLanguageDisplayed.value) {
+            viewModelScope.launch {
+                // Save to Local
+                dataMemoryRepository.appDataStore.saveBoolean(
+                    AppDataStore.IS_THE_ENGLISH_LANGUAGE_DISPLAYED,
+                    _isTheEnglishLanguageSelected
+                )
+                // Change Display Language
+                val appLocale = LocaleListCompat.forLanguageTags(
+                    if (_isTheEnglishLanguageSelected) Constant.ENGLISH_COUNTRY_CODE
+                    else Constant.VIETNAM_COUNTRY_CODE
+                )
+                AppCompatDelegate.setApplicationLocales(appLocale);
+            }
         }
     }
 

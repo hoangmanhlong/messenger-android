@@ -1,5 +1,8 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import java.util.regex.Pattern
 
 object StringUtils {
@@ -15,4 +18,13 @@ object StringUtils {
 
     fun convertFromBearerTokenToString(bearerToken: String): String =
         bearerToken.split(" ")[1]
+
+    fun composeEmail(context: Context, addresses: Array<String>, subject: String) {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:") // Only email apps handle this.
+            putExtra(Intent.EXTRA_EMAIL, addresses)
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+        }
+        intent.resolveActivity(context.packageManager).let { context.startActivity(intent) }
+    }
 }

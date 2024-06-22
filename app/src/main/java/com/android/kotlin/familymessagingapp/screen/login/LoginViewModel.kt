@@ -12,6 +12,8 @@ import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.facebook.AccessToken
+import com.facebook.CallbackManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -70,4 +72,10 @@ class LoginViewModel @Inject constructor(
 
     private suspend fun signIn(): IntentSender? =
         firebaseServiceRepository.firebaseGoogleService.signIn()
+
+    fun signInWithFacebook(token: AccessToken) {
+        viewModelScope.launch {
+            firebaseServiceRepository.facebookService.handleFacebookAccessToken(token)
+        }
+    }
 }

@@ -105,58 +105,67 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
-            android:paddingBottom="32dp"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingHorizontal="32dp"
+            android:padding="32dp"
             app:layout_constraintBottom_toBottomOf="parent">
 
-            <Button
-                android:id="@+id/btLoginWithYourAccount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/login_with_email"
-                android:textStyle="bold" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+<!--            <Button-->
+<!--                android:id="@+id/btLoginWithYourAccount"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/login_with_email"-->
+<!--                android:textStyle="bold" />-->
 
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_weight="1" />
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginVertical="8dp"-->
+<!--                android:gravity="center_vertical"-->
+<!--                android:orientation="horizontal">-->
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="4dp"
-                    android:text="@string/or"
-                    android:textSize="12sp" />
+<!--                <com.google.android.material.divider.MaterialDivider-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="32dp"-->
+<!--                    android:layout_weight="1" />-->
 
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="32dp"
-                    android:layout_weight="1" />
-            </LinearLayout>
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingHorizontal="4dp"-->
+<!--                    android:text="@string/or"-->
+<!--                    android:textSize="12sp" />-->
+
+<!--                <com.google.android.material.divider.MaterialDivider-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="32dp"-->
+<!--                    android:layout_weight="1" />-->
+<!--            </LinearLayout>-->
 
             <include
                 android:id="@+id/btLoginWithGoogleAccount"
                 layout="@layout/layout_google_button" />
 
-            <TextView
-                android:id="@+id/btSignUp"
+<!--            <TextView-->
+<!--                android:id="@+id/btSignUp"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:background="?attr/selectableItemBackground"-->
+<!--                android:padding="8dp"-->
+<!--                android:text="@string/sign_up_message" />-->
+
+
+            <com.facebook.login.widget.LoginButton
+                android:id="@+id/facebook"
                 android:layout_width="wrap_content"
+                android:visibility="gone"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackground"
-                android:padding="8dp"
-                android:text="@string/sign_up_message" />
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="30dp" />
 
         </LinearLayout>
 

@@ -36,6 +36,10 @@ android {
             )
             signingConfig = signingConfigs.getByName("debug")
         }
+
+        debug {
+            isDebuggable = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -133,6 +137,9 @@ dependencies {
 
     // optional - Paging 3 Integration
     implementation(libs.androidx.room.paging)
+
+    implementation("com.facebook.android:facebook-login:latest.release")
+
 
     implementation(libs.retrofit)
     // Retrofit with Gson Converter

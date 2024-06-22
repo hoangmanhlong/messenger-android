@@ -92,7 +92,7 @@ class FirebaseGoogleServiceImpl(
 
     override suspend fun signOut() {
         try {
-            oneTapClient.signOut().await()
+//            oneTapClient.signOut().await()
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()

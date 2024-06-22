@@ -4,31 +4,28 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.app.Dialog
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.text.InputType
-import android.text.Selection
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.RequiresApi
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
+import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,8 +51,6 @@ class ProfileDetailFragment : Fragment() {
             }
         }
 
-    private var dialog: Dialog? = null
-
     private var _binding: FragmentProfileDetailBinding? = null
 
     private val binding get() = _binding!!
@@ -67,7 +62,6 @@ class ProfileDetailFragment : Fragment() {
     ): View {
         _binding = FragmentProfileDetailBinding.inflate(inflater, container, false)
         binding.fragment = this@ProfileDetailFragment
-        activity?.let { dialog = DialogUtils.createLoadingDialog(it) }
         return binding.root
     }
 
@@ -80,8 +74,8 @@ class ProfileDetailFragment : Fragment() {
             binding.userData = it
         }
 
-        _viewModel.isLoading.observe(this.viewLifecycleOwner) { isLoading ->
-            showLoadingDialog(isLoading)
+        _viewModel.isLoading.observe(this.viewLifecycleOwner) {
+            (activity as MainActivity).isShowLoadingDialog(it)
         }
 
         _viewModel.isEditingStatus.observe(this.viewLifecycleOwner) {
@@ -118,13 +112,6 @@ class ProfileDetailFragment : Fragment() {
         }
     }
 
-    private fun showLoadingDialog(isShow: Boolean) {
-        dialog?.let {
-            if (isShow && !it.isShowing) it.show()
-            else it.dismiss()
-        }
-    }
-
     fun isEditing(isEditing: Boolean) {
         _viewModel.setEditingStatus(isEditing)
     }
@@ -134,7 +121,14 @@ class ProfileDetailFragment : Fragment() {
     }
 
     fun onSaveButtonClick() {
-        _viewModel.saveUserData()
+        activity?.let {
+            NetworkChecker.checkNetwork(it) {_viewModel.saveUserData() }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (activity as MainActivity).isShowLoadingDialog(false)
     }
 
     private fun zoomImageFromThumb(thumbView: View, imageDrawable: Drawable) {

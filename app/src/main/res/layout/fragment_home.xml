@@ -1,62 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".screen.home.HomeFragment">
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:text="@string/conversation_empty"
+        style="@style/TextAppearance.Material3.TitleMedium"
+        android:gravity="center" />
 
-        <Button
-            android:id="@+id/btDetail"
-            style="?attr/materialIconButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon="@drawable/ic_dehaze"
-            app:iconSize="26dp" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <TextView
-            style="@style/TextAppearance.Material3.TitleLarge"
-            android:layout_width="0dp"
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="@string/conversation" />
+            android:clipToPadding="false"
+            android:padding="8dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/layout_chatroom" />
+    </androidx.core.widget.NestedScrollView>
 
-        <Button
-            android:id="@+id/btSearch"
-            style="?attr/materialIconButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon="@drawable/ic_search"
-            app:iconSize="26dp" />
-
-        <Button
-            android:id="@+id/btMore"
-            style="?attr/materialIconButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon="@drawable/ic_more_vert"
-            app:iconSize="26dp" />
-
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/searchTopBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:padding="8dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/layout_chatroom" />
-</LinearLayout>
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.search.SearchBar
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/search"
+            app:navigationIcon="@drawable/ic_menu"
+            app:menu="@menu/menu_search_bar" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
 
+    <com.google.android.material.search.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:hint="@string/search"
+        app:layout_anchor="@id/search_bar">
 
+        <!-- Search suggestions/results go here (ScrollView, RecyclerView, etc.). -->
 
+    </com.google.android.material.search.SearchView>
 
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

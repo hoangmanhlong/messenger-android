@@ -9,6 +9,7 @@ import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
 import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailServiceImpl
+import com.android.kotlin.familymessagingapp.firebase_services.facebook.FacebookService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleServiceImpl
 import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
@@ -40,7 +41,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppApiService(application: Application): BackendApiService =
-        AppRetrofitClient(application).retrofit
+        AppRetrofitClient(application).instance
 
     @Provides
     @Singleton
@@ -62,7 +63,8 @@ object AppModule {
         firebaseEmailService: FirebaseEmailService,
         appFirebaseStorage: AppFirebaseStorage,
         appRealtimeDatabaseService: AppRealtimeDatabaseService,
-        appDataMemoryRepository: DataMemoryRepository
+        appDataMemoryRepository: DataMemoryRepository,
+        facebookService: FacebookService
     ): FirebaseServiceRepository =
         FirebaseServiceRepository(
             auth,
@@ -70,8 +72,13 @@ object AppModule {
             firebaseEmailService,
             appFirebaseStorage,
             appRealtimeDatabaseService,
-            appDataMemoryRepository
+            appDataMemoryRepository,
+            facebookService
         )
+
+    @Provides
+    @Singleton
+    fun provideFacebookService(auth: FirebaseAuth) = FacebookService(auth)
 
     @Provides
     @Singleton

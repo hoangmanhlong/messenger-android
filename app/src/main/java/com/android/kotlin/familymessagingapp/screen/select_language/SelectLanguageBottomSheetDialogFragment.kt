@@ -5,8 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentSwitchLanguageBinding
+import com.android.kotlin.familymessagingapp.screen.login.LoginFragment
+import com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -38,22 +42,20 @@ class SelectLanguageBottomSheetDialogFragment : BottomSheetDialogFragment() {
         _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) { isTheEnglishLanguageDisplayed ->
             Log.d(TAG, "system language: $isTheEnglishLanguageDisplayed")
             isTheEnglishLanguageDisplayed?.let {
-                _viewModel.isTheEnglishLanguageSelected(it)
+                (activity as MainActivity).isTheEnglishLanguageSelected(it)
                 binding.englishMaterialRadioButton.isChecked = it
                 binding.vietnameseMaterialRadioButton.isChecked = !it
             }
         }
-
-        _viewModel.cancelFragment.observe(this.viewLifecycleOwner) {
-            if (it) this@SelectLanguageBottomSheetDialogFragment.dismiss()
-        }
     }
 
-    fun onSaveButtonClick() = _viewModel.changeLanguage()
+    fun onSaveButtonClick() {
+        (activity as MainActivity).changeLanguage()
+        this.dismiss()
+    }
 
     fun isTheEnglishLanguageSelected(isTheEnglishLanguageSelected: Boolean) {
-        Log.d(TAG, "selected language: $isTheEnglishLanguageSelected")
-        _viewModel.isTheEnglishLanguageSelected(isTheEnglishLanguageSelected)
+        (activity as MainActivity).isTheEnglishLanguageSelected(isTheEnglishLanguageSelected)
     }
 
     override fun onDestroyView() {

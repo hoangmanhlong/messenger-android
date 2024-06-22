@@ -5,6 +5,13 @@
     <string name="fcm_message" translatable="false">FCM Message</string>
     <string name="app_name" translatable="false">Family Messaging App</string>
 
+
+    <string name="facebook_app_id" translatable="false">1508563699738609</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb1234</string>
+    <string name="facebook_client_token" translatable="false">5c6179c94c397f51763ebf7e1725b1ad</string>
+
+    <string name="feedback_mail" translatable="false">ziplong7le@gmail.com</string>
+
     <!--    Login Screen-->
     <string name="or">Or</string>
     <string name="vietnam" translatable="false"> Việt Nam</string>
@@ -23,6 +30,7 @@
 
     <string name="setting">Setting</string>
     <string name="logout">Log out</string>
+    <string name="feedback">Feedback</string>
     <string name="logout_message">Are you sure you want to logout?</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
@@ -36,6 +44,7 @@
     <string name="agree">Agree</string>
 
     <string name="search">Search</string>
+    <string name="conversation_empty">There was no conversation</string>
 
     <string name="notification">Notification</string>
 
@@ -60,5 +69,7 @@
     <string name="save">Save</string>
 
     <string name="signup_description">Sign up your Family Messaging with your email account</string>
+    <string name="avatar">Avatar</string>
+    <string name="scan_qr_code">Scan QR code</string>
 
 </resources>

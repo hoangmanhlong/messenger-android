@@ -6,19 +6,19 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
 import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
-import com.android.kotlin.familymessagingapp.screen.profile_detail.MyOpenDocumentContract
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.Screen
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,7 +32,9 @@ class ProfileFragment : Fragment() {
 
     private var isDialogShowing: Boolean? = false
 
-    private var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment? = null
+    private lateinit var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment
+
+    private lateinit var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,6 +48,7 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.logOutView.setOnClickListener {
             if (!isDialogShowing!!) onLogoutViewClick()
         }
@@ -65,7 +68,6 @@ class ProfileFragment : Fragment() {
                     bundle
                 )
             }
-
         }
 
         _viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
@@ -91,19 +93,27 @@ class ProfileFragment : Fragment() {
 
         binding.notificationView.setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
-
         }
+
+        _viewModel.isLoading.observe(this.viewLifecycleOwner) {
+            (activity as MainActivity).isShowLoadingDialog(it)
+        }
+
+        binding.feedbackView.setOnClickListener {
+            activity?.let {
+                StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), "Error")
+            }
+        }
+    }
+
+    fun deleteAccount() {
+        _viewModel.deleteAccount()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        confirmDeleteAccountFragment?.dismiss()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        isDialogShowing = null
+        (activity as MainActivity).isShowLoadingDialog(false)
     }
 
     private fun onLogoutViewClick() {
@@ -132,15 +142,16 @@ class ProfileFragment : Fragment() {
     }
 
     fun onSelectLanguageViewClick() {
-        SelectLanguageBottomSheetDialogFragment().show(
+        selectLanguageBottomSheetDialogFragment = SelectLanguageBottomSheetDialogFragment()
+        selectLanguageBottomSheetDialogFragment.show(
             this.parentFragmentManager,
             SelectLanguageBottomSheetDialogFragment.TAG
         )
     }
 
     private fun onDeleteAccountViewClick() {
-        confirmDeleteAccountFragment = ConfirmDeleteAccountFragment()
-        confirmDeleteAccountFragment!!.show(
+        confirmDeleteAccountFragment = ConfirmDeleteAccountFragment(this)
+        confirmDeleteAccountFragment.show(
             this.parentFragmentManager,
             ConfirmDeleteAccountFragment.TAG
         )
