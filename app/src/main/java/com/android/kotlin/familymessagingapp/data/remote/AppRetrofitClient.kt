@@ -16,10 +16,7 @@ class AppRetrofitClient(private val application: Application) {
         val okHttpClient =  OkHttpClient.Builder()
             .connectTimeout(Constant.DURATION_TIMEOUT.toLong(), TimeUnit.SECONDS)
             .readTimeout(Constant.DURATION_TIMEOUT.toLong(), TimeUnit.SECONDS)
-        if (BuildConfig.DEBUG) {
-            okHttpClient.addInterceptor(ChuckerInterceptor(application))
-        }
-
+        if (BuildConfig.DEBUG) okHttpClient.addInterceptor(ChuckerInterceptor(application))
         return@run Retrofit.Builder()
 //        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
             .addConverterFactory(GsonConverterFactory.create())

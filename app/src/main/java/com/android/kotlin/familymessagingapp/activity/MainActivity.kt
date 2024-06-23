@@ -1,24 +1,32 @@
 package com.android.kotlin.familymessagingapp.activity
 
 import android.app.Dialog
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val _viewModel: MainViewModel by viewModels()
 
-//    private lateinit var connectivityManager: ConnectivityManager
+    private lateinit var connectivityManager: ConnectivityManager
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -28,11 +36,13 @@ class MainActivity : AppCompatActivity() {
 
     private var dialog: Dialog? = null
 
-//    private val networkRequest = NetworkRequest.Builder()
-//        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-//        .build();
-//
-//    private lateinit var networkCallback: NetworkCallback
+    private var _networkErrorDialog: MaterialAlertDialogBuilder? = null
+
+    private val networkRequest = NetworkRequest.Builder()
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .build();
+
+    private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
     private var _binding: ActivityMainBinding? = null
 
@@ -47,9 +57,10 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
+        _networkErrorDialog = DialogUtils.showNetworkNotAvailableDialog(this@MainActivity, {}, {}, {})
         dialog = DialogUtils.createLoadingDialog(this)
         _viewModel.executeTheJobOnFirstRun()
-//        networkListener()
+        networkListener()
         val navHostFragment = supportFragmentManager
             .findFragmentById(binding.appContainer.id) as NavHostFragment
         navController = navHostFragment.navController
@@ -80,15 +91,15 @@ class MainActivity : AppCompatActivity() {
         _viewModel.changeLanguage()
     }
 
-//    override fun onStart() {
-//        super.onStart()
-//        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
-//    }
-//
-//    override fun onStop() {
-//        super.onStop()
-//        connectivityManager.unregisterNetworkCallback(networkCallback)
-//    }
+    override fun onStart() {
+        super.onStart()
+        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
 //
 //    private fun networkListener() {
 //        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -105,6 +116,29 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 //    }
+
+    private fun networkListener() {
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                super.onAvailable(network)
+                showNetworkErrorDialogDialog(false)
+            }
+
+            override fun onLost(network: Network) {
+                super.onLost(network)
+                showNetworkErrorDialogDialog(true)
+            }
+        }
+    }
+
+    fun showNetworkErrorDialogDialog(show: Boolean) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            _networkErrorDialog?.let {networkErrorDialog ->
+                if (show) networkErrorDialog.show()
+            }
+        }
+    }
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()

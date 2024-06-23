@@ -10,10 +10,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.facebook.AccessToken
-import com.facebook.CallbackManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,11 +28,11 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
-    dataMemoryRepository: DataMemoryRepository
+    localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
 
     val isTheEnglishLanguageDisplayedLiveData =
-        dataMemoryRepository.isTheEnglishLanguageDisplayedFlow.asLiveData()
+        localDatabaseRepository.isTheEnglishLanguageDisplayedFlow.asLiveData()
 
     private val _loadingStatus = MutableLiveData(false)
     val loadingStatus: LiveData<Boolean> = _loadingStatus

@@ -55,4 +55,23 @@ object DialogUtils {
             onCancelListener = onCancelListener
         )
     }
+
+    fun logoutDialog(
+        context: Context,
+        onPositiveClick: () -> Unit?,
+        onNegativeClick: () -> Unit?,
+        onCancelListener: () -> Unit?
+    ): MaterialAlertDialogBuilder {
+        return createCommonDialog(
+            context = context,
+            title = R.string.logout,
+            message = R.string.logout_message,
+            cancelable = true,
+            positiveButtonLabel = R.string.ok,
+            negativeButtonLabel = R.string.cancel,
+            onPositiveClick = onPositiveClick,
+            onNegativeClick = onNegativeClick,
+            onCancelListener = onCancelListener
+        )
+    }
 }

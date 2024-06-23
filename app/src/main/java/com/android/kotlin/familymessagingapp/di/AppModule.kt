@@ -15,7 +15,7 @@ import com.android.kotlin.familymessagingapp.firebase_services.google_authentica
 import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
-import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.Identity
@@ -63,7 +63,7 @@ object AppModule {
         firebaseEmailService: FirebaseEmailService,
         appFirebaseStorage: AppFirebaseStorage,
         appRealtimeDatabaseService: AppRealtimeDatabaseService,
-        appDataMemoryRepository: DataMemoryRepository,
+        appLocalDatabaseRepository: LocalDatabaseRepository,
         facebookService: FacebookService
     ): FirebaseServiceRepository =
         FirebaseServiceRepository(
@@ -72,7 +72,7 @@ object AppModule {
             firebaseEmailService,
             appFirebaseStorage,
             appRealtimeDatabaseService,
-            appDataMemoryRepository,
+            appLocalDatabaseRepository,
             facebookService
         )
 
@@ -82,8 +82,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDataMemoryRepository(appDataStore: AppDataStore): DataMemoryRepository =
-        DataMemoryRepository(appDataStore)
+    fun provideDataMemoryRepository(appDataStore: AppDataStore): LocalDatabaseRepository =
+        LocalDatabaseRepository(appDataStore)
 
     @Provides
     @Singleton

@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 // Bug:
@@ -16,5 +17,11 @@ data class UserData(
     @Expose @SerializedName("username") val username: String? = null,
     @Expose @SerializedName("email") val email: String? = null,
     @Expose @SerializedName("phone_number") val phoneNumber: String? = null,
-    @Expose @SerializedName("user_avatar") val userAvatar: String? = null
-) : Parcelable
+    @Expose @SerializedName("user_avatar") val userAvatar: String? = null,
+    @Expose @SerializedName("chat_rooms") val chatrooms: List<String>? = null
+) : Parcelable {
+    companion object {
+        const val USERNAME = "username"
+    }
+}
+

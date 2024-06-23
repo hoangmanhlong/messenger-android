@@ -120,14 +120,11 @@ class ProfileFragment : Fragment() {
         context?.let {
             NetworkChecker.checkNetwork(it) {
                 isDialogShowing = true
-                DialogUtils.createCommonDialog(
+                DialogUtils.logoutDialog(
                     context = it,
-                    title = R.string.logout,
-                    message = R.string.logout_message,
-                    cancelable = true,
-                    positiveButtonLabel = R.string.ok,
-                    negativeButtonLabel = R.string.cancel,
-                    onPositiveClick = { _viewModel.logout() },
+                    onPositiveClick = {
+                        _viewModel.logout()
+                    },
                     onNegativeClick = {
                         isDialogShowing = false
                         Unit
@@ -135,8 +132,8 @@ class ProfileFragment : Fragment() {
                     onCancelListener = {
                         isDialogShowing = false
                         Unit
-                    }
-                ).show()
+                    })
+                    .show()
             }
         }
     }

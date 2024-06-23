@@ -1,7 +1,5 @@
 package com.android.kotlin.familymessagingapp.repository
 
-import android.util.Log
-import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.firebase_services.facebook.FacebookService
 import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
@@ -15,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CancellationException
@@ -27,7 +24,7 @@ class FirebaseServiceRepository(
     val firebaseEmailService: FirebaseEmailService,
     val appFirebaseStorage: AppFirebaseStorage,
     val appRealtimeDatabaseService: AppRealtimeDatabaseService,
-    private val dataMemoryRepository: DataMemoryRepository,
+    private val localDatabaseRepository: LocalDatabaseRepository,
     val facebookService: FacebookService
 ) {
 

@@ -2,7 +2,9 @@ package com.android.kotlin.familymessagingapp.firebase_services.realtime_databas
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
 import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.firebase.auth.FirebaseAuth
@@ -14,9 +16,15 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -33,6 +41,8 @@ class AppRealtimeDatabaseService(
     }
 
     val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
+
+    val chatroomsRef = databaseReference.child(Constant.REALTIME_DATABASE_CHAT_ROOM_REF)
 
     val currentUserDataFlow: Flow<UserData?>
         get() = callbackFlow {
@@ -53,6 +63,54 @@ class AppRealtimeDatabaseService(
                 awaitClose { currentUserRef.removeEventListener(listener) }
             } ?: close()
         }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val chatroomsFlow: Flow<List<ChatRoom>>
+        get() = currentUserDataFlow.flatMapLatest { userData ->
+            if (userData?.chatrooms.isNullOrEmpty()) {
+                flowOf(emptyList()) // Emit null for empty list
+            } else {
+//                val chatroomFlows = userData?.chatrooms?.map { getChatRoomFlow(it) }
+//                combine(chatroomFlows) { chatrooms ->
+//                    chatrooms.filterNotNull().toList() // Filter out null ChatRooms
+//                }
+                flowOf(listOf(
+                    ChatRoom(
+                        chatRoomId = "fuyfuh",
+                        members = listOf("1", "2"),
+                        messages = null,
+                        time = 67476476474,
+                        isActive = true,
+                        chatroomName = "Hello",
+                        lastMessage = "alo"
+                    ),
+                    ChatRoom(
+                        chatRoomId = "message 2",
+                        members = listOf("1", "2"),
+                        messages = null,
+                        time = 674764764744,
+                        isActive = false,
+                        chatroomName = "Hello",
+                        lastMessage = "alo"
+                    )
+                ))
+            }
+        }
+
+    private fun getChatRoomFlow(chatroomId: String): Flow<ChatRoom?> = callbackFlow {
+        val chatroomRef = chatroomsRef.child(chatroomId)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                this@callbackFlow.trySend(snapshot.getValue(ChatRoom::class.java))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        chatroomRef.addValueEventListener(listener)
+        awaitClose { chatroomRef.removeEventListener(listener) }
+    }
 
     suspend fun saveUserData(userData: UserData, imageUri: Uri?): Boolean {
         return withContext(Dispatchers.IO) {
@@ -84,4 +142,24 @@ class AppRealtimeDatabaseService(
             }
         }
     }
+
+    suspend fun search(username: String): List<UserData> {
+        val list = mutableListOf<UserData>()
+        return try {
+            val dataSnapshot = userDataRef.orderByChild(UserData.USERNAME).equalTo(username).get().await()
+            if (dataSnapshot.exists()) {
+                for (snapshot in dataSnapshot.children) {
+                    snapshot.getValue(UserData::class.java)?.let { list.add(it) }
+                }
+                list
+            } else {
+                Log.d(TAG, "search: Not exist $username")
+                list
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "search: $e")
+            list
+        }
+    }
+
 }

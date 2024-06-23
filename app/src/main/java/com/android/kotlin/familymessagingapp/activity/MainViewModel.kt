@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.repository.DataMemoryRepository
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
 //    firebaseAuthenticationRepository: FirebaseAuthenticationRepository,
-    private val dataMemoryRepository: DataMemoryRepository,
+    private val localDatabaseRepository: LocalDatabaseRepository,
 //    private val appRepository: AppRepository
 ) : ViewModel() {
 
@@ -32,7 +32,7 @@ class MainViewModel @Inject constructor(
     // Save Notification Status to local
     fun saveNotificationStatus(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataMemoryRepository.appDataStore.saveBoolean(
+            localDatabaseRepository.appDataStore.saveBoolean(
                 AppDataStore.ARE_NOTIFICATION_ENABLED,
                 enabled
             )
@@ -46,7 +46,7 @@ class MainViewModel @Inject constructor(
         _isLoading.value = isLoading
     }
 
-    val isTheEnglishLanguageDisplayed: LiveData<Boolean?> = dataMemoryRepository
+    val isTheEnglishLanguageDisplayed: LiveData<Boolean?> = localDatabaseRepository
         .isTheEnglishLanguageDisplayedFlow
         .asLiveData()
 
@@ -63,7 +63,7 @@ class MainViewModel @Inject constructor(
         if (_isTheEnglishLanguageSelected != isTheEnglishLanguageDisplayed.value) {
             viewModelScope.launch {
                 // Save to Local
-                dataMemoryRepository.appDataStore.saveBoolean(
+                localDatabaseRepository.appDataStore.saveBoolean(
                     AppDataStore.IS_THE_ENGLISH_LANGUAGE_DISPLAYED,
                     _isTheEnglishLanguageSelected
                 )
@@ -112,13 +112,13 @@ class MainViewModel @Inject constructor(
     //Save data when the user runs the app for the first time
     fun executeTheJobOnFirstRun() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (dataMemoryRepository.appDataStore
+            if (localDatabaseRepository.appDataStore
                     .getBooleanPreferenceFlow(AppDataStore.IS_THE_FIRST_LAUNCH, null)
                     // The terminal operator that returns the first element emitted by the flow
                     // and then cancels flow's collection
                     .first() == null
             ) {
-                dataMemoryRepository.appDataStore.apply {
+                localDatabaseRepository.appDataStore.apply {
                     saveBoolean(AppDataStore.IS_THE_FIRST_LAUNCH, true)
                     saveBoolean(AppDataStore.IS_THE_ENGLISH_LANGUAGE_DISPLAYED, true)
                 }

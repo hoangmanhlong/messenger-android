@@ -48,6 +48,8 @@
 
     <string name="notification">Notification</string>
 
+    <string name="no_result">No results found</string>
+
     <!--    Register-->
     <string name="username">Username</string>
     <string name="phone_number">Phone number</string>

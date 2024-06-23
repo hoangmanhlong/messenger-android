@@ -10,9 +10,15 @@
         android:title="@string/scan_qr_code" />
 
     <item
-        android:id="@+id/profile"
+        android:id="@+id/avatarMenu"
         android:title="@string/avatar"
+        android:visible="false"
         tools:icon="@tools:sample/avatars"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/loadingProgressBarMenu"
+        android:title="@string/app_name"
+        app:actionLayout="@layout/layout_progress_bar"
+        app:showAsAction="always" />
 </menu>
