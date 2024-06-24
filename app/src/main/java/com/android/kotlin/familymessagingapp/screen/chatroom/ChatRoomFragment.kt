@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
+import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -27,6 +28,7 @@ class ChatRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
     }
 

@@ -33,6 +33,9 @@
         <action
             android:id="@+id/action_homeFragment_to_personalFragment"
             app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_scanQRCodeFragment"
+            app:destination="@id/scanQRCodeFragment" />
     </fragment>
     <fragment
         android:id="@+id/profileFragment"
@@ -62,4 +65,9 @@
         android:name="com.android.kotlin.familymessagingapp.screen.profile_detail.ProfileDetailFragment"
         android:label="ProfileDetailFragment"
         tools:layout="@layout/fragment_profile_detail"/>
+    <fragment
+        android:id="@+id/scanQRCodeFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.scan_qr_code.ScanQRCodeFragment"
+        android:label="fragment_scan_qr_code"
+        tools:layout="@layout/fragment_scan_qr_code" />
 </navigation>

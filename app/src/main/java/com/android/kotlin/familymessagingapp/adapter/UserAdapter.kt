@@ -10,7 +10,9 @@ import com.android.kotlin.familymessagingapp.databinding.LayoutUserBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 
-class UserAdapter : ListAdapter<UserData, UserAdapter.UserViewHolder>(DiffCallback) {
+class UserAdapter(
+    private val onItemClicked: (UserData) -> Unit
+) : ListAdapter<UserData, UserAdapter.UserViewHolder>(DiffCallback) {
 
     inner class UserViewHolder(
         private val binding: LayoutUserBinding
@@ -21,13 +23,18 @@ class UserAdapter : ListAdapter<UserData, UserAdapter.UserViewHolder>(DiffCallba
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        return UserViewHolder(
+        val viewHolder = UserViewHolder(
             LayoutUserBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
         )
+
+        viewHolder.itemView.setOnClickListener {
+            onItemClicked(getItem(viewHolder.adapterPosition))
+        }
+        return viewHolder
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {

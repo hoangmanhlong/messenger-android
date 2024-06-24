@@ -15,13 +15,18 @@ import kotlinx.parcelize.Parcelize
 data class UserData(
     @Expose @SerializedName("uid") val uid: String? = null,
     @Expose @SerializedName("username") val username: String? = null,
+//    @Expose @SerializedName("username_lowercase") val usernameLowercase: String? = null,
     @Expose @SerializedName("email") val email: String? = null,
     @Expose @SerializedName("phone_number") val phoneNumber: String? = null,
     @Expose @SerializedName("user_avatar") val userAvatar: String? = null,
-    @Expose @SerializedName("chat_rooms") val chatrooms: List<String>? = null
+    @Expose @SerializedName("chat_rooms") val chatrooms: List<String>? = null,
+
 ) : Parcelable {
     companion object {
         const val USERNAME = "username"
+        const val USERNAME_LOWERCASE = "usernameLowercase"
+        const val PHONE_NUMBER = "phoneNumber"
+        const val EMAIL = "email"
     }
 }
 

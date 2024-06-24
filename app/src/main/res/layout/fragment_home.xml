@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
+
     <data>
 
         <variable
@@ -12,6 +13,7 @@
 
         <import type="android.view.View" />
     </data>
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
@@ -22,8 +24,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/loadChatRoomProgressBar"
             android:layout_width="match_parent"
-            android:visibility="gone"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="gone">
 
             <ProgressBar
                 android:layout_width="wrap_content"
@@ -36,18 +38,18 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
-            android:visibility="@{isConversationEmpty ? View.VISIBLE : View.GONE}"
             android:id="@+id/tvConversationEmpty"
             style="@style/TextAppearance.Material3.TitleMedium"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="@string/conversation_empty" />
+            android:text="@string/conversation_empty"
+            android:visibility="@{isConversationEmpty ? View.VISIBLE : View.GONE}" />
 
         <androidx.core.widget.NestedScrollView
-            android:visibility="@{isConversationEmpty ? View.GONE : View.VISIBLE}"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="@{isConversationEmpty ? View.GONE : View.VISIBLE}"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <androidx.recyclerview.widget.RecyclerView
@@ -86,31 +88,46 @@
             android:hint="@string/search"
             app:layout_anchor="@id/search_bar">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:overScrollMode="never">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:visibility="@{isSearchedUserEmpty ? View.GONE : View.VISIBLE}"
-                    android:id="@+id/usersRecyclerView"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/searchViewContent"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:padding="8dp"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:listitem="@layout/layout_user" />
+                    android:layout_height="match_parent">
 
-                <TextView
-                    android:visibility="@{isSearchedUserEmpty ? View.VISIBLE : View.GONE}"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/TextAppearance.Material3.TitleMedium"
-                    android:text="@string/no_result"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"/>
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:listitem="@layout/layout_search_history" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/usersRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:padding="8dp"
+                        android:visibility="@{isSearchedUserEmpty ? View.GONE : View.VISIBLE}"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        tools:listitem="@layout/layout_user" />
+
+                    <TextView
+                        style="@style/TextAppearance.Material3.TitleMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/no_result"
+                        android:visibility="@{isSearchedUserEmpty ? View.VISIBLE : View.GONE}"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.core.widget.NestedScrollView>
 
         </com.google.android.material.search.SearchView>
 

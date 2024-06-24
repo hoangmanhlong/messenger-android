@@ -46,16 +46,8 @@ class ProfileViewModel @Inject constructor(
     fun deleteAccount() {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = firebaseServiceRepository.deleteAccount()
+            firebaseServiceRepository.deleteAccount()
             _isLoading.value = false
-            when(result) {
-                is Result.Error -> {
-                    if(result.exception is FirebaseAuthRecentLoginRequiredException) {
-                        logout()
-                    }
-                }
-                is Result.Success -> {}
-            }
         }
     }
 }

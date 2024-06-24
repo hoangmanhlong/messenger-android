@@ -7,6 +7,7 @@ import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFireba
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -143,17 +144,32 @@ class AppRealtimeDatabaseService(
         }
     }
 
-    suspend fun search(username: String): List<UserData> {
+    /**
+     * Problem: Với trường username
+     * Chỉ tìm kiếm được được khi keyword giống 100% username
+     * Ví dụ: keyword = "long", username trên server = "Long" => kết quả sẽ sai
+     * Solution: thêm trường usernameLowercase vào UserData
+     * usernameLowercase = username.toLoweCase
+     */
+    suspend fun search(keyword: String): List<UserData> {
         val list = mutableListOf<UserData>()
         return try {
-            val dataSnapshot = userDataRef.orderByChild(UserData.USERNAME).equalTo(username).get().await()
+            val dataSnapshot = if (StringUtils.isValidEmail(keyword)) {
+                userDataRef.orderByChild(UserData.EMAIL).equalTo(keyword).get().await()
+            } else if (StringUtils.isNumber(keyword)) {
+                userDataRef.orderByChild(UserData.PHONE_NUMBER).equalTo(keyword).get().await()
+            } else {
+                userDataRef.orderByChild(UserData.USERNAME).equalTo(keyword).get().await()
+            }
+
             if (dataSnapshot.exists()) {
                 for (snapshot in dataSnapshot.children) {
-                    snapshot.getValue(UserData::class.java)?.let { list.add(it) }
+                    snapshot.getValue(UserData::class.java)?.let {
+                        if (it.uid != auth.uid) list.add(it)
+                    }
                 }
                 list
             } else {
-                Log.d(TAG, "search: Not exist $username")
                 list
             }
         } catch (e: Exception) {

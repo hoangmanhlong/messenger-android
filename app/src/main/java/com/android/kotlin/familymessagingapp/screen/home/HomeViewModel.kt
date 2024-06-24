@@ -6,10 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +23,7 @@ class HomeViewModel @Inject constructor(
         const val TAG = "HomeViewModel"
     }
 
+    private var currentKeyword = ""
 
     var isFirstLoadImage = false
 
@@ -38,9 +39,18 @@ class HomeViewModel @Inject constructor(
     val chatRoomsLiveData: LiveData<List<ChatRoom>> =
         firebaseServiceRepository.appRealtimeDatabaseService.chatroomsFlow.asLiveData()
 
-    fun searchByString(str: String) {
-        viewModelScope.launch {
-            _searchedUser.value = firebaseServiceRepository.appRealtimeDatabaseService.search(str)
+    fun searchKeyword(keyword: String) {
+        if (keyword.isEmpty()) {
+            _searchedUser.value = emptyList()
+        } else {
+            // if new keyword and old keyword is same then skip
+            if (currentKeyword != keyword) {
+                currentKeyword = keyword
+                //            _searchedUser.value = emptyList() // clear old list when start query
+                viewModelScope.launch {
+                    _searchedUser.value = firebaseServiceRepository.appRealtimeDatabaseService.search(keyword)
+                }
+            }
         }
     }
 }

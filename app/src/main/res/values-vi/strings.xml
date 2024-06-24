@@ -19,6 +19,7 @@
     <string name="save">Lưu</string>
 
     <string name="no_result">không có kết quả nào được tìm thấy</string>
+    <string name="hi_user">Chào %s</string>
 
     <string name="setting">Cài đặt</string>
     <string name="logout">Đăng xuất</string>

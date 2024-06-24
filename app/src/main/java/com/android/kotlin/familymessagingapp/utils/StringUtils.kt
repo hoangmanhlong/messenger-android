@@ -7,9 +7,14 @@ import java.util.regex.Pattern
 
 object StringUtils {
     fun isValidEmail(email: String): Boolean {
-        val emailRegex = ("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-                + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")
+        val emailRegex =
+            ("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")
         return Pattern.compile(emailRegex).matcher(email).matches()
+    }
+
+    fun isNumber(string: String): Boolean {
+        val pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+        return pattern.matcher(string).matches();
     }
 
     fun isValidPasswordLength(password: String): Boolean = password.length >= 6
@@ -26,5 +31,13 @@ object StringUtils {
             putExtra(Intent.EXTRA_SUBJECT, subject)
         }
         intent.resolveActivity(context.packageManager).let { context.startActivity(intent) }
+    }
+
+    fun isValidFirebasePath(path: String): Boolean {
+        return !path.contains(".")
+                && !path.contains("#")
+                && !path.contains("$")
+                && !path.contains("[")
+                && !path.contains("]")
     }
 }

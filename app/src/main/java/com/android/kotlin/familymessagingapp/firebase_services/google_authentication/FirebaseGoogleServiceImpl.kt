@@ -16,6 +16,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import java.util.concurrent.CancellationException
 
 class FirebaseGoogleServiceImpl(

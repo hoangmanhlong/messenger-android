@@ -7,6 +7,7 @@ import com.android.kotlin.familymessagingapp.firebase_services.realtime_database
 import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,7 @@ class FirebaseServiceRepository(
             } catch (e: Exception) {
                 // TODO: Delete Account Error with FirebaseAuthRecentLoginRequiredException
                 // Current solution: sign out but the account still exists in the backend
+                if (e is FirebaseAuthRecentLoginRequiredException) signOut()
                 Result.Error(e)
             }
         }

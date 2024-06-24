@@ -49,6 +49,7 @@
     <string name="notification">Notification</string>
 
     <string name="no_result">No results found</string>
+    <string name="hi_user">Hi %s</string>
 
     <!--    Register-->
     <string name="username">Username</string>
