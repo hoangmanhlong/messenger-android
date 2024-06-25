@@ -1,13 +1,11 @@
-package com.android.kotlin.familymessagingapp.adapter
+package com.android.kotlin.familymessagingapp.screen.home
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.android.kotlin.familymessagingapp.databinding.LayoutChatroomBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutUserBinding
-import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 
 class UserAdapter(

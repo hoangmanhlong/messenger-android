@@ -1,13 +1,15 @@
 package com.android.kotlin.familymessagingapp.screen.home
 
 import android.os.Bundle
-import android.util.Log
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.LinearLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,13 +17,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.adapter.ChatRoomAdapter
-import com.android.kotlin.familymessagingapp.adapter.UserAdapter
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.utils.AppImageUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.Screen
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,6 +58,12 @@ class HomeFragment : Fragment() {
 
     private var searchView: SearchView? = null
 
+    private var searchHistoriesRecyclerView: RecyclerView? = null
+
+    private var searchHistoryAdapter: SearchHistoryAdapter? = null
+
+    private var recentSearchHistory: LinearLayout? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,9 +78,16 @@ class HomeFragment : Fragment() {
         chatRoomsRecyclerView = binding.chatroomRecyclerView
         usersRecyclerView = binding.usersRecyclerView
         chatroomAdapter = ChatRoomAdapter()
-        userAdapter = UserAdapter {
-            findNavController().navigate(R.id.chatRoomFragment)
-        }
+        searchHistoriesRecyclerView = binding.searchHistoriesRecyclerView
+        recentSearchHistory = binding.recentSearchHistoryView
+        userAdapter = UserAdapter { findNavController().navigate(Screen.ChatRoom.screenId) }
+        searchHistoryAdapter = SearchHistoryAdapter(
+            onDeleteItem = { viewModel.deleteSearchHistory(it) },
+            onItemClicked = {
+                searchView?.editText?.text = Editable.Factory.getInstance().newEditable(it.text)
+            }
+        )
+        searchHistoriesRecyclerView?.adapter = searchHistoryAdapter
         chatRoomsRecyclerView?.adapter = chatroomAdapter
         usersRecyclerView?.adapter = userAdapter
         return binding.root
@@ -83,7 +96,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(binding.searchViewContent, it) }
-        binding.isSearchedUserEmpty = false
+
         viewModel.authenticated.observe(this.viewLifecycleOwner) { authenticated ->
             if (!authenticated) {
                 findNavController().popBackStack()
@@ -91,10 +104,31 @@ class HomeFragment : Fragment() {
             }
         }
 
+        viewModel.searchHistories.observe(this.viewLifecycleOwner) {
+            if (it.isNullOrEmpty()) {
+                recentSearchHistory?.visibility = View.GONE
+            } else {
+                recentSearchHistory?.visibility = View.VISIBLE
+                searchHistoryAdapter?.submitList(it)
+            }
+        }
+
+//        viewModel.isShowSearchedUserResult.observe(this.viewLifecycleOwner) {
+//            if (it) {
+//                binding.tvSearchedUserEmpty.visibility = View.VISIBLE
+//                usersRecyclerView?.visibility = View.VISIBLE
+//                searchHistoriesRecyclerView?.visibility = View.GONE
+//            } else {
+//                binding.tvSearchedUserEmpty.visibility = View.GONE
+//                usersRecyclerView?.visibility = View.GONE
+//                searchHistoriesRecyclerView?.visibility = View.VISIBLE
+//            }
+//        }
+
         viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
             binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
             if (chatRoomsList.isNotEmpty()) {
-                val sortedList  = chatRoomsList.sortedByDescending { chatroom -> chatroom.time }
+                val sortedList = chatRoomsList.sortedByDescending { chatroom -> chatroom.time }
                 chatroomAdapter?.submitList(sortedList)
             }
         }
@@ -147,13 +181,29 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.searchedUser.observe(this.viewLifecycleOwner) {
-            binding.isSearchedUserEmpty = it.isNullOrEmpty()
-            searchView?.let {searchView ->
+            searchView?.let { searchView ->
                 if (searchView.isShowing) {
+                    binding.isSearchedUserEmpty = it.isNullOrEmpty()
                     userAdapter?.submitList(it)
                 }
             }
         }
+
+        searchView?.editText?.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (recentSearchHistory?.visibility == View.GONE && viewModel.searchHistories.value?.size != 0) {
+                    recentSearchHistory?.visibility = View.VISIBLE
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+        })
 
         searchBar?.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -171,15 +221,17 @@ class HomeFragment : Fragment() {
             }
         }
 
-        searchView?.editText?.setOnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) { // Handle only editor action
-                activity?.let {
-                    NetworkChecker.checkNetwork(it) {
-                        viewModel.searchKeyword(searchView?.editText?.text.toString().trim())
-                    }
-                }
-            }
+        searchView?.editText?.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch()
             false
+        }
+    }
+
+    private fun onActionSearch() {
+        activity?.let {
+            NetworkChecker.checkNetwork(it) {
+                viewModel.searchKeyword(searchView?.editText?.text.toString().trim())
+            }
         }
     }
 

@@ -17,7 +17,7 @@ import com.android.kotlin.familymessagingapp.screen.select_language.SelectLangua
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.Screen
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.AndroidEntryPoint
 

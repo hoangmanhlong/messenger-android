@@ -1,7 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.login
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,16 +13,13 @@ import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
-import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.Screen
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
-import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Arrays
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {

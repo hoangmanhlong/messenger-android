@@ -61,4 +61,6 @@
     <string name="avatar">Ảnh đại diện</string>
     <string name="scan_qr_code">Quét mã QR</string>
 
+    <string name="recent_search_history">Các lịch sử tìm kiếm gần đây</string>
+
 </resources>

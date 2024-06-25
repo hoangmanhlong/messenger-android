@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.utils
+package com.android.kotlin.familymessagingapp.screen
 
 import com.android.kotlin.familymessagingapp.R
 
@@ -22,4 +22,6 @@ sealed class Screen(val screenId: Int) {
     data object ProfileScreen : Screen(R.id.profileFragment) {
         fun toProfileDetail(): Int = R.id.action_profileFragment_to_profileDetailFragment
     }
+
+    data object ChatRoom: Screen(R.id.chatRoomFragment)
 }

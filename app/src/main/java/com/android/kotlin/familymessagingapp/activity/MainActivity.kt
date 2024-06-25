@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         _viewModel.saveNotificationStatus(isGranted)
     }
 
-    private var dialog: Dialog? = null
+    private var _loadingDialog: Dialog? = null
 
     private var _networkErrorDialog: MaterialAlertDialogBuilder? = null
 
@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
         _networkErrorDialog = DialogUtils.showNetworkNotAvailableDialog(this@MainActivity, {}, {}, {})
-        dialog = DialogUtils.createLoadingDialog(this)
+        _loadingDialog = DialogUtils.createLoadingDialog(this)
         _viewModel.executeTheJobOnFirstRun()
         networkListener()
         val navHostFragment = supportFragmentManager
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLoadingDialog(isShow: Boolean) {
-        dialog?.let {
+        _loadingDialog?.let {
             if (isShow && !it.isShowing) it.show()
             else it.dismiss()
         }
@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        dialog = null
+        _loadingDialog = null
         _binding = null
     }
 

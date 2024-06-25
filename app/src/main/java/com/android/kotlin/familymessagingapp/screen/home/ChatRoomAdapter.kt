@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.adapter
+package com.android.kotlin.familymessagingapp.screen.home
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

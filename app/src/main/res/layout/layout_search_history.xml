@@ -1,25 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:gravity="center"
-    android:padding="8dp">
-    <ImageView
-        android:layout_width="wrap_content"
+<layout>
+    <data>
+        <variable
+            name="searchHistory"
+            type="com.android.kotlin.familymessagingapp.data.local.room.SearchHistory" />
+    </data>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_history" />
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
 
-    <TextView
-        android:layout_marginStart="8dp"
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        tools:text="@string/author"
-        android:layout_height="wrap_content" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_history" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_clear" />
-</LinearLayout>
+        <TextView
+            android:text="@{searchHistory.text}"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            tools:text="@string/author" />
+
+        <ImageView
+            android:id="@+id/remove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_clear" />
+    </LinearLayout>
+</layout>
