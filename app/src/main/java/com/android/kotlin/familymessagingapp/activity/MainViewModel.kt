@@ -108,9 +108,12 @@ class MainViewModel @Inject constructor(
 //            }
 //        }
 //    }
+    init {
+        executeTheJobOnFirstRun()
+    }
 
     //Save data when the user runs the app for the first time
-    fun executeTheJobOnFirstRun() {
+    private fun executeTheJobOnFirstRun() {
         viewModelScope.launch(Dispatchers.IO) {
             if (localDatabaseRepository.appDataStore
                     .getBooleanPreferenceFlow(AppDataStore.IS_THE_FIRST_LAUNCH, null)

@@ -4,17 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
+import com.google.android.material.search.SearchView
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class SearchViewState { Hidden, Shown, Showing }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -39,21 +41,28 @@ class HomeViewModel @Inject constructor(
     val searchHistories: LiveData<List<SearchHistory>> = localDatabaseRepository
         .getSearchHistories().asLiveData()
 
-    private val _isShowSearchedUserResult = MutableLiveData(false)
-    val isShowSearchedUserResult: LiveData<Boolean> = _isShowSearchedUserResult
+    private val _searchViewState = MutableLiveData(SearchView.TransitionState.HIDDEN)
+    val searchViewState: LiveData<SearchView.TransitionState> = _searchViewState
+
+    val _isShowingSearchResult: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isShowingSearchResult: LiveData<Boolean> = _isShowingSearchResult
 
     val currentUserLiveData: LiveData<UserData?> =
         firebaseServiceRepository.appRealtimeDatabaseService.currentUserDataFlow.asLiveData()
 
     val chatRoomsLiveData: LiveData<List<ChatRoom>> =
-        firebaseServiceRepository.appRealtimeDatabaseService.chatroomsFlow.asLiveData()
+        firebaseServiceRepository.appRealtimeDatabaseService.chatRoomsFlow.asLiveData()
 
     fun setShowSearchedUserResult(show: Boolean) {
-        _isShowSearchedUserResult.value = show
+        _isShowingSearchResult.value = show
+    }
+
+    fun setSearchViewState(searchViewState: SearchView.TransitionState) {
+        _searchViewState.value = searchViewState
     }
 
     fun searchKeyword(keyword: String) {
-        _isShowSearchedUserResult.value = true
+        _isShowingSearchResult.value = true
         if (keyword.isEmpty()) {
             _searchedUser.value = emptyList()
         } else {
@@ -65,7 +74,8 @@ class HomeViewModel @Inject constructor(
                 currentKeyword = keyword
                 //            _searchedUser.value = emptyList() // clear old list when start query
                 viewModelScope.launch {
-                    _searchedUser.value = firebaseServiceRepository.appRealtimeDatabaseService.search(keyword)
+                    _searchedUser.value =
+                        firebaseServiceRepository.appRealtimeDatabaseService.search(keyword)
                 }
             }
         }

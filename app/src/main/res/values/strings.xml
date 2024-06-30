@@ -76,5 +76,6 @@
     <string name="scan_qr_code">Scan QR code</string>
     
     <string name="recent_search_history">Recent search history</string>
+    <string name="messages_empty">No message</string>
 
 </resources>

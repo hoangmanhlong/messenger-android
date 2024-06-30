@@ -1,11 +1,13 @@
 package com.android.kotlin.familymessagingapp.adapter
 
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.bumptech.glide.Glide
 
-
+// Rule : The first parameter in the binding function is always view
 object AppBindingAdapter {
 
     @JvmStatic
@@ -18,5 +20,11 @@ object AppBindingAdapter {
                 .placeholder(R.drawable.loading_animation)
                 .into(imageView)
         } ?: imageView.setImageResource(R.drawable.ic_user_default)
+    }
+
+    @JvmStatic
+    @BindingAdapter("bindChatroomFormattedTime")
+    fun bindChatroomFormattedTime(textView: TextView, time: Long) {
+        textView.text = StringUtils.timeFormatter(time)
     }
 }

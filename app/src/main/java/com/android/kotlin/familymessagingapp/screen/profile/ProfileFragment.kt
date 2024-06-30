@@ -61,12 +61,8 @@ class ProfileFragment : Fragment() {
         binding.userAvatarCard.setOnClickListener {
             val userData = _viewModel.currentUserLiveData.value
             userData?.let {
-                val bundle = Bundle()
-                bundle.putParcelable(Constant.USER_DATA_KEY, it)
-                findNavController().navigate(
-                    Screen.ProfileScreen.toProfileDetail(),
-                    bundle
-                )
+                val action = ProfileFragmentDirections.actionProfileFragmentToProfileDetailFragment(it)
+                findNavController().navigate(action)
             }
         }
 

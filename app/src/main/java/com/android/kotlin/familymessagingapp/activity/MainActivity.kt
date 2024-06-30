@@ -10,16 +10,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -35,8 +31,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var _loadingDialog: Dialog? = null
-
-    private var _networkErrorDialog: MaterialAlertDialogBuilder? = null
 
     private val networkRequest = NetworkRequest.Builder()
         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -57,9 +51,7 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
-        _networkErrorDialog = DialogUtils.showNetworkNotAvailableDialog(this@MainActivity, {}, {}, {})
         _loadingDialog = DialogUtils.createLoadingDialog(this)
-        _viewModel.executeTheJobOnFirstRun()
         networkListener()
         val navHostFragment = supportFragmentManager
             .findFragmentById(binding.appContainer.id) as NavHostFragment
@@ -122,23 +114,23 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
-                showNetworkErrorDialogDialog(false)
+//                showNetworkErrorDialogDialog(false)
             }
 
             override fun onLost(network: Network) {
                 super.onLost(network)
-                showNetworkErrorDialogDialog(true)
+//                showNetworkErrorDialogDialog(true)
             }
         }
     }
 
-    fun showNetworkErrorDialogDialog(show: Boolean) {
-        lifecycleScope.launch(Dispatchers.Main) {
-            _networkErrorDialog?.let {networkErrorDialog ->
-                if (show) networkErrorDialog.show()
-            }
-        }
-    }
+//    fun showNetworkErrorDialogDialog(show: Boolean) {
+//        lifecycleScope.launch(Dispatchers.Main) {
+//            _networkErrorDialog?.let {networkErrorDialog ->
+//                if (show) networkErrorDialog.show()
+//            }
+//        }
+//    }
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()

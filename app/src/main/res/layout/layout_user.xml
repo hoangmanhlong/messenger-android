@@ -65,7 +65,7 @@
                     android:text="@{userdata.email}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    tools:text="Hello Long" />
+                    tools:text="long@gmail.com" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>

@@ -17,11 +17,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
+import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.AppImageUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.screen.Screen
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
@@ -70,17 +72,29 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
         searchBar = binding.searchBar
         searchView = binding.searchView
         searchBarMenu = searchBar?.menu
         avatarMenu = searchBarMenu?.findItem(R.id.avatarMenu)
         loadingProgressBarMenu = searchBarMenu?.findItem(R.id.loadingProgressBarMenu)
+
         chatRoomsRecyclerView = binding.chatroomRecyclerView
-        usersRecyclerView = binding.usersRecyclerView
-        chatroomAdapter = ChatRoomAdapter()
+        chatroomAdapter = ChatRoomAdapter(
+            onChatRoomClick = {
+                // Because information about the chat room other than messages
+                // usually does not change, all this information is transmitted to Chat Room Details
+                val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(it)
+                findNavController().navigate(action)
+            },
+            onChatRoomLongClick = {
+
+            }
+        )
+        chatRoomsRecyclerView?.adapter = chatroomAdapter
+
         searchHistoriesRecyclerView = binding.searchHistoriesRecyclerView
         recentSearchHistory = binding.recentSearchHistoryView
-        userAdapter = UserAdapter { findNavController().navigate(Screen.ChatRoom.screenId) }
         searchHistoryAdapter = SearchHistoryAdapter(
             onDeleteItem = { viewModel.deleteSearchHistory(it) },
             onItemClicked = {
@@ -88,8 +102,40 @@ class HomeFragment : Fragment() {
             }
         )
         searchHistoriesRecyclerView?.adapter = searchHistoryAdapter
-        chatRoomsRecyclerView?.adapter = chatroomAdapter
+
+        usersRecyclerView = binding.searchResultRecyclerView
+        userAdapter = UserAdapter {
+            val chatroom = ChatRoom(
+                chatroomName = it.username,
+                chatRoomImage = it.userAvatar,
+                members = listOf(it.uid!!)
+            )
+            val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(chatroom)
+            findNavController().navigate(action)
+        }
         usersRecyclerView?.adapter = userAdapter
+
+        searchBar?.setOnMenuItemClickListener {
+            when (it.itemId) {
+                avatarMenu?.itemId -> {
+                    findNavController().navigate(Screen.HomeScreen.toProfile())
+                    true
+                }
+
+                R.id.QrCodeMenu -> {
+                    findNavController().navigate(R.id.scanQRCodeFragment)
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        searchView?.editText?.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch()
+            false
+        }
+
         return binding.root
     }
 
@@ -105,32 +151,24 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.searchHistories.observe(this.viewLifecycleOwner) {
-            if (it.isNullOrEmpty()) {
-                recentSearchHistory?.visibility = View.GONE
-            } else {
-                recentSearchHistory?.visibility = View.VISIBLE
-                searchHistoryAdapter?.submitList(it)
-            }
+            if (searchView?.isShowing == true) bindSearchHistories(it)
         }
 
-//        viewModel.isShowSearchedUserResult.observe(this.viewLifecycleOwner) {
+//        viewModel.isShowingSearchResult.observe(this.viewLifecycleOwner) {
 //            if (it) {
 //                binding.tvSearchedUserEmpty.visibility = View.VISIBLE
 //                usersRecyclerView?.visibility = View.VISIBLE
-//                searchHistoriesRecyclerView?.visibility = View.GONE
+//                recentSearchHistory?.visibility = View.GONE
 //            } else {
 //                binding.tvSearchedUserEmpty.visibility = View.GONE
 //                usersRecyclerView?.visibility = View.GONE
-//                searchHistoriesRecyclerView?.visibility = View.VISIBLE
+//                recentSearchHistory?.visibility = View.VISIBLE
 //            }
 //        }
 
         viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
             binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
-            if (chatRoomsList.isNotEmpty()) {
-                val sortedList = chatRoomsList.sortedByDescending { chatroom -> chatroom.time }
-                chatroomAdapter?.submitList(sortedList)
-            }
+            chatRoomsList?.let { chatroomAdapter?.submitList(chatRoomsList) }
         }
 
         viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
@@ -195,9 +233,9 @@ class HomeFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (recentSearchHistory?.visibility == View.GONE && viewModel.searchHistories.value?.size != 0) {
-                    recentSearchHistory?.visibility = View.VISIBLE
-                }
+
+                binding.tvSearchedUserEmpty.visibility = View.GONE
+                binding.searchResultRecyclerView.visibility = View.GONE
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -205,26 +243,36 @@ class HomeFragment : Fragment() {
             }
         })
 
-        searchBar?.setOnMenuItemClickListener {
-            when (it.itemId) {
-                avatarMenu?.itemId -> {
-                    findNavController().navigate(Screen.HomeScreen.toProfile())
-                    true
+        viewModel.searchViewState.observe(this.viewLifecycleOwner) {
+            when (it) {
+                SearchView.TransitionState.HIDDEN -> {
+
                 }
 
-                R.id.QrCodeMenu -> {
-                    findNavController().navigate(R.id.scanQRCodeFragment)
-                    true
+                SearchView.TransitionState.SHOWN -> {
+
                 }
 
-                else -> false
+                SearchView.TransitionState.HIDING -> {}
+                SearchView.TransitionState.SHOWING -> {}
             }
         }
 
-        searchView?.editText?.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch()
-            false
+        searchView?.addTransitionListener { searchView, transitionState, transitionState2 ->
+            viewModel.setSearchViewState(transitionState2)
+            if (transitionState2 == SearchView.TransitionState.HIDDEN) {
+                binding.tvSearchedUserEmpty.visibility = View.GONE
+                binding.searchResultRecyclerView.visibility = View.GONE
+            }
+
+            if (transitionState2 == SearchView.TransitionState.SHOWN)
+                bindSearchHistories(viewModel.searchHistories.value)
         }
+    }
+
+    private fun bindSearchHistories(list: List<SearchHistory>?) {
+        recentSearchHistory?.visibility = if (list.isNullOrEmpty()) View.GONE else View.VISIBLE
+        searchHistoryAdapter?.submitList(list)
     }
 
     private fun onActionSearch() {

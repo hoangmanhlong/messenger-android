@@ -8,7 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutChatroomBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 
-class ChatRoomAdapter : ListAdapter<ChatRoom, ChatRoomAdapter.ChatRoomViewHolder>(DiffCallback) {
+class ChatRoomAdapter(
+    private val onChatRoomClick: (ChatRoom) -> Unit,
+    private val onChatRoomLongClick: (ChatRoom) -> Unit
+) : ListAdapter<ChatRoom, ChatRoomAdapter.ChatRoomViewHolder>(DiffCallback) {
 
     inner class ChatRoomViewHolder(
         private val binding: LayoutChatroomBinding
@@ -19,13 +22,24 @@ class ChatRoomAdapter : ListAdapter<ChatRoom, ChatRoomAdapter.ChatRoomViewHolder
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatRoomViewHolder {
-        return ChatRoomViewHolder(
+        val viewHolder = ChatRoomViewHolder(
             LayoutChatroomBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
         )
+
+        viewHolder.itemView.setOnClickListener {
+            onChatRoomClick(getItem(viewHolder.adapterPosition))
+        }
+
+        viewHolder.itemView.setOnLongClickListener {
+            onChatRoomLongClick(getItem(viewHolder.adapterPosition))
+            true
+        }
+
+        return viewHolder
     }
 
     override fun onBindViewHolder(holder: ChatRoomViewHolder, position: Int) {

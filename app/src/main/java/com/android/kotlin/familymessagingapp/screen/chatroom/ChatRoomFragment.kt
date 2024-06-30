@@ -1,39 +1,117 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
+import com.android.kotlin.familymessagingapp.screen.profile_detail.MyOpenDocumentContract
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
+import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ChatRoomFragment : Fragment() {
 
+    private val _viewModel: ChatRoomViewModel by viewModels()
+
     private var _binding: FragmentChatRoomBinding? = null
 
+    private val openDocument: ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(MyOpenDocumentContract()) {
+            it?.let {
+//                binding.ivAvatar.setImageURI(it)
+//                _viewModel.setImageUri(it)
+            }
+        }
+
     private val binding get() = _binding!!
+
+    private val args: ChatRoomFragmentArgs by navArgs()
+
+    private var messageAdapter: MessageAdapter? = null
+
+    private var messageRecyclerview: RecyclerView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
+        messageAdapter = MessageAdapter()
+        messageRecyclerview = binding.messageRecyclerview
+        messageRecyclerview?.adapter = messageAdapter
+        binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+        binding.btSendMessage.setOnClickListener {
+            activity?.let {
+                NetworkChecker.checkNetwork(it) {
+                    _viewModel.sendMessage()
+                }
+            }
+        }
+
+        binding.ivLocation.setOnClickListener {
+
+        }
+
+        binding.btSelectPhoto.setOnClickListener {
+            openDocument.launch(arrayOf("image/*"))
+        }
+
+        binding.etMessage.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                _viewModel.setTextMessage(s.toString().trim())
+                _viewModel.clearEdtText(false)
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+        })
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
-        binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+        activity?.let { HideKeyboard.setupHideKeyboard(binding.messagesView, it) }
+        val chatroom = args.chatroom
+        binding.chatroom = chatroom
+        val messages = chatroom.messages
+        binding.isMessageEmpty = messages.isNullOrEmpty()
+        messages?.let { messageAdapter?.submitList(it) }
+        _viewModel.setChatRoom(chatRoom = chatroom)
+
+        _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
+            binding.btSendMessage.isEnabled = it
+        }
+
+        _viewModel.messages.observe(this.viewLifecycleOwner) {
+            binding.isMessageEmpty = it.isNullOrEmpty()
+            it?.let { messageAdapter?.submitList(it) }
+        }
+
+        _viewModel.clearEdiText.observe(this.viewLifecycleOwner) {
+            if(it) binding.etMessage.setText("")
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        _viewModel.removeMessageListener()
     }
 }

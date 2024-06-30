@@ -64,8 +64,12 @@ class FirebaseServiceRepository(
         }
     }
 
+    /**
+     * Before logging out, all necessary devices will be deleted such as realtime listener
+     */
     fun signOut() {
         try {
+            appRealtimeDatabaseService.removeAllListener()
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()

@@ -3,6 +3,8 @@ package com.android.kotlin.familymessagingapp.utils
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.regex.Pattern
 
 object StringUtils {
@@ -40,4 +42,14 @@ object StringUtils {
                 && !path.contains("[")
                 && !path.contains("]")
     }
+
+    fun timeFormatter(time: Long): String {
+        return SimpleDateFormat("h:mm a - dd/MM/yyyy", Locale.getDefault()).format(time)
+    }
+
+    fun generateChatRoomId(uid1: String, uid2: String): String {
+        return uid1 + uid2 + System.currentTimeMillis()
+    }
+
+    fun getCurrentTime(): Long = System.currentTimeMillis()
 }

@@ -9,7 +9,11 @@
         android:id="@+id/chatRoomFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.chatroom.ChatRoomFragment"
         android:label="fragment_chat_room"
-        tools:layout="@layout/fragment_chat_room" />
+        tools:layout="@layout/fragment_chat_room">
+        <argument
+            android:name="chatroom"
+            app:argType="com.android.kotlin.familymessagingapp.model.ChatRoom" />
+    </fragment>
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.login.LoginFragment"
@@ -41,7 +45,7 @@
         android:id="@+id/profileFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment"
         android:label="fragment_setting"
-        tools:layout="@layout/fragment_personal" >
+        tools:layout="@layout/fragment_personal">
         <action
             android:id="@+id/action_profileFragment_to_profileDetailFragment"
             app:destination="@id/profileDetailFragment" />
@@ -64,7 +68,11 @@
         android:id="@+id/profileDetailFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.profile_detail.ProfileDetailFragment"
         android:label="ProfileDetailFragment"
-        tools:layout="@layout/fragment_profile_detail"/>
+        tools:layout="@layout/fragment_profile_detail" >
+        <argument
+            android:name="userdata"
+            app:argType="com.android.kotlin.familymessagingapp.model.UserData" />
+    </fragment>
     <fragment
         android:id="@+id/scanQRCodeFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.scan_qr_code.ScanQRCodeFragment"

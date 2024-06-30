@@ -19,6 +19,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
@@ -55,6 +56,8 @@ class ProfileDetailFragment : Fragment() {
 
     private val binding get() = _binding!!
 
+    private val args: ProfileDetailFragmentArgs by navArgs()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -69,10 +72,9 @@ class ProfileDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
-        arguments?.getParcelable<UserData>(Constant.USER_DATA_KEY)?.let {
-            _viewModel.setUserData(it)
-            binding.userData = it
-        }
+        val userdata = args.userdata
+        _viewModel.setUserData(userdata)
+        binding.userData = userdata
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             (activity as MainActivity).isShowLoadingDialog(it)
@@ -122,7 +124,7 @@ class ProfileDetailFragment : Fragment() {
 
     fun onSaveButtonClick() {
         activity?.let {
-            NetworkChecker.checkNetwork(it) {_viewModel.saveUserData() }
+            NetworkChecker.checkNetwork(it) { _viewModel.saveUserData() }
         }
     }
 
