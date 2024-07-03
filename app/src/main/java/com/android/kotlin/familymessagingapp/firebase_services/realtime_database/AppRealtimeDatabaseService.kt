@@ -62,23 +62,25 @@ class AppRealtimeDatabaseService(
      */
     val currentUserDataFlow: Flow<UserData?>
         get() = callbackFlow {
-            auth.currentUser?.let {
-                val currentUserRef: DatabaseReference = userDataRef.child(it.uid)
-                val listener = object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        this@callbackFlow.trySend(snapshot.getValue(UserData::class.java))
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        currentUserRef.removeEventListener(this)
-
-                    }
-
+            val currentUser = auth.currentUser
+            if (currentUser == null) {
+                close()
+                return@callbackFlow
+            }
+            val currentUserRef: DatabaseReference = userDataRef.child(currentUser.uid)
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    this@callbackFlow.trySend(snapshot.getValue(UserData::class.java))
                 }
-                currentUserRef.addValueEventListener(listener)
-                registerUserDataListener[currentUserRef] = listener
-                awaitClose { currentUserRef.removeEventListener(listener) }
-            } ?: close()
+
+                override fun onCancelled(error: DatabaseError) {
+                    currentUserRef.removeEventListener(this)
+                }
+
+            }
+            currentUserRef.addValueEventListener(listener)
+            registerUserDataListener[currentUserRef] = listener
+            awaitClose { currentUserRef.removeEventListener(listener) }
         }
 
     /**
@@ -117,7 +119,25 @@ class AppRealtimeDatabaseService(
         val chatroomRef = chatroomsRef.child(chatroomId)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                this@callbackFlow.trySend(snapshot.getValue(ChatRoom::class.java)).isSuccess
+                var chatroom = snapshot.getValue(ChatRoom::class.java)
+                val otherUserUid = chatroom?.members?.first { it != auth.uid }
+                otherUserUid?.let {
+                    userDataRef.child(otherUserUid)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                val userdata = snapshot.getValue(UserData::class.java)
+                                chatroom = chatroom?.copy(
+                                    chatRoomImage = userdata?.userAvatar,
+                                    chatroomName = userdata?.username
+                                )
+                                this@callbackFlow.trySend(chatroom)
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                                close(error.toException())
+                            }
+                        })
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -243,19 +263,19 @@ class AppRealtimeDatabaseService(
      */
     suspend fun updateNewMessage(chatRoom: ChatRoom, message: Message): Boolean {
         return withContext(Dispatchers.IO) {
-            val updatedMessage = message.copy(
-                messageId = "${StringUtils.getCurrentTime()}",
-                timestamp = StringUtils.getCurrentTime(),
-                photo = message.photo,
-                text = message.text,
-                audio = message.audio,
-                fromId = auth.uid,
-                toId = chatRoom.members?.first { it != auth.uid },
-                video = message.video,
-                type = message.type,
-                status = message.status
-            )
             try {
+                val updatedMessage = message.copy(
+                    messageId = "${StringUtils.getCurrentTime()}",
+                    timestamp = StringUtils.getCurrentTime(),
+                    photo = message.photo,
+                    text = message.text,
+                    audio = message.audio,
+                    fromId = auth.uid,
+                    toId = chatRoom.members?.first { it != auth.uid },
+                    video = message.video,
+                    type = message.type,
+                    status = message.status
+                )
                 if (chatRoom.chatRoomId == null) {
                     // Thêm uid của user hiện tại vào chatroom
                     val members = mutableListOf<String>()
@@ -275,15 +295,18 @@ class AppRealtimeDatabaseService(
                         userDataRef.child(it).child(UserData.CHAT_ROOMS)
                     }
                 } else {
-                    val list: MutableList<Message>? = chatRoom.messages?.toMutableList()
-                    list?.let {
-                        list.add(updatedMessage)
-                        chatroomsRef.child(chatRoom.chatRoomId)
-                            .child(ChatRoom.MESSAGES)
-//                        .child("${updatedMessage.messageId}")
-                            .setValue(list)
-                            .await()
+                    val messagesList = chatRoom.messages.orEmpty().toMutableList().apply {
+                        add(updatedMessage)
                     }
+                    val chatRoomUpdates = mapOf(
+                        ChatRoom.MESSAGES to messagesList,
+                        ChatRoom.LAST_MESSAGE to message.text,
+                        ChatRoom.LATEST_TIME to StringUtils.getCurrentTime()
+                    )
+
+                    chatroomsRef.child(chatRoom.chatRoomId)
+                        .updateChildren(chatRoomUpdates)
+                        .await()
                 }
                 true
             } catch (e: Exception) {
@@ -296,7 +319,7 @@ class AppRealtimeDatabaseService(
         registeredChatRoomsListeners.forEach { (ref, listener) ->
             ref.removeEventListener(listener)
         }
-        registerUserDataListener.forEach {(ref, listener) ->
+        registerUserDataListener.forEach { (ref, listener) ->
             ref.removeEventListener(listener)
         }
         registerUserDataListener.clear()

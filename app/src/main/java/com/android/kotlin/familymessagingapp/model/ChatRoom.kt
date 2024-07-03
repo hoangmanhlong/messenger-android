@@ -30,5 +30,7 @@ data class ChatRoom(
     companion object {
         const val CHAT_ROOM_ID = "chatRoomId"
         const val MESSAGES = "messages"
+        const val LAST_MESSAGE = "lastMessage"
+        const val LATEST_TIME = "latestTime"
     }
 }

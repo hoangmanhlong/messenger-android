@@ -17,7 +17,7 @@ class ChatRoomViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository
 ) : ViewModel() {
 
-    lateinit var messages: LiveData<List<Message>>
+    var messages: LiveData<List<Message>>? = null
 
     private var chatroom = ChatRoom()
 

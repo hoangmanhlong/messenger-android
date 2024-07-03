@@ -1,7 +1,9 @@
 package com.android.kotlin.familymessagingapp.adapter
 
+import android.os.Build
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.utils.StringUtils
@@ -22,9 +24,10 @@ object AppBindingAdapter {
         } ?: imageView.setImageResource(R.drawable.ic_user_default)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @JvmStatic
     @BindingAdapter("bindChatroomFormattedTime")
     fun bindChatroomFormattedTime(textView: TextView, time: Long) {
-        textView.text = StringUtils.timeFormatter(time)
+        textView.text = StringUtils.formatTime(time)
     }
 }

@@ -3,11 +3,12 @@ package com.android.kotlin.familymessagingapp.screen.chatroom
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.activity.result.ActivityResultLauncher
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -99,7 +100,7 @@ class ChatRoomFragment : Fragment() {
             binding.btSendMessage.isEnabled = it
         }
 
-        _viewModel.messages.observe(this.viewLifecycleOwner) {
+        _viewModel.messages?.observe(this.viewLifecycleOwner) {
             binding.isMessageEmpty = it.isNullOrEmpty()
             it?.let { messageAdapter?.submitList(it) }
         }

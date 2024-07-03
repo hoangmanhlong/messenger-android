@@ -42,7 +42,7 @@
                     android:layout_height="15dp"
                     android:contentDescription="TODO"
                     android:src="@drawable/ic_online"
-                    android:visibility="@{chatroom.isActive() ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{chatroom.isActive ? View.VISIBLE : View.GONE}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>

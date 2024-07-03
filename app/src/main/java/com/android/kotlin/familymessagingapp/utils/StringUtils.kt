@@ -3,7 +3,13 @@ package com.android.kotlin.familymessagingapp.utils
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.regex.Pattern
 
@@ -52,4 +58,17 @@ object StringUtils {
     }
 
     fun getCurrentTime(): Long = System.currentTimeMillis()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatTime(milliseconds: Long): String {
+        val now = LocalDate.now()
+        val dateTime = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime()
+        val date = dateTime.toLocalDate()
+
+        return when {
+            date.isEqual(now) -> dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+            date.year == now.year -> date.format(DateTimeFormatter.ofPattern("d MMM"))
+            else -> date.format(DateTimeFormatter.ofPattern("d MMM yyyy"))
+        }
+    }
 }

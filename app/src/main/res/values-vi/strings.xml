@@ -63,4 +63,8 @@
 
     <string name="recent_search_history">Các lịch sử tìm kiếm gần đây</string>
 
+    <string name="messages_empty">Không có tin nhắn</string>
+    <string name="message">Nhắn tin</string>
+    <string name="send">Gửi</string>
+
 </resources>

@@ -44,7 +44,7 @@ class HomeViewModel @Inject constructor(
     private val _searchViewState = MutableLiveData(SearchView.TransitionState.HIDDEN)
     val searchViewState: LiveData<SearchView.TransitionState> = _searchViewState
 
-    val _isShowingSearchResult: MutableLiveData<Boolean> = MutableLiveData(false)
+    private val _isShowingSearchResult: MutableLiveData<Boolean> = MutableLiveData(false)
     val isShowingSearchResult: LiveData<Boolean> = _isShowingSearchResult
 
     val currentUserLiveData: LiveData<UserData?> =
