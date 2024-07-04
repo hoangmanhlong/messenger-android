@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,13 +9,16 @@ import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
+import com.google.ai.client.generativeai.GenerativeModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatRoomViewModel @Inject constructor(
-    private val firebaseServiceRepository: FirebaseServiceRepository
+    private val firebaseServiceRepository: FirebaseServiceRepository,
+    private val geminiModel: GeminiModel
 ) : ViewModel() {
 
     var messages: LiveData<List<Message>>? = null
@@ -26,8 +30,15 @@ class ChatRoomViewModel @Inject constructor(
     private val _isInputValid = MutableLiveData(isInputValid())
     val isInputValid: LiveData<Boolean> = _isInputValid
 
+    private val _selectedItems = MutableLiveData<List<Uri>>(emptyList())
+    val selectedItems: LiveData<List<Uri>> = _selectedItems
+
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
+
+    fun updateMessagesInChatRoom(messages: List<Message>?) {
+        chatroom = chatroom.copy(messages = messages)
+    }
 
     fun setChatRoom(chatRoom: ChatRoom) {
         this.chatroom = this.chatroom.copy(
@@ -59,6 +70,12 @@ class ChatRoomViewModel @Inject constructor(
 
     fun setTextMessage(text: String) {
         message = message.copy(text = text)
+        _isInputValid.value = isInputValid()
+    }
+
+    fun setImageUri(uri: Uri?) {
+        _selectedItems.value = uri?.let { listOf(it) }
+        message = message.copy(photo = uri?.toString())
         _isInputValid.value = isInputValid()
     }
 

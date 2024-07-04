@@ -1,9 +1,9 @@
-package com.android.kotlin.familymessagingapp.firebase_services.email_authentication
+package com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication
 
 import android.app.Application
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
-import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.google.firebase.auth.FirebaseAuth
@@ -55,7 +55,6 @@ class FirebaseEmailServiceImpl @Inject constructor(
                         userRef.child(firebaseUser.uid).setValue(userdata).await()
                         if (userdata.userAvatar != null) {
                             val downloadUrl = appFirebaseStorage.createDownloadUrlFromImageUrl(
-                                application,
                                 userdata.userAvatar,
                                 userAvatarImageRef.child(firebaseUser.uid)
                             )

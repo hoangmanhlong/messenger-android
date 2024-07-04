@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.model.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

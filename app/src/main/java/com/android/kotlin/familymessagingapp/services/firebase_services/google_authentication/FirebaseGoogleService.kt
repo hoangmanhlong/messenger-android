@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.firebase_services.google_authentication
+package com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication
 
 import android.content.Intent
 import android.content.IntentSender

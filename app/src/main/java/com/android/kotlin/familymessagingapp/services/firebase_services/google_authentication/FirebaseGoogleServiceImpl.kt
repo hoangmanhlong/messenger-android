@@ -1,12 +1,12 @@
-package com.android.kotlin.familymessagingapp.firebase_services.google_authentication
+package com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication
 
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
-import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
@@ -68,7 +68,6 @@ class FirebaseGoogleServiceImpl(
                         // User does not exist, update user data
                         if (userData.userAvatar != null) {
                             val downloadUrl = appFirebaseStorage.createDownloadUrlFromImageUrl(
-                                context,
                                 userData.userAvatar,
                                 userAvatarImageRef.child(firebaseUser.uid)
                             )

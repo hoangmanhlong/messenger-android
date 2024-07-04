@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.firebase_services.facebook
+package com.android.kotlin.familymessagingapp.services.firebase_services.facebook
 
 import com.facebook.AccessToken
 import com.google.firebase.auth.FacebookAuthProvider

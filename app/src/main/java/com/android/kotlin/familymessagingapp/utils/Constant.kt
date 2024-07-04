@@ -32,11 +32,17 @@ object Constant {
 
     const val FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME = "${FIREBASE_STORAGE_USER_DATA_REF_NAME}/user_avatar_images"
 
+    const val FIREBASE_STORAGE_CHAT_ROOM_REF_NAME = "chat_room"
+
+    const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME = "$FIREBASE_STORAGE_CHAT_ROOM_REF_NAME/message_images"
+
     const val REALTIME_DATABASE_CHAT_ROOM_REF = "chatrooms"
 
     const val REALTIME_DATABASE_MESSAGES_REF = "$REALTIME_DATABASE_USER_REF_NAME/messages"
 
     const val CHAT_ROOM_KEY = "CHAT_ROOM_KEY"
+
+    val number_of_images_can_be_selected = 1
 }
 
 

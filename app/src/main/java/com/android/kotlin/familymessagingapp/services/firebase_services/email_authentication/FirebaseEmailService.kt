@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.firebase_services.email_authentication
+package com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication
 
 import com.android.kotlin.familymessagingapp.model.Result
 

@@ -1,9 +1,10 @@
-package com.android.kotlin.familymessagingapp.firebase_services.realtime_database
+package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.app.Application
 import android.net.Uri
 import android.util.Log
-import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
+import androidx.core.net.toUri
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.UserData
@@ -96,10 +97,11 @@ class AppRealtimeDatabaseService(
                 if (chatRooms.isNullOrEmpty()) {
                     flowOf(emptyList()) // Emit empty list for empty chatrooms
                 } else {
-                    val chatroomFlows: List<Flow<ChatRoom?>> =
-                        chatRooms.map { getChatRoomFlow(it) }
+                    val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map { getChatRoomFlow(it) }
                     combine(chatroomFlows) {
-                        it.filterNotNull().toList() // Filter out null ChatRooms
+                        // Sort chat room list by latestTime
+                        it.filterNotNull().toList()
+                            .sortedByDescending { chatroom -> chatroom.latestTime }
                     }
                 }
             } else {
@@ -163,7 +165,6 @@ class AppRealtimeDatabaseService(
                 var updatedUserData = userData
                 if (imageUri != null) {
                     val downloadUrl = appFirebaseStorage.putUserAvatarUriToStorage(
-                        application,
                         imageUri,
                         appFirebaseStorage.userAvatarRef.child(userData.uid!!)
                     )
@@ -264,10 +265,18 @@ class AppRealtimeDatabaseService(
     suspend fun updateNewMessage(chatRoom: ChatRoom, message: Message): Boolean {
         return withContext(Dispatchers.IO) {
             try {
+                // If message has photo, upload to storage
+                var photoUrl = message.photo
+                if (photoUrl != null) {
+                    photoUrl = appFirebaseStorage.putUserAvatarUriToStorage(
+                        imageUri = photoUrl.toUri(),
+                        storageRef = appFirebaseStorage.chatroomRef.child("${StringUtils.getCurrentTime()}")
+                    )
+                }
                 val updatedMessage = message.copy(
                     messageId = "${StringUtils.getCurrentTime()}",
                     timestamp = StringUtils.getCurrentTime(),
-                    photo = message.photo,
+                    photo = photoUrl,
                     text = message.text,
                     audio = message.audio,
                     fromId = auth.uid,

@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -21,6 +22,8 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbac
         private val binding: LayoutSenderMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
+            binding.hasText = message.text != null
+            binding.hasImage = message.photo != null
             binding.message = message
         }
     }
@@ -29,6 +32,8 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbac
         private val binding: LayoutReceiverMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
+            binding.hasText = message.text != null
+            binding.hasImage = message.photo != null
             binding.message = message
         }
     }

@@ -23,6 +23,8 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "geminiApiKey", "\"my_secret_api_key\"")
+        buildConfigField("String", "GEMINI_MODEL_NAME", "\"gemini-1.5-flash\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -155,6 +157,8 @@ dependencies {
 
     implementation("com.intuit.ssp:ssp-android:1.1.1")
     implementation("com.intuit.sdp:sdp-android:1.1.1")
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
 }
 
 kapt {

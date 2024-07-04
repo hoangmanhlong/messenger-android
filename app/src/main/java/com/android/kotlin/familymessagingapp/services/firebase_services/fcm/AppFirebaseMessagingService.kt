@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.firebase_services.fcm
+package com.android.kotlin.familymessagingapp.services.firebase_services.fcm
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

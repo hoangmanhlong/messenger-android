@@ -2,22 +2,29 @@ package com.android.kotlin.familymessagingapp.di
 
 import android.app.Application
 import androidx.room.Room
+import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.data_store.dataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
 import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
 import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
-import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailService
-import com.android.kotlin.familymessagingapp.firebase_services.email_authentication.FirebaseEmailServiceImpl
-import com.android.kotlin.familymessagingapp.firebase_services.facebook.FacebookService
-import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleService
-import com.android.kotlin.familymessagingapp.firebase_services.google_authentication.FirebaseGoogleServiceImpl
-import com.android.kotlin.familymessagingapp.firebase_services.realtime_database.AppRealtimeDatabaseService
-import com.android.kotlin.familymessagingapp.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
+import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailServiceImpl
+import com.android.kotlin.familymessagingapp.services.firebase_services.facebook.FacebookService
+import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleService
+import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleServiceImpl
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.BlockThreshold
+import com.google.ai.client.generativeai.type.HarmCategory
+import com.google.ai.client.generativeai.type.SafetySetting
+import com.google.ai.client.generativeai.type.generationConfig
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
@@ -145,5 +152,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseStorageReference(): AppFirebaseStorage = AppFirebaseStorage()
+    fun provideFirebaseStorageReference(application: Application): AppFirebaseStorage =
+        AppFirebaseStorage(application)
+
+    @Provides
+    @Singleton
+    fun provideGeminiModel(): GeminiModel = GeminiModel()
 }

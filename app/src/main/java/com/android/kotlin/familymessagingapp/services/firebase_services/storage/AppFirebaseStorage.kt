@@ -1,6 +1,6 @@
-package com.android.kotlin.familymessagingapp.firebase_services.storage
+package com.android.kotlin.familymessagingapp.services.firebase_services.storage
 
-import android.content.Context
+import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -17,13 +17,15 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-class AppFirebaseStorage {
+class AppFirebaseStorage(private val application: Application) {
+
     private val storageRef = Firebase.storage.reference
 
     val userAvatarRef = storageRef.child(Constant.FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME)
 
+    val chatroomRef = storageRef.child(Constant.FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME)
+
     suspend fun createDownloadUrlFromImageUrl(
-        context: Context,
         imageUrl: String,
         storageRef: StorageReference
     ): String? {
@@ -32,7 +34,7 @@ class AppFirebaseStorage {
                 val localFile = File.createTempFile("avatar", "jpg")
 
                 // Load image from URL and save to local file
-                Glide.with(context)
+                Glide.with(application)
                     .asBitmap()
                     .load(imageUrl)
                     .into(object : CustomTarget<Bitmap>() {
@@ -60,7 +62,6 @@ class AppFirebaseStorage {
     }
 
     suspend fun putUserAvatarUriToStorage(
-        context: Context,
         imageUri: Uri,
         storageRef: StorageReference
     ): String? {

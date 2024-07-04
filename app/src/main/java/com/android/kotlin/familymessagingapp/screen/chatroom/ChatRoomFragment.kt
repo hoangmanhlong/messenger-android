@@ -6,8 +6,9 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -34,6 +35,16 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
+    private var selectedItemAdapter: SelectedItemAdapter? = null
+
+    // Registers a photo picker activity launcher in multi-select mode.
+// In this example, the app lets the user select up to 5 media files.
+    private val pickMultipleMedia = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        _viewModel.setImageUri(uri)
+    }
+
     private val binding get() = _binding!!
 
     private val args: ChatRoomFragmentArgs by navArgs()
@@ -41,6 +52,8 @@ class ChatRoomFragment : Fragment() {
     private var messageAdapter: MessageAdapter? = null
 
     private var messageRecyclerview: RecyclerView? = null
+
+    private var selectedItemsRecyclerview: RecyclerView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +64,15 @@ class ChatRoomFragment : Fragment() {
         messageAdapter = MessageAdapter()
         messageRecyclerview = binding.messageRecyclerview
         messageRecyclerview?.adapter = messageAdapter
+
+        selectedItemAdapter = SelectedItemAdapter {
+            _viewModel.setImageUri(null)
+        }
+
+        selectedItemsRecyclerview = binding.selectedItemsRecyclerview
+        selectedItemsRecyclerview?.adapter = selectedItemAdapter
+        selectedItemsRecyclerview?.visibility = View.GONE
+
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
         binding.btSendMessage.setOnClickListener {
             activity?.let {
@@ -65,8 +87,12 @@ class ChatRoomFragment : Fragment() {
         }
 
         binding.btSelectPhoto.setOnClickListener {
-            openDocument.launch(arrayOf("image/*"))
+            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
+
+//        binding.btSelectPhoto.setOnClickListener {
+//            openDocument.launch(arrayOf("image/*"))
+//        }
 
         binding.etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -89,12 +115,7 @@ class ChatRoomFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(binding.messagesView, it) }
-        val chatroom = args.chatroom
-        binding.chatroom = chatroom
-        val messages = chatroom.messages
-        binding.isMessageEmpty = messages.isNullOrEmpty()
-        messages?.let { messageAdapter?.submitList(it) }
-        _viewModel.setChatRoom(chatRoom = chatroom)
+        bindChatRoom()
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
@@ -103,11 +124,27 @@ class ChatRoomFragment : Fragment() {
         _viewModel.messages?.observe(this.viewLifecycleOwner) {
             binding.isMessageEmpty = it.isNullOrEmpty()
             it?.let { messageAdapter?.submitList(it) }
+            _viewModel.updateMessagesInChatRoom(it)
         }
 
         _viewModel.clearEdiText.observe(this.viewLifecycleOwner) {
-            if(it) binding.etMessage.setText("")
+            if (it) binding.etMessage.setText("")
         }
+
+        _viewModel.selectedItems.observe(this.viewLifecycleOwner) {
+            selectedItemAdapter?.submitList(it)
+            selectedItemsRecyclerview?.visibility =
+                if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
+        }
+    }
+
+    private fun bindChatRoom() {
+        val chatroom = args.chatroom
+        binding.chatroom = chatroom
+        val messages = chatroom.messages
+        binding.isMessageEmpty = messages.isNullOrEmpty()
+        messages?.let { messageAdapter?.submitList(it) }
+        _viewModel.setChatRoom(chatRoom = chatroom)
     }
 
     override fun onDestroyView() {
