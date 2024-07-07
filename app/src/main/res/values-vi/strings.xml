@@ -66,5 +66,6 @@
     <string name="messages_empty">Không có tin nhắn</string>
     <string name="message">Nhắn tin</string>
     <string name="send">Gửi</string>
+    <string name="sending">Đang gửi</string>
 
 </resources>

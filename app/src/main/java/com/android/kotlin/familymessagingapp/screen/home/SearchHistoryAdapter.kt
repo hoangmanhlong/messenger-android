@@ -33,6 +33,11 @@ class SearchHistoryAdapter(
             onItemClicked(getItem(viewHolder.adapterPosition))
         }
 
+        viewHolder.itemView.setOnLongClickListener {
+            onDeleteItem(getItem(viewHolder.adapterPosition))
+            true
+        }
+
         viewHolder.binding.remove.setOnClickListener {
             onDeleteItem(getItem(viewHolder.adapterPosition))
         }

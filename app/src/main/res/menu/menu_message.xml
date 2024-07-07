@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:icon="@drawable/ic_camera_white"
+        android:title="Camera" />
+
+    <item
+        android:icon="@drawable/ic_clear"
+        android:title="close" />
+    <item
+        android:icon="@drawable/ic_history"
+        android:title="history" />
+    <item
+        android:icon="@drawable/ic_search"
+        android:title="@string/send" />
+</menu>

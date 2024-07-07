@@ -10,16 +10,20 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
-import com.google.ai.client.generativeai.GenerativeModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class SendMessageStatus { SUCCESS, ERROR, SENDING }
 
 @HiltViewModel
 class ChatRoomViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
     private val geminiModel: GeminiModel
 ) : ViewModel() {
+
+    private val _sendMessageStatus = MutableLiveData(SendMessageStatus.SUCCESS)
+    val sendMessageStatus: LiveData<SendMessageStatus> = _sendMessageStatus
 
     var messages: LiveData<List<Message>>? = null
 
@@ -85,15 +89,23 @@ class ChatRoomViewModel @Inject constructor(
                 || !message.audio.isNullOrEmpty()
                 || !message.video.isNullOrEmpty()
 
-    fun clearEdtText(clear: Boolean) {
+    fun clearEditText(clear: Boolean) {
         _clearEdiText.value = clear
     }
 
     fun sendMessage() {
+        _sendMessageStatus.value = SendMessageStatus.SENDING
         viewModelScope.launch {
-            firebaseServiceRepository.appRealtimeDatabaseService
+            val sendResult = firebaseServiceRepository.appRealtimeDatabaseService
                 .updateNewMessage(chatRoom = chatroom, message = message)
-            _clearEdiText.value = true
+            clearInput()
+            _sendMessageStatus.value =
+                if (sendResult) SendMessageStatus.SUCCESS else SendMessageStatus.ERROR
         }
+    }
+
+    private fun clearInput() {
+        clearEditText(true)
+        setImageUri(null)
     }
 }

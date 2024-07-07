@@ -14,7 +14,9 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
+import com.android.kotlin.familymessagingapp.screen.message_options.MessageOptionsFragment
 import com.android.kotlin.familymessagingapp.screen.profile_detail.MyOpenDocumentContract
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
@@ -37,8 +39,10 @@ class ChatRoomFragment : Fragment() {
 
     private var selectedItemAdapter: SelectedItemAdapter? = null
 
-    // Registers a photo picker activity launcher in multi-select mode.
-// In this example, the app lets the user select up to 5 media files.
+    private lateinit var messageOptionsFragment: MessageOptionsFragment
+
+//     Registers a photo picker activity launcher in multi-select mode.
+//     In this example, the app lets the user select up to 5 media files.
     private val pickMultipleMedia = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -61,7 +65,10 @@ class ChatRoomFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
-        messageAdapter = MessageAdapter()
+        messageAdapter = MessageAdapter {
+//            showMenu(binding.root, R.menu.menu_message)
+//            openMessageOptions()
+        }
         messageRecyclerview = binding.messageRecyclerview
         messageRecyclerview?.adapter = messageAdapter
 
@@ -101,7 +108,7 @@ class ChatRoomFragment : Fragment() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 _viewModel.setTextMessage(s.toString().trim())
-                _viewModel.clearEdtText(false)
+                _viewModel.clearEditText(false)
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -136,6 +143,26 @@ class ChatRoomFragment : Fragment() {
             selectedItemsRecyclerview?.visibility =
                 if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
         }
+
+        _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
+            when(it) {
+                SendMessageStatus.SENDING -> {
+                    binding.inputView.isClickable = false
+                    binding.btSendMessage.text = getString(R.string.sending)
+                }
+
+                SendMessageStatus.SUCCESS -> {
+                    binding.inputView.isClickable = true
+                    binding.btSendMessage.text = getString(R.string.send)
+                }
+
+                SendMessageStatus.ERROR -> {
+                    binding.inputView.isClickable = true
+                    binding.btSendMessage.text = getString(R.string.send)
+                }
+            }
+
+        }
     }
 
     private fun bindChatRoom() {
@@ -152,4 +179,12 @@ class ChatRoomFragment : Fragment() {
         _binding = null
         _viewModel.removeMessageListener()
     }
+
+    fun openMessageOptions() {
+        messageOptionsFragment = MessageOptionsFragment()
+        messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
+    }
+
+    //In the showMenu function from the previous example:
+
 }

@@ -1,18 +1,32 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.drawable.InsetDrawable
+import android.os.Build
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.MenuRes
+import androidx.appcompat.view.menu.MenuBuilder
+import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutReceiverMessageBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBinding
 import com.android.kotlin.familymessagingapp.model.Message
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
+class MessageAdapter(
+    private val onMessageLongClick: (Message) -> Unit
+) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
+
+    private val ICON_MARGIN = 16
 
     private val sender = 1
 
@@ -72,11 +86,53 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallbac
                 )
             )
         }
+
+        if (viewType == sender) viewHolder.itemView.setOnLongClickListener {
+            showMenu(viewHolder.itemView.context, it, R.menu.menu_message)
+            onMessageLongClick(getItem(viewHolder.adapterPosition))
+            true
+        }
         return viewHolder
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is SenderMessageViewHolder) holder.bind(getItem(position))
         if (holder is ReceiverMessageViewHolder) holder.bind(getItem(position))
+    }
+
+    @SuppressLint("RestrictedApi")
+    private fun showMenu(context: Context?, v: View, @MenuRes menuRes: Int) {
+        context?.let { context ->
+            val popup = PopupMenu(context, v)
+            popup.menuInflater.inflate(menuRes, popup.menu)
+            if (popup.menu is MenuBuilder) {
+                val menuBuilder = popup.menu as MenuBuilder
+                menuBuilder.setOptionalIconsVisible(true)
+                for (item in menuBuilder.visibleItems) {
+                    val iconMarginPx =
+                        TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            ICON_MARGIN.toFloat(),
+                            context.resources.displayMetrics
+                        )
+                            .toInt()
+                    if (item.icon != null) {
+                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                            item.icon = InsetDrawable(item.icon, iconMarginPx, 0, iconMarginPx, 0)
+                        } else {
+                            item.icon =
+                                object :
+                                    InsetDrawable(item.icon, iconMarginPx, 0, iconMarginPx, 0) {
+                                    override fun getIntrinsicWidth(): Int {
+                                        return intrinsicHeight + iconMarginPx + iconMarginPx
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+            popup.gravity = Gravity.END
+            popup.show()
+        }
     }
 }

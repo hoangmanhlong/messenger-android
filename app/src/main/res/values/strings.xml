@@ -74,10 +74,12 @@
     <string name="signup_description">Sign up your Family Messaging with your email account</string>
     <string name="avatar">Avatar</string>
     <string name="scan_qr_code">Scan QR code</string>
-    
+
     <string name="recent_search_history">Recent search history</string>
     <string name="messages_empty">No message</string>
     <string name="message">Message</string>
     <string name="send">Send</string>
+    <string name="sending">Sending</string>
+
 
 </resources>

@@ -68,10 +68,12 @@
                     android:id="@+id/tvLastMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:maxWidth="200dp"
                     android:text="@{chatroom.lastMessage}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    tools:text="Hello Long" />
+                    tools:text="@string/logout_message" />
 
                 <TextView
                     bindChatroomFormattedTime="@{chatroom.latestTime}"
