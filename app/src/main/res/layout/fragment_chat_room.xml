@@ -116,7 +116,6 @@
                 android:clipToPadding="false"
                 android:padding="10dp"
                 android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/layout_sender_message" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 

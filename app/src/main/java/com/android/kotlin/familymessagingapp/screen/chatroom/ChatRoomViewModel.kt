@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,9 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
+import com.google.ai.client.generativeai.type.content
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -65,6 +69,19 @@ class ChatRoomViewModel @Inject constructor(
                 .appRealtimeDatabaseService
                 .addChatRoomMessageListener(this.chatroom.chatRoomId!!)
                 .asLiveData()
+                .also { currentMessages ->
+                    Log.d(TAG, "initMessageListener: ")
+                    val lastMessage =
+                        currentMessages.value.orEmpty().sortedBy { it.timestamp }.lastOrNull()
+                    lastMessage?.let {
+                        if (lastMessage.fromId != Firebase.auth.uid) {
+                            val response = geminiModel.model.generateContentStream(
+                                content { lastMessage.text }
+                            )
+                            Log.d(TAG, "initMessageListener: $response")
+                        }
+                    }
+                }
         }
     }
 
@@ -107,5 +124,9 @@ class ChatRoomViewModel @Inject constructor(
     private fun clearInput() {
         clearEditText(true)
         setImageUri(null)
+    }
+
+    companion object {
+        const val TAG = "ChatRoomViewModel"
     }
 }

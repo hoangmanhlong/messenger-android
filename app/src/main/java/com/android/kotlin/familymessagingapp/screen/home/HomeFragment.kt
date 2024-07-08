@@ -168,7 +168,7 @@ class HomeFragment : Fragment() {
 
         viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
             binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
-            chatRoomsList?.let { chatroomAdapter?.submitList(chatRoomsList) }
+            chatroomAdapter?.submitList(chatRoomsList)
         }
 
         viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {

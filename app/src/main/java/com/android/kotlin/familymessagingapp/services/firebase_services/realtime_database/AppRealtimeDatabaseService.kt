@@ -136,7 +136,8 @@ class AppRealtimeDatabaseService(
                             }
 
                             override fun onCancelled(error: DatabaseError) {
-                                close(error.toException())
+//                                close(error.toException())
+                                trySend(null).isSuccess
                             }
                         })
                 }
@@ -144,6 +145,7 @@ class AppRealtimeDatabaseService(
 
             override fun onCancelled(error: DatabaseError) {
                 close(error.toException())
+                trySend(null).isSuccess
             }
         }
 

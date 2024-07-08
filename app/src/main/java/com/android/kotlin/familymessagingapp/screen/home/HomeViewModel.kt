@@ -13,6 +13,7 @@ import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -51,7 +52,9 @@ class HomeViewModel @Inject constructor(
         firebaseServiceRepository.appRealtimeDatabaseService.currentUserDataFlow.asLiveData()
 
     val chatRoomsLiveData: LiveData<List<ChatRoom>> =
-        firebaseServiceRepository.appRealtimeDatabaseService.chatRoomsFlow.asLiveData()
+        firebaseServiceRepository.appRealtimeDatabaseService.chatRoomsFlow
+            .distinctUntilChanged() // Only update when data changes
+            .asLiveData()
 
     fun setShowSearchedUserResult(show: Boolean) {
         _isShowingSearchResult.value = show

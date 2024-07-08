@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
@@ -41,7 +42,7 @@ class ChatRoomFragment : Fragment() {
 
     private lateinit var messageOptionsFragment: MessageOptionsFragment
 
-//     Registers a photo picker activity launcher in multi-select mode.
+    //     Registers a photo picker activity launcher in multi-select mode.
 //     In this example, the app lets the user select up to 5 media files.
     private val pickMultipleMedia = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
@@ -69,7 +70,15 @@ class ChatRoomFragment : Fragment() {
 //            showMenu(binding.root, R.menu.menu_message)
 //            openMessageOptions()
         }
+
+        // Setup LayoutManager with stackFromEnd set to true
+        val layoutManager = LinearLayoutManager(activity).apply {
+            stackFromEnd = true
+            reverseLayout = false
+        }
+
         messageRecyclerview = binding.messageRecyclerview
+        messageRecyclerview?.layoutManager = layoutManager
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter {
@@ -130,7 +139,9 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.messages?.observe(this.viewLifecycleOwner) {
             binding.isMessageEmpty = it.isNullOrEmpty()
-            it?.let { messageAdapter?.submitList(it) }
+            messageAdapter?.submitList(it) {
+                messageRecyclerview?.scrollToPosition(it.size - 1)
+            }
             _viewModel.updateMessagesInChatRoom(it)
         }
 
@@ -145,7 +156,7 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
-            when(it) {
+            when (it) {
                 SendMessageStatus.SENDING -> {
                     binding.inputView.isClickable = false
                     binding.btSendMessage.text = getString(R.string.sending)
@@ -170,7 +181,10 @@ class ChatRoomFragment : Fragment() {
         binding.chatroom = chatroom
         val messages = chatroom.messages
         binding.isMessageEmpty = messages.isNullOrEmpty()
-        messages?.let { messageAdapter?.submitList(it) }
+        messageAdapter?.submitList(messages) {
+            if (!messages.isNullOrEmpty())
+                messageRecyclerview?.scrollToPosition(messages.size - 1)
+        }
         _viewModel.setChatRoom(chatRoom = chatroom)
     }
 
