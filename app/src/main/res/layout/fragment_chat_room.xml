@@ -117,6 +117,47 @@
                 android:padding="10dp"
                 android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}"
                 tools:listitem="@layout/layout_sender_message" />
+
+<!--            <com.google.android.materi-al.card.MaterialCardView-->
+<!--                android:id="@+id/aiGenerateView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="8dp"-->
+<!--                app:cardCornerRadius="16dp"-->
+<!--                app:cardBackgroundColor="@color/md_theme_onTertiaryContainer_mediumContrast"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                android:visibility="gone"-->
+<!--                app:strokeWidth="0dp">-->
+
+<!--                <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:padding="8dp">-->
+
+<!--                    <ImageView-->
+<!--                        android:id="@+id/ivAutoAwesome"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:src="@drawable/ic_auto_awesome"-->
+<!--                        app:layout_constraintStart_toStartOf="parent"-->
+<!--                        app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--                    <TextView-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginStart="8dp"-->
+<!--                        android:maxLines="2"-->
+<!--                        android:text="jfbjkfgvbjfgjkbvjkb bhjbjkgbjkbgjbfgbjfgvbjbfgbb jibjfbjbfjbfgjb fbj jbhjgjbnfgjbfgjbbjgfb;fgvbjbfgjbfblbjfgbfgbfgbjbfgog"-->
+<!--                        app:layout_constraintEnd_toEndOf="parent"-->
+<!--                        app:layout_constraintStart_toEndOf="@id/ivAutoAwesome"-->
+<!--                        app:layout_constraintTop_toTopOf="parent"-->
+<!--                        tools:text="@string/logout_message" />-->
+
+<!--                </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+<!--            </com.google.android.material.card.MaterialCardView>-->
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
@@ -126,6 +167,7 @@
             android:background="@color/md_theme_surfaceContainerHighest_highContrast"
             android:clipToPadding="false"
             android:orientation="vertical">
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/selectedItemsRecyclerview"

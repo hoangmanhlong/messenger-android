@@ -69,19 +69,19 @@ class ChatRoomViewModel @Inject constructor(
                 .appRealtimeDatabaseService
                 .addChatRoomMessageListener(this.chatroom.chatRoomId!!)
                 .asLiveData()
-                .also { currentMessages ->
-                    Log.d(TAG, "initMessageListener: ")
-                    val lastMessage =
-                        currentMessages.value.orEmpty().sortedBy { it.timestamp }.lastOrNull()
-                    lastMessage?.let {
-                        if (lastMessage.fromId != Firebase.auth.uid) {
-                            val response = geminiModel.model.generateContentStream(
-                                content { lastMessage.text }
-                            )
-                            Log.d(TAG, "initMessageListener: $response")
-                        }
-                    }
-                }
+//                .also { currentMessages ->
+//                    Log.d(TAG, "initMessageListener: ")
+//                    val lastMessage =
+//                        currentMessages.value.orEmpty().sortedBy { it.timestamp }.lastOrNull()
+//                    lastMessage?.let {
+//                        if (lastMessage.fromId != Firebase.auth.uid) {
+//                            val response = geminiModel.model.generateContentStream(
+//                                content { lastMessage.text }
+//                            )
+//                            Log.d(TAG, "initMessageListener: $response")
+//                        }
+//                    }
+//                }
         }
     }
 
@@ -90,7 +90,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun setTextMessage(text: String) {
-        message = message.copy(text = text)
+        message = message.copy(text = text.ifEmpty { null })
         _isInputValid.value = isInputValid()
     }
 

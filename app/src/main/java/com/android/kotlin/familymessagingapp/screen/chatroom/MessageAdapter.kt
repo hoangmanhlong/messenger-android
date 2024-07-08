@@ -87,11 +87,11 @@ class MessageAdapter(
             )
         }
 
-        if (viewType == sender) viewHolder.itemView.setOnLongClickListener {
-            showMenu(viewHolder.itemView.context, it, R.menu.menu_message)
-            onMessageLongClick(getItem(viewHolder.adapterPosition))
-            true
-        }
+//        if (viewType == sender) viewHolder.itemView.setOnLongClickListener {
+//            showMenu(viewHolder.itemView.context, it, R.menu.menu_message)
+//            onMessageLongClick(getItem(viewHolder.adapterPosition))
+//            true
+//        }
         return viewHolder
     }
 
@@ -100,39 +100,39 @@ class MessageAdapter(
         if (holder is ReceiverMessageViewHolder) holder.bind(getItem(position))
     }
 
-    @SuppressLint("RestrictedApi")
-    private fun showMenu(context: Context?, v: View, @MenuRes menuRes: Int) {
-        context?.let { context ->
-            val popup = PopupMenu(context, v)
-            popup.menuInflater.inflate(menuRes, popup.menu)
-            if (popup.menu is MenuBuilder) {
-                val menuBuilder = popup.menu as MenuBuilder
-                menuBuilder.setOptionalIconsVisible(true)
-                for (item in menuBuilder.visibleItems) {
-                    val iconMarginPx =
-                        TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP,
-                            ICON_MARGIN.toFloat(),
-                            context.resources.displayMetrics
-                        )
-                            .toInt()
-                    if (item.icon != null) {
-                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                            item.icon = InsetDrawable(item.icon, iconMarginPx, 0, iconMarginPx, 0)
-                        } else {
-                            item.icon =
-                                object :
-                                    InsetDrawable(item.icon, iconMarginPx, 0, iconMarginPx, 0) {
-                                    override fun getIntrinsicWidth(): Int {
-                                        return intrinsicHeight + iconMarginPx + iconMarginPx
-                                    }
-                                }
-                        }
-                    }
-                }
-            }
-            popup.gravity = Gravity.END
-            popup.show()
-        }
-    }
+//    @SuppressLint("RestrictedApi")
+//    private fun showMenu(context: Context?, v: View, @MenuRes menuRes: Int) {
+//        context?.let { context ->
+//            val popup = PopupMenu(context, v)
+//            popup.menuInflater.inflate(menuRes, popup.menu)
+//            if (popup.menu is MenuBuilder) {
+//                val menuBuilder = popup.menu as MenuBuilder
+//                menuBuilder.setOptionalIconsVisible(true)
+//                for (item in menuBuilder.visibleItems) {
+//                    val iconMarginPx =
+//                        TypedValue.applyDimension(
+//                            TypedValue.COMPLEX_UNIT_DIP,
+//                            ICON_MARGIN.toFloat(),
+//                            context.resources.displayMetrics
+//                        )
+//                            .toInt()
+//                    if (item.icon != null) {
+//                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+//                            item.icon = InsetDrawable(item.icon, iconMarginPx, 0, iconMarginPx, 0)
+//                        } else {
+//                            item.icon =
+//                                object :
+//                                    InsetDrawable(item.icon, iconMarginPx, 0, iconMarginPx, 0) {
+//                                    override fun getIntrinsicWidth(): Int {
+//                                        return intrinsicHeight + iconMarginPx + iconMarginPx
+//                                    }
+//                                }
+//                        }
+//                    }
+//                }
+//            }
+//            popup.gravity = Gravity.END
+//            popup.show()
+//        }
+//    }
 }

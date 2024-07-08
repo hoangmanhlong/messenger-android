@@ -29,23 +29,25 @@ class SearchHistoryAdapter(
                 false
             )
         )
-        viewHolder.itemView.setOnClickListener {
-            onItemClicked(getItem(viewHolder.adapterPosition))
-        }
-
-        viewHolder.itemView.setOnLongClickListener {
-            onDeleteItem(getItem(viewHolder.adapterPosition))
-            true
-        }
-
-        viewHolder.binding.remove.setOnClickListener {
-            onDeleteItem(getItem(viewHolder.adapterPosition))
-        }
         return viewHolder
     }
 
     override fun onBindViewHolder(holder: SearchHistoryViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val item = getItem(position)
+        holder.itemView.setOnClickListener {
+            onItemClicked(item)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            onDeleteItem(item)
+            true
+        }
+
+        holder.binding.remove.setOnClickListener {
+            onDeleteItem(item)
+        }
+
+        holder.bind(item)
     }
 
     companion object DiffCallback : DiffUtil.ItemCallback<SearchHistory>() {

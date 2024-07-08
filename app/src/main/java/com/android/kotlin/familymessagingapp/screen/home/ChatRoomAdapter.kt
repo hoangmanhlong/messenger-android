@@ -30,20 +30,21 @@ class ChatRoomAdapter(
             )
         )
 
-        viewHolder.itemView.setOnClickListener {
-            onChatRoomClick(getItem(viewHolder.adapterPosition))
-        }
-
-        viewHolder.itemView.setOnLongClickListener {
-            onChatRoomLongClick(getItem(viewHolder.adapterPosition))
-            true
-        }
-
         return viewHolder
     }
 
     override fun onBindViewHolder(holder: ChatRoomViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val item = getItem(position)
+        holder.itemView.setOnClickListener {
+            onChatRoomClick(item)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            onChatRoomLongClick(item)
+            true
+        }
+
+        holder.bind(item)
     }
 
     companion object DiffCallback : DiffUtil.ItemCallback<ChatRoom>() {
