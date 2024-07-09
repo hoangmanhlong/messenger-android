@@ -13,10 +13,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.regex.Pattern
 
+private const val emailRegex = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
+
+private fun chatRoomIDGenerator(uid1: String, uid2: String): String = "${uid1}___${uid2}"
+
 object StringUtils {
     fun isValidEmail(email: String): Boolean {
-        val emailRegex =
-            ("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")
         return Pattern.compile(emailRegex).matcher(email).matches()
     }
 
@@ -32,7 +34,7 @@ object StringUtils {
     fun convertFromBearerTokenToString(bearerToken: String): String =
         bearerToken.split(" ")[1]
 
-    fun composeEmail(context: Context, addresses: Array<String>, subject: String) {
+    fun composeEmail(context: Context, addresses: Array<String>, subject: String?) {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:") // Only email apps handle this.
             putExtra(Intent.EXTRA_EMAIL, addresses)
@@ -49,20 +51,15 @@ object StringUtils {
                 && !path.contains("]")
     }
 
-    fun timeFormatter(time: Long): String {
-        return SimpleDateFormat("h:mm a - dd/MM/yyyy", Locale.getDefault()).format(time)
-    }
-
-    fun generateChatRoomId(uid1: String, uid2: String): String {
-        return uid1 + uid2 + System.currentTimeMillis()
-    }
+    fun generateChatRoomId(uid1: String, uid2: String): String = chatRoomIDGenerator(uid1, uid2)
 
     fun getCurrentTime(): Long = System.currentTimeMillis()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun formatTime(milliseconds: Long): String {
         val now = LocalDate.now()
-        val dateTime = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime()
+        val dateTime =
+            Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime()
         val date = dateTime.toLocalDate()
 
         return when {

@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <item
-        android:id="@+id/QrCodeMenu"
-        android:icon="@drawable/ic_qr_code"
-        app:showAsAction="ifRoom"
-        android:title="@string/scan_qr_code" />
+<!--    <item-->
+<!--        android:id="@+id/QrCodeMenu"-->
+<!--        android:icon="@drawable/ic_qr_code"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        android:title="@string/scan_qr_code" />-->
 
     <item
         android:id="@+id/avatarMenu"

@@ -97,7 +97,7 @@ class ProfileFragment : Fragment() {
 
         binding.feedbackView.setOnClickListener {
             activity?.let {
-                StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), "Error")
+                StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
             }
         }
     }

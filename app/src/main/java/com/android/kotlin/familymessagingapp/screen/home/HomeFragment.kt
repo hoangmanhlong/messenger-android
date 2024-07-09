@@ -122,10 +122,10 @@ class HomeFragment : Fragment() {
                     true
                 }
 
-                R.id.QrCodeMenu -> {
-                    findNavController().navigate(R.id.scanQRCodeFragment)
-                    true
-                }
+//                R.id.QrCodeMenu -> {
+//                    findNavController().navigate(R.id.scanQRCodeFragment)
+//                    true
+//                }
 
                 else -> false
             }

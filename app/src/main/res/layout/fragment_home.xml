@@ -95,8 +95,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="@string/search"
-                app:menu="@menu/menu_search_bar"
-                app:navigationIcon="@drawable/ic_menu" />
+                app:menu="@menu/menu_search_bar"/>
+<!--                app:navigationIcon="@drawable/ic_menu" -->
 
         </com.google.android.material.appbar.AppBarLayout>
 
