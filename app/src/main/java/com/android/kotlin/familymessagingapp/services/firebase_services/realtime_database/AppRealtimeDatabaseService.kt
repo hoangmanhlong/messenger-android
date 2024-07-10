@@ -75,7 +75,17 @@ class AppRealtimeDatabaseService(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    currentUserRef.removeEventListener(this)
+                    // When the listener is cancelled or an error occurs, the flow is closed
+                    // immediately by calling close(). This will terminate the flow and stop any
+                    // further emissions. The close function will also invoke the
+                    // awaitClose { ... } block to remove the listener, but with an immediate
+                    // closure of the flow.
+
+                    // Pass exception to the flow
+                    // 1. Error Propagation: Ensures the collector can handle and respond to the error.
+                    // 2. Debugging: Provides context about why the flow was closed.
+                    // 3. Error Handling: Allows for proper error handling in the flow's collector, improving the robustness and user experience of the application.
+                    close(error.toException())
                 }
 
             }
