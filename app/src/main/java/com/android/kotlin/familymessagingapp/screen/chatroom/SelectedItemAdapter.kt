@@ -34,13 +34,14 @@ class SelectedItemAdapter(
         val viewHolder = SelectedItemViewHolder(
             LayoutSelectedPhotoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         )
-        viewHolder.binding.btClearImage.setOnClickListener {
-            onItemRemove(getItem(viewHolder.adapterPosition))
-        }
         return viewHolder
     }
 
     override fun onBindViewHolder(holder: SelectedItemViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val item = getItem(position)
+        holder.binding.btClearImage.setOnClickListener {
+            onItemRemove(item)
+        }
+        holder.bind(item)
     }
 }

@@ -17,8 +17,10 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -71,27 +73,20 @@ class AppRealtimeDatabaseService(
             val currentUserRef: DatabaseReference = userDataRef.child(currentUser.uid)
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    this@callbackFlow.trySend(snapshot.getValue(UserData::class.java))
+                    this@callbackFlow.trySend(snapshot.getValue(UserData::class.java)).isSuccess
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    // When the listener is cancelled or an error occurs, the flow is closed
-                    // immediately by calling close(). This will terminate the flow and stop any
-                    // further emissions. The close function will also invoke the
-                    // awaitClose { ... } block to remove the listener, but with an immediate
-                    // closure of the flow.
-
-                    // Pass exception to the flow
-                    // 1. Error Propagation: Ensures the collector can handle and respond to the error.
-                    // 2. Debugging: Provides context about why the flow was closed.
-                    // 3. Error Handling: Allows for proper error handling in the flow's collector, improving the robustness and user experience of the application.
-                    close(error.toException())
+                    this@callbackFlow.trySend(null).isSuccess
+                    close()
                 }
-
             }
             currentUserRef.addValueEventListener(listener)
             registerUserDataListener[currentUserRef] = listener
-            awaitClose { currentUserRef.removeEventListener(listener) }
+            awaitClose {
+                currentUserRef.removeEventListener(listener)
+                registerUserDataListener.remove(currentUserRef)
+            }
         }
 
     /**
@@ -336,14 +331,22 @@ class AppRealtimeDatabaseService(
         }
     }
 
-    fun removeAllListener() {
+    private fun clearChatRoomsListener() {
         registeredChatRoomsListeners.forEach { (ref, listener) ->
             ref.removeEventListener(listener)
         }
+        registeredChatRoomsListeners.clear()
+    }
+
+    private fun clearUserDataListener() {
         registerUserDataListener.forEach { (ref, listener) ->
             ref.removeEventListener(listener)
         }
         registerUserDataListener.clear()
-        registeredChatRoomsListeners.clear()
+    }
+
+    fun removeAllListener() {
+        clearUserDataListener()
+        clearChatRoomsListener()
     }
 }

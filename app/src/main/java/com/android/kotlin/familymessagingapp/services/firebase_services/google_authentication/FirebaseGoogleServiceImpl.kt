@@ -3,6 +3,7 @@ package com.android.kotlin.familymessagingapp.services.firebase_services.google_
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.util.Log
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
@@ -34,6 +35,16 @@ class FirebaseGoogleServiceImpl(
 
     private val userAvatarImageRef = appFirebaseStorage.userAvatarRef
 
+    /**
+     * 13:26:12.649  W  com.google.android.gms.common.api.ApiException: 16: [28433] Cannot find a matching credential.
+     * 13:26:12.649  W  	at com.google.android.gms.common.internal.ApiExceptionUtil.fromStatus(com.google.android.gms:play-services-base@@18.1.0:3)
+     * 13:26:12.649  W  	at com.google.android.gms.common.api.internal.TaskUtil.setResultOrApiException(com.google.android.gms:play-services-base@@18.1.0:4)
+     * 13:26:12.649  W  	at com.google.android.gms.internal.auth-api.zbau.zbb(com.google.android.gms:play-services-auth@@20.5.0:1)
+     * 13:26:12.649  W  	at com.google.android.gms.internal.auth-api.zbx.zba(com.google.android.gms:play-services-auth@@20.5.0:4)
+     * 13:26:12.649  W  	at com.google.android.gms.internal.auth-api.zbb.onTransact(com.google.android.gms:play-services-auth@@20.5.0:3)
+     * 13:26:12.649  W  	at android.os.Binder.execTransactInternal(Binder.java:1285)
+     * 13:26:12.649  W  	at android.os.Binder.execTransact(Binder.java:1244)
+     */
     override suspend fun signIn(): IntentSender? {
         val result = try {
             oneTapClient.beginSignIn(buildSignInRequest()).await()

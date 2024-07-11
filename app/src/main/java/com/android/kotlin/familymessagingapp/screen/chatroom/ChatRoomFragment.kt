@@ -6,7 +6,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -18,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.screen.message_options.MessageOptionsFragment
-import com.android.kotlin.familymessagingapp.screen.profile_detail.MyOpenDocumentContract
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,25 +28,16 @@ class ChatRoomFragment : Fragment() {
 
     private var _binding: FragmentChatRoomBinding? = null
 
-    private val openDocument: ActivityResultLauncher<Array<String>> =
-        registerForActivityResult(MyOpenDocumentContract()) {
-            it?.let {
-//                binding.ivAvatar.setImageURI(it)
-//                _viewModel.setImageUri(it)
-            }
-        }
-
     private var selectedItemAdapter: SelectedItemAdapter? = null
 
     private lateinit var messageOptionsFragment: MessageOptionsFragment
 
     //     Registers a photo picker activity launcher in multi-select mode.
 //     In this example, the app lets the user select up to 5 media files.
-    private val pickMultipleMedia = registerForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        _viewModel.setImageUri(uri)
-    }
+    private val pickMultipleMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            _viewModel.setImageUri(uri)
+        }
 
     private val binding get() = _binding!!
 
@@ -71,14 +60,11 @@ class ChatRoomFragment : Fragment() {
 //            openMessageOptions()
         }
 
-        // Setup LayoutManager with stackFromEnd set to true
-        val layoutManager = LinearLayoutManager(activity).apply {
+        messageRecyclerview = binding.messageRecyclerview
+        messageRecyclerview?.layoutManager = LinearLayoutManager(activity).apply {
             stackFromEnd = true
             reverseLayout = false
         }
-
-        messageRecyclerview = binding.messageRecyclerview
-        messageRecyclerview?.layoutManager = layoutManager
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter {
