@@ -1,7 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,11 +8,9 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
-import com.google.ai.client.generativeai.type.content
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,9 +26,10 @@ class ChatRoomViewModel @Inject constructor(
     private val _sendMessageStatus = MutableLiveData(SendMessageStatus.SUCCESS)
     val sendMessageStatus: LiveData<SendMessageStatus> = _sendMessageStatus
 
-    var messages: LiveData<List<Message>>? = null
+    lateinit var messages: LiveData<List<Message>>
 
-    private var chatroom = ChatRoom()
+    private val _chatRoom: MutableLiveData<ChatRoom> = MutableLiveData(ChatRoom())
+    val chatRoom: LiveData<ChatRoom> = _chatRoom
 
     private var message = Message()
 
@@ -44,12 +42,33 @@ class ChatRoomViewModel @Inject constructor(
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
 
+    val addMessageOberservable = MutableLiveData(false)
+
     fun updateMessagesInChatRoom(messages: List<Message>?) {
-        chatroom = chatroom.copy(messages = messages)
+        _chatRoom.value = _chatRoom.value?.copy(messages = messages)
+    }
+
+    fun setUserData(userData: UserData) {
+        _chatRoom.value = _chatRoom.value?.copy(
+            chatroomName = userData.username,
+            chatRoomImage = userData.userAvatar
+        )
+        viewModelScope.launch {
+            val chatroomID = firebaseServiceRepository.appRealtimeDatabaseService.checkChatRoomExist(userData.uid!!)
+            if (chatroomID.isNullOrEmpty()) {
+                // TODO: Create new chatroom
+            } else {
+                messages = firebaseServiceRepository
+                    .appRealtimeDatabaseService
+                    .addChatRoomMessageListener(chatroomID)
+                    .asLiveData()
+                addMessageOberservable.value = true
+            }
+        }
     }
 
     fun setChatRoom(chatRoom: ChatRoom) {
-        this.chatroom = this.chatroom.copy(
+        _chatRoom.value = _chatRoom.value?.copy(
             chatRoomId = chatRoom.chatRoomId,
             chatroomName = chatRoom.chatroomName,
             messages = chatRoom.messages,
@@ -64,10 +83,11 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     private fun initMessageListener() {
-        this.chatroom.chatRoomId?.let {
+        val chatRoomId = _chatRoom.value?.chatRoomId
+        chatRoomId.let {
             messages = firebaseServiceRepository
                 .appRealtimeDatabaseService
-                .addChatRoomMessageListener(this.chatroom.chatRoomId!!)
+                .addChatRoomMessageListener(chatRoomId!!)
                 .asLiveData()
 //                .also { currentMessages ->
 //                    Log.d(TAG, "initMessageListener: ")
@@ -82,6 +102,7 @@ class ChatRoomViewModel @Inject constructor(
 //                        }
 //                    }
 //                }
+            addMessageOberservable.value = true
         }
     }
 
@@ -114,7 +135,7 @@ class ChatRoomViewModel @Inject constructor(
         _sendMessageStatus.value = SendMessageStatus.SENDING
         viewModelScope.launch {
             val sendResult = firebaseServiceRepository.appRealtimeDatabaseService
-                .updateNewMessage(chatRoom = chatroom, message = message)
+                .updateNewMessage(chatRoom = _chatRoom.value!!, message = message)
             clearInput()
             _sendMessageStatus.value =
                 if (sendResult) SendMessageStatus.SUCCESS else SendMessageStatus.ERROR

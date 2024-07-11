@@ -6,6 +6,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -110,26 +111,50 @@ class ChatRoomFragment : Fragment() {
 
             }
         })
-
+//        setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(binding.messagesView, it) }
-        bindChatRoom()
+        getSharedData()
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
         }
 
-        _viewModel.messages?.observe(this.viewLifecycleOwner) {
-            binding.isMessageEmpty = it.isNullOrEmpty()
-            messageAdapter?.submitList(it) {
-                messageRecyclerview?.scrollToPosition(it.size - 1)
+        _viewModel.addMessageOberservable.observe(this.viewLifecycleOwner) {
+            if(it) {
+                _viewModel.messages?.observe(this.viewLifecycleOwner) {
+                    binding.isMessageEmpty = it.isNullOrEmpty()
+                    messageAdapter?.submitList(it) {
+                        messageRecyclerview?.scrollToPosition(it.size - 1)
+                    }
+                    _viewModel.updateMessagesInChatRoom(it)
+                }
             }
-            _viewModel.updateMessagesInChatRoom(it)
         }
+
+        _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
+            it?.let {chatroom ->
+                binding.chatroom = chatroom
+                val messages = chatroom.messages
+                binding.isMessageEmpty = messages.isNullOrEmpty()
+                messageAdapter?.submitList(messages) {
+                    if (!messages.isNullOrEmpty())
+                        messageRecyclerview?.scrollToPosition(messages.size - 1)
+                }
+            }
+        }
+
+//        _viewModel.messages?.observe(this.viewLifecycleOwner) {
+//            binding.isMessageEmpty = it.isNullOrEmpty()
+//            messageAdapter?.submitList(it) {
+//                messageRecyclerview?.scrollToPosition(it.size - 1)
+//            }
+//            _viewModel.updateMessagesInChatRoom(it)
+//        }
 
         _viewModel.clearEdiText.observe(this.viewLifecycleOwner) {
             if (it) binding.etMessage.setText("")
@@ -162,22 +187,23 @@ class ChatRoomFragment : Fragment() {
         }
     }
 
-    private fun bindChatRoom() {
+    private fun getSharedData() {
         val chatroom = args.chatroom
-        binding.chatroom = chatroom
-        val messages = chatroom.messages
-        binding.isMessageEmpty = messages.isNullOrEmpty()
-        messageAdapter?.submitList(messages) {
-            if (!messages.isNullOrEmpty())
-                messageRecyclerview?.scrollToPosition(messages.size - 1)
+        val userdata = args.userdata
+        if (chatroom == null && userdata == null) {
+            findNavController().navigateUp()
+            return
         }
-        _viewModel.setChatRoom(chatRoom = chatroom)
+
+        chatroom?.let { _viewModel.setChatRoom(chatroom) }
+        userdata?.let { _viewModel.setUserData(userdata) }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
         _viewModel.removeMessageListener()
+        setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
     }
 
     fun openMessageOptions() {
@@ -185,6 +211,8 @@ class ChatRoomFragment : Fragment() {
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
-    //In the showMenu function from the previous example:
+    private fun setSoftInputMode(mode: Int) {
+        activity?.window?.setSoftInputMode(mode)
+    }
 
 }

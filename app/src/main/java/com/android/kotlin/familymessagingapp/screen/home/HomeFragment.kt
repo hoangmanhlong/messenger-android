@@ -84,7 +84,10 @@ class HomeFragment : Fragment() {
             onChatRoomClick = {
                 // Because information about the chat room other than messages
                 // usually does not change, all this information is transmitted to Chat Room Details
-                val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(it)
+                val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
+                    chatroom = it,
+                    userdata = null
+                )
                 findNavController().navigate(action)
             },
             onChatRoomLongClick = {
@@ -105,12 +108,10 @@ class HomeFragment : Fragment() {
 
         usersRecyclerView = binding.searchResultRecyclerView
         userAdapter = UserAdapter {
-            val chatroom = ChatRoom(
-                chatroomName = it.username,
-                chatRoomImage = it.userAvatar,
-                members = listOf(it.uid!!)
+            val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
+                chatroom = null,
+                userdata = it
             )
-            val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(chatroom)
             findNavController().navigate(action)
         }
         usersRecyclerView?.adapter = userAdapter

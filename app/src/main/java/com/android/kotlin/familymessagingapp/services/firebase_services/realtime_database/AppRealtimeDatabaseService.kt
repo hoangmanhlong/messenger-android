@@ -4,10 +4,10 @@ import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
-import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
@@ -17,10 +17,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -185,6 +183,21 @@ class AppRealtimeDatabaseService(
         }
     }
 
+    suspend fun checkChatRoomExist(otherUserId: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val chatroomIds = listOf(
+                StringUtils.generateChatRoomId(otherUserId, auth.uid!!),
+                StringUtils.generateChatRoomId(auth.uid!!, otherUserId)
+            )
+
+            chatroomIds.firstOrNull { chatroomId ->
+                chatroomsRef.child(chatroomId).get().await().exists()
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun deleteUserData(uid: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -200,14 +213,12 @@ class AppRealtimeDatabaseService(
         val messageRef = chatroomsRef.child(chatroomId).child(ChatRoom.MESSAGES)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val messages = mutableListOf<Message>()
-                snapshot.children.forEach {
-                    it.getValue(Message::class.java)?.let { it1 -> messages.add(it1) }
-                }
-                this@callbackFlow.trySend(messages).isSuccess
+                val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                trySend(messages).isSuccess
             }
 
             override fun onCancelled(error: DatabaseError) {
+                trySend(emptyList())
                 close(error.toException())
             }
         }
@@ -217,9 +228,7 @@ class AppRealtimeDatabaseService(
     }
 
     fun removeMessageListener() {
-        registerMessagesListener.forEach { (ref, listener) ->
-            ref.removeEventListener(listener)
-        }
+        registerMessagesListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
         registerMessagesListener.clear()
     }
 
@@ -332,16 +341,12 @@ class AppRealtimeDatabaseService(
     }
 
     private fun clearChatRoomsListener() {
-        registeredChatRoomsListeners.forEach { (ref, listener) ->
-            ref.removeEventListener(listener)
-        }
+        registeredChatRoomsListeners.forEach { (ref, listener) -> ref.removeEventListener(listener) }
         registeredChatRoomsListeners.clear()
     }
 
     private fun clearUserDataListener() {
-        registerUserDataListener.forEach { (ref, listener) ->
-            ref.removeEventListener(listener)
-        }
+        registerUserDataListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
         registerUserDataListener.clear()
     }
 
