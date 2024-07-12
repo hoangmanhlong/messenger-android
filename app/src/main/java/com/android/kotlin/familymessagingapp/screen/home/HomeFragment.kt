@@ -223,6 +223,7 @@ class HomeFragment : Fragment() {
             searchView?.let { searchView ->
                 if (searchView.isShowing) {
                     binding.isSearchedUserEmpty = it.isNullOrEmpty()
+                    recentSearchHistory?.visibility = View.GONE
                     userAdapter?.submitList(it)
                 }
             }
@@ -234,9 +235,9 @@ class HomeFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
                 binding.tvSearchedUserEmpty.visibility = View.GONE
-                binding.searchResultRecyclerView.visibility = View.GONE
+                usersRecyclerView?.visibility = View.GONE
+                recentSearchHistory?.visibility = if (s.isNullOrEmpty()) View.VISIBLE else View.GONE
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {

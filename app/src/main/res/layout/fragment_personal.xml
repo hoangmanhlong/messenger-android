@@ -14,6 +14,10 @@
             name="isTheEnglishLanguageDisplayed"
             type="Boolean" />
 
+        <variable
+            name="isSuggestedAnswersEnabled"
+            type="Boolean" />
+
         <import type="android.view.View" />
 
         <variable
@@ -68,19 +72,19 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/userAvatarCard"
-                        android:layout_marginTop="32dp"
                         android:layout_width="100dp"
                         android:layout_height="100dp"
                         android:layout_gravity="center"
+                        android:layout_marginTop="32dp"
                         app:cardCornerRadius="50dp"
                         app:strokeWidth="0dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:clipToPadding="false"
                             android:layout_gravity="center_horizontal"
-                            android:background="?attr/selectableItemBackgroundBorderless">
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clipToPadding="false">
 
                             <ImageView
                                 android:id="@+id/ivAvatar"
@@ -100,10 +104,53 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:layout_marginVertical="16dp"
+                        android:text="@{userData.username}"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:text="@{userData.username}"
                         tools:text="Hoang Manh Long" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/suggested_answers_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="16dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_auto_awesome" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="@string/suggested_answers"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            style="?attr/materialSwitchStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:checked="@{isSuggestedAnswersEnabled}"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/notification_view"
@@ -117,8 +164,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:padding="16dp"
                             android:orientation="horizontal"
+                            android:padding="16dp"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent">
@@ -129,11 +176,11 @@
                                 android:src="@drawable/ic_notifications" />
 
                             <TextView
-                                android:textSize="16sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="@string/notification" />
+                                android:text="@string/notification"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <com.google.android.material.materialswitch.MaterialSwitch
@@ -141,8 +188,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="16dp"
-                            android:clickable="false"
                             android:checked="@{areNotificationsEnabled}"
+                            android:clickable="false"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
@@ -153,8 +200,8 @@
                         android:id="@+id/changeLanguageView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:onClick="@{() -> fragment.onSelectLanguageViewClick()}"
                         android:background="?attr/selectableItemBackground"
+                        android:onClick="@{() -> fragment.onSelectLanguageViewClick()}"
                         android:padding="16dp">
 
                         <LinearLayout
@@ -171,19 +218,19 @@
                                 android:src="@drawable/ic_language" />
 
                             <TextView
-                                android:textSize="16sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="@string/language" />
+                                android:text="@string/language"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <FrameLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent">
+                            app:layout_constraintTop_toTopOf="parent">
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -198,11 +245,11 @@
                                     android:src="@drawable/vietnam" />
 
                                 <TextView
-                                    android:textSize="16sp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:text="@string/vietnamese"
+                                    android:textSize="16sp"
                                     tools:text="@string/vietnamese" />
                             </LinearLayout>
 
@@ -219,11 +266,11 @@
                                     android:src="@drawable/united_kingdom" />
 
                                 <TextView
-                                    android:textSize="16sp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:text="@string/english"
+                                    android:textSize="16sp"
                                     tools:text="@string/english" />
                             </LinearLayout>
                         </FrameLayout>
@@ -253,11 +300,11 @@
                                 android:src="@drawable/ic_delete_account" />
 
                             <TextView
-                                android:textSize="16sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="@string/delete_account" />
+                                android:text="@string/delete_account"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -285,11 +332,11 @@
                                 android:src="@drawable/ic_feedback" />
 
                             <TextView
-                                android:textSize="16sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="@string/feedback" />
+                                android:text="@string/feedback"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -317,11 +364,11 @@
                                 android:src="@drawable/ic_logout" />
 
                             <TextView
-                                android:textSize="16sp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="@string/logout" />
+                                android:text="@string/logout"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>

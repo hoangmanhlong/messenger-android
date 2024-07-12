@@ -1,14 +1,17 @@
 package com.android.kotlin.familymessagingapp.screen.profile
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
@@ -87,9 +90,8 @@ class ProfileFragment : Fragment() {
             binding.areNotificationsEnabled = areNotificationsEnabled
         }
 
-        binding.notificationView.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
-        }
+        binding.notificationView.setOnClickListener { requestNotificationPermission() }
+
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             (activity as MainActivity).isShowLoadingDialog(it)
@@ -100,6 +102,15 @@ class ProfileFragment : Fragment() {
                 StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun requestNotificationPermission() {
+        val intent = Intent().apply {
+            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+            putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID)
+        }
+        startActivity(intent)
     }
 
     fun deleteAccount() {

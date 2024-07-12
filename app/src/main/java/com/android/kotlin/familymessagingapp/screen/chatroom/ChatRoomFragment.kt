@@ -6,7 +6,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -74,7 +73,7 @@ class ChatRoomFragment : Fragment() {
 
         selectedItemsRecyclerview = binding.selectedItemsRecyclerview
         selectedItemsRecyclerview?.adapter = selectedItemAdapter
-        selectedItemsRecyclerview?.visibility = View.GONE
+//        selectedItemsRecyclerview?.visibility = View.GONE
 
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
         binding.btSendMessage.setOnClickListener {
@@ -93,10 +92,6 @@ class ChatRoomFragment : Fragment() {
             pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
-//        binding.btSelectPhoto.setOnClickListener {
-//            openDocument.launch(arrayOf("image/*"))
-//        }
-
         binding.etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
 
@@ -111,7 +106,7 @@ class ChatRoomFragment : Fragment() {
 
             }
         })
-//        setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
         return binding.root
     }
 
@@ -203,16 +198,11 @@ class ChatRoomFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         _viewModel.removeMessageListener()
-        setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
     }
 
     fun openMessageOptions() {
         messageOptionsFragment = MessageOptionsFragment()
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
-    }
-
-    private fun setSoftInputMode(mode: Int) {
-        activity?.window?.setSoftInputMode(mode)
     }
 
 }

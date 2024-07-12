@@ -8,6 +8,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
@@ -51,18 +52,15 @@ class ChatRoomViewModel @Inject constructor(
     fun setUserData(userData: UserData) {
         _chatRoom.value = _chatRoom.value?.copy(
             chatroomName = userData.username,
-            chatRoomImage = userData.userAvatar
+            chatRoomImage = userData.userAvatar,
+            members = listOf(userData.uid!!)
         )
         viewModelScope.launch {
-            val chatroomID = firebaseServiceRepository.appRealtimeDatabaseService.checkChatRoomExist(userData.uid!!)
-            if (chatroomID.isNullOrEmpty()) {
-                // TODO: Create new chatroom
-            } else {
-                messages = firebaseServiceRepository
-                    .appRealtimeDatabaseService
-                    .addChatRoomMessageListener(chatroomID)
-                    .asLiveData()
-                addMessageOberservable.value = true
+            val chatroomID =
+                firebaseServiceRepository.appRealtimeDatabaseService.checkChatRoomExist(userData.uid!!)
+            if (!chatroomID.isNullOrEmpty()) {
+                _chatRoom.value = _chatRoom.value?.copy(chatRoomId = chatroomID)
+                initMessageListener()
             }
         }
     }
@@ -84,10 +82,10 @@ class ChatRoomViewModel @Inject constructor(
 
     private fun initMessageListener() {
         val chatRoomId = _chatRoom.value?.chatRoomId
-        chatRoomId.let {
+        chatRoomId?.let {
             messages = firebaseServiceRepository
                 .appRealtimeDatabaseService
-                .addChatRoomMessageListener(chatRoomId!!)
+                .addChatRoomMessageListener(chatRoomId)
                 .asLiveData()
 //                .also { currentMessages ->
 //                    Log.d(TAG, "initMessageListener: ")
@@ -134,11 +132,29 @@ class ChatRoomViewModel @Inject constructor(
     fun sendMessage() {
         _sendMessageStatus.value = SendMessageStatus.SENDING
         viewModelScope.launch {
-            val sendResult = firebaseServiceRepository.appRealtimeDatabaseService
-                .updateNewMessage(chatRoom = _chatRoom.value!!, message = message)
+            val sendResult = firebaseServiceRepository
+                .appRealtimeDatabaseService
+                .updateNewMessage(
+                    chatRoom = _chatRoom.value!!,
+                    message = message
+                )
+
             clearInput()
-            _sendMessageStatus.value =
-                if (sendResult) SendMessageStatus.SUCCESS else SendMessageStatus.ERROR
+
+            when (sendResult) {
+                is Result.Success -> {
+                    _sendMessageStatus.value = SendMessageStatus.SUCCESS
+                    val data = sendResult.data
+                    if (data != null && _chatRoom.value!!.chatRoomId == null) {
+                        _chatRoom.value = _chatRoom.value?.copy(chatRoomId = data.chatRoomId)
+                        initMessageListener()
+                    }
+                }
+
+                is Result.Error -> {
+                    _sendMessageStatus.value = SendMessageStatus.ERROR
+                }
+            }
         }
     }
 

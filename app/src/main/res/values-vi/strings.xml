@@ -61,11 +61,13 @@
     <string name="avatar">Ảnh đại diện</string>
     <string name="scan_qr_code">Quét mã QR</string>
 
-    <string name="recent_search_history">Các lịch sử tìm kiếm gần đây</string>
+    <string name="recent_search_history">Lịch sử tìm kiếm gần đây</string>
 
     <string name="messages_empty">Không có tin nhắn</string>
     <string name="message">Nhắn tin</string>
     <string name="send">Gửi</string>
     <string name="sending">Đang gửi</string>
+
+    <string name="suggested_answers">Gợi ý trả lời</string>
 
 </resources>

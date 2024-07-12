@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.utils.Constant
@@ -14,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
@@ -278,19 +280,20 @@ class AppRealtimeDatabaseService(
      * @param chatRoom
      * @param message new message that send by user
      */
-    suspend fun updateNewMessage(chatRoom: ChatRoom, message: Message): Boolean {
+    suspend fun updateNewMessage(chatRoom: ChatRoom, message: Message): Result<ChatRoom?> {
+        var _chatroom: ChatRoom? = null
         return withContext(Dispatchers.IO) {
             try {
-                // If message has photo, upload to storage
-                var photoUrl = message.photo
-                if (photoUrl != null) {
-                    photoUrl = appFirebaseStorage.putUserAvatarUriToStorage(
-                        imageUri = photoUrl.toUri(),
-                        storageRef = appFirebaseStorage.chatroomRef.child("${StringUtils.getCurrentTime()}")
+                // Upload photo if it exists
+                val photoUrl = message.photo?.let {
+                    appFirebaseStorage.putUserAvatarUriToStorage(
+                        imageUri = it.toUri(),
+                        storageRef = appFirebaseStorage.chatroomRef.child(StringUtils.getCurrentTime().toString())
                     )
                 }
+
                 val updatedMessage = message.copy(
-                    messageId = "${StringUtils.getCurrentTime()}",
+                    messageId = StringUtils.getCurrentTime().toString(),
                     timestamp = StringUtils.getCurrentTime(),
                     photo = photoUrl,
                     text = message.text,
@@ -301,10 +304,11 @@ class AppRealtimeDatabaseService(
                     type = message.type,
                     status = message.status
                 )
+
                 if (chatRoom.chatRoomId == null) {
                     // Thêm uid của user hiện tại vào chatroom
                     val members = mutableListOf<String>()
-                    chatRoom.members?.let { members.add(it.first()) }
+                    chatRoom.members?.firstOrNull()?.let { members.add(it) }
                     members.add(auth.uid!!)
                     val finalChatRoom = ChatRoom(
                         chatRoomId = StringUtils.generateChatRoomId(members[0], members[1]),
@@ -313,12 +317,26 @@ class AppRealtimeDatabaseService(
                         latestTime = StringUtils.getCurrentTime(),
                         lastMessage = updatedMessage.text
                     )
-                    chatroomsRef.child(finalChatRoom.chatRoomId!!)
+                    val chatroomID = finalChatRoom.chatRoomId!!
+                    chatroomsRef.child(chatroomID)
                         .setValue(finalChatRoom)
                         .await()
-                    members.forEach {
-                        userDataRef.child(it).child(UserData.CHAT_ROOMS)
+                    _chatroom = finalChatRoom
+
+                    // Update user data with chat room ID
+                    val updateUserChatRooms: suspend (String) -> Unit = { memberId ->
+                        val userChatRoomsRef = userDataRef.child(memberId).child(UserData.CHAT_ROOMS)
+                        val userDataSnapshot = userChatRoomsRef.get().await()
+                        val currentChatRooms = userDataSnapshot.getValue(object : GenericTypeIndicator<List<String>>() {}) ?: listOf()
+                        val updatedChatRooms = currentChatRooms.toMutableList().apply {
+                            if (!contains(chatroomID)) {
+                                add(chatroomID)
+                            }
+                        }
+                        userChatRoomsRef.setValue(updatedChatRooms).await()
                     }
+
+                    members.forEach { member -> updateUserChatRooms(member) }
                 } else {
                     val messagesList = chatRoom.messages.orEmpty().toMutableList().apply {
                         add(updatedMessage)
@@ -333,9 +351,9 @@ class AppRealtimeDatabaseService(
                         .updateChildren(chatRoomUpdates)
                         .await()
                 }
-                true
+                Result.Success(_chatroom)
             } catch (e: Exception) {
-                false
+                Result.Error(e)
             }
         }
     }
