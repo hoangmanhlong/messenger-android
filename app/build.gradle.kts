@@ -24,7 +24,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "geminiApiKey", "\"AIzaSyCGETdkV_4RyNV4mZDZGAauqBf-W6zVQlM\"")
-        buildConfigField("String", "GEMINI_MODEL_NAME", "\"gemini-1.5-flash\"")
+        buildConfigField("String", "geminiModelName", "\"gemini-1.5-flash\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     // Kotlin + Coroutines
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.emoji2.emojipicker)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

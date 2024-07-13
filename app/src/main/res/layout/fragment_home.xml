@@ -30,30 +30,33 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-<!--                <androidx.recyclerview.widget.RecyclerView-->
-<!--                    app:layoutManager="com.google.android.material.carousel.CarouselLayoutManager"-->
-<!--                    app:layout_constraintTop_toTopOf="parent"-->
-<!--                    android:id="@+id/storyRecyclerView"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="196dp"-->
-<!--                    android:clipChildren="false"-->
-<!--                    android:clipToPadding="false" />-->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/storyRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="196dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    app:carousel_alignment="center"
+                    app:layoutManager="com.google.android.material.carousel.CarouselLayoutManager"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-<!--                <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--                    android:id="@+id/loadChatRoomProgressBar"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:visibility="gone">-->
+                <!--                <androidx.constraintlayout.widget.ConstraintLayout-->
+                <!--                    android:id="@+id/loadChatRoomProgressBar"-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="match_parent"-->
+                <!--                    android:visibility="gone">-->
 
-<!--                    <ProgressBar-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                        app:layout_constraintEnd_toEndOf="parent"-->
-<!--                        app:layout_constraintStart_toStartOf="parent"-->
-<!--                        app:layout_constraintTop_toTopOf="parent" />-->
+                <!--                    <ProgressBar-->
+                <!--                        android:layout_width="wrap_content"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        app:layout_constraintBottom_toBottomOf="parent"-->
+                <!--                        app:layout_constraintEnd_toEndOf="parent"-->
+                <!--                        app:layout_constraintStart_toStartOf="parent"-->
+                <!--                        app:layout_constraintTop_toTopOf="parent" />-->
 
-<!--                </androidx.constraintlayout.widget.ConstraintLayout>-->
+                <!--                </androidx.constraintlayout.widget.ConstraintLayout>-->
 
 
                 <TextView
@@ -77,6 +80,7 @@
                     android:padding="8dp"
                     android:visibility="@{isConversationEmpty ? View.GONE : View.VISIBLE}"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintTop_toBottomOf="@id/storyRecyclerView"
                     tools:listitem="@layout/layout_chatroom" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -95,8 +99,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="@string/search"
-                app:menu="@menu/menu_search_bar"/>
-<!--                app:navigationIcon="@drawable/ic_menu" -->
+                app:menu="@menu/menu_search_bar" />
+            <!--                app:navigationIcon="@drawable/ic_menu" -->
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -123,23 +127,42 @@
                         android:orientation="vertical">
 
                         <LinearLayout
-                            android:visibility="gone"
                             android:id="@+id/recent_search_history_view"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:orientation="vertical"
+                            android:visibility="gone">
 
-                            <TextView
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:padding="16dp"
-                                android:text="@string/recent_search_history"
-                                android:textStyle="bold" />
+                                android:layout_marginStart="16dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/recent_search_history"
+                                    android:textStyle="bold" />
+
+                                <Button
+                                    android:id="@+id/btClearAll"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:onClick="clearSearchHistory"
+                                    android:text="@string/clear_all"
+                                    android:textAllCaps="true" />
+
+                            </LinearLayout>
 
                             <androidx.recyclerview.widget.RecyclerView
                                 android:id="@+id/searchHistoriesRecyclerView"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:clipToPadding="false"
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                                 app:layout_constraintTop_toTopOf="parent"
                                 tools:listitem="@layout/layout_search_history" />

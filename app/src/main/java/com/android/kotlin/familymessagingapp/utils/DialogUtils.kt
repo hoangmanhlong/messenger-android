@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AlertDialog
 import com.android.kotlin.familymessagingapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -74,4 +75,9 @@ object DialogUtils {
             onCancelListener = onCancelListener
         )
     }
+
+    fun functionNotAvailable(context: Context): MaterialAlertDialogBuilder =
+        MaterialAlertDialogBuilder(context)
+            .setMessage(context.getString(R.string.this_function_will_be_updated_soon))
+            .setPositiveButton(R.string.ok, null)
 }

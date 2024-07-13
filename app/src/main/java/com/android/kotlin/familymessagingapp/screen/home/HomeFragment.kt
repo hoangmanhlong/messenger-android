@@ -19,11 +19,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
-import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.fakeStories
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.AppImageUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.google.android.material.carousel.CarouselLayoutManager
+import com.google.android.material.carousel.CarouselSnapHelper
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +38,10 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
+
+    companion object {
+        val TAG: String = HomeFragment::class.java.simpleName
+    }
 
     private val viewModel: HomeViewModel by viewModels()
 
@@ -65,6 +72,10 @@ class HomeFragment : Fragment() {
     private var searchHistoryAdapter: SearchHistoryAdapter? = null
 
     private var recentSearchHistory: LinearLayout? = null
+
+    private var storyRecyclerView: RecyclerView? = null
+
+    private var storyAdapter: StoryAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -99,8 +110,12 @@ class HomeFragment : Fragment() {
         searchHistoriesRecyclerView = binding.searchHistoriesRecyclerView
         recentSearchHistory = binding.recentSearchHistoryView
         searchHistoryAdapter = SearchHistoryAdapter(
-            onDeleteItem = { viewModel.deleteSearchHistory(it) },
+            onDeleteItem = { removeSearchHistory(it, false) },
             onItemClicked = {
+                searchView?.editText?.text = Editable.Factory.getInstance().newEditable(it.text)
+                onActionSearch()
+            },
+            onPushItem = {
                 searchView?.editText?.text = Editable.Factory.getInstance().newEditable(it.text)
             }
         )
@@ -137,12 +152,50 @@ class HomeFragment : Fragment() {
             false
         }
 
+        searchView?.editText?.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                viewModel.setIsShowSearchResult(false)
+                binding.tvSearchedUserEmpty.visibility = View.GONE
+                usersRecyclerView?.visibility = View.GONE
+                recentSearchHistory?.visibility =
+                    if (
+                        s.isNullOrEmpty()
+                        && !viewModel.searchHistories.value.isNullOrEmpty()
+                        && !viewModel.isShowSearchResult
+                    )
+                        View.VISIBLE
+                    else
+                        View.GONE
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+        })
+
+        binding.btClearAll.setOnClickListener {
+            removeSearchHistory(null, true)
+        }
+
+//        storyRecyclerView = binding.storyRecyclerView
+//        storyRecyclerView?.layoutManager = CarouselLayoutManager()
+//        val snapHelper = CarouselSnapHelper()
+//        snapHelper.attachToRecyclerView(storyRecyclerView)
+//
+//        storyAdapter = StoryAdapter()
+//        storyRecyclerView?.adapter = storyAdapter
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { HideKeyboard.setupHideKeyboard(binding.searchViewContent, it) }
+//        storyAdapter?.submitList(fakeStories)
 
         viewModel.authenticated.observe(this.viewLifecycleOwner) { authenticated ->
             if (!authenticated) {
@@ -152,20 +205,13 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.searchHistories.observe(this.viewLifecycleOwner) {
-            if (searchView?.isShowing == true) bindSearchHistories(it)
+            recentSearchHistory?.visibility =
+                if (!it.isNullOrEmpty() && !viewModel.isShowSearchResult)
+                    View.VISIBLE
+                else
+                    View.GONE
+            searchHistoryAdapter?.submitList(it)
         }
-
-//        viewModel.isShowingSearchResult.observe(this.viewLifecycleOwner) {
-//            if (it) {
-//                binding.tvSearchedUserEmpty.visibility = View.VISIBLE
-//                usersRecyclerView?.visibility = View.VISIBLE
-//                recentSearchHistory?.visibility = View.GONE
-//            } else {
-//                binding.tvSearchedUserEmpty.visibility = View.GONE
-//                usersRecyclerView?.visibility = View.GONE
-//                recentSearchHistory?.visibility = View.VISIBLE
-//            }
-//        }
 
         viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
             binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
@@ -174,7 +220,7 @@ class HomeFragment : Fragment() {
 
         viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
             it?.let { user ->
-                if (!viewModel.isFirstLoadImage) {
+                if (!viewModel.isFragmentCreatedFirstTime) {
                     searchBar?.hint = getString(R.string.hi_user, user.username)
                     startCountdown {
                         searchBar?.hint = getString(R.string.search)
@@ -182,13 +228,13 @@ class HomeFragment : Fragment() {
                 }
                 context?.let { context ->
                     _binding?.let {
-                        loadingProgressBarMenu?.isVisible = !viewModel.isFirstLoadImage
+                        loadingProgressBarMenu?.isVisible = !viewModel.isFragmentCreatedFirstTime
                     }
                     AppImageUtils.loadImageWithListener(
                         context = context,
                         photo = user.userAvatar ?: R.drawable.ic_broken_image,
                         actionOnResourceReady = { draw ->
-                            viewModel.isFirstLoadImage = true
+                            viewModel.isFragmentCreatedFirstTime = true
                             lifecycleScope.launch(Dispatchers.Main) {
                                 _binding?.let {
                                     loadingProgressBarMenu?.isVisible = false
@@ -200,7 +246,7 @@ class HomeFragment : Fragment() {
                             }
                         },
                         actionOnLoadFailed = {
-                            viewModel.isFirstLoadImage = true
+                            viewModel.isFragmentCreatedFirstTime = true
                             lifecycleScope.launch(Dispatchers.Main) {
                                 _binding?.let {
                                     loadingProgressBarMenu?.isVisible = false
@@ -219,62 +265,15 @@ class HomeFragment : Fragment() {
             }
         }
 
-        viewModel.searchedUser.observe(this.viewLifecycleOwner) {
+        viewModel.searchResultList.observe(this.viewLifecycleOwner) {
             searchView?.let { searchView ->
                 if (searchView.isShowing) {
-                    binding.isSearchedUserEmpty = it.isNullOrEmpty()
                     recentSearchHistory?.visibility = View.GONE
+                    binding.isSearchedUserEmpty = it.isNullOrEmpty()
                     userAdapter?.submitList(it)
                 }
             }
         }
-
-        searchView?.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.tvSearchedUserEmpty.visibility = View.GONE
-                usersRecyclerView?.visibility = View.GONE
-                recentSearchHistory?.visibility = if (s.isNullOrEmpty()) View.VISIBLE else View.GONE
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-        })
-
-        viewModel.searchViewState.observe(this.viewLifecycleOwner) {
-            when (it) {
-                SearchView.TransitionState.HIDDEN -> {
-
-                }
-
-                SearchView.TransitionState.SHOWN -> {
-
-                }
-
-                SearchView.TransitionState.HIDING -> {}
-                SearchView.TransitionState.SHOWING -> {}
-            }
-        }
-
-        searchView?.addTransitionListener { searchView, transitionState, transitionState2 ->
-            viewModel.setSearchViewState(transitionState2)
-            if (transitionState2 == SearchView.TransitionState.HIDDEN) {
-                binding.tvSearchedUserEmpty.visibility = View.GONE
-                binding.searchResultRecyclerView.visibility = View.GONE
-            }
-
-            if (transitionState2 == SearchView.TransitionState.SHOWN)
-                bindSearchHistories(viewModel.searchHistories.value)
-        }
-    }
-
-    private fun bindSearchHistories(list: List<SearchHistory>?) {
-        recentSearchHistory?.visibility = if (list.isNullOrEmpty()) View.GONE else View.VISIBLE
-        searchHistoryAdapter?.submitList(list)
     }
 
     private fun onActionSearch() {
@@ -306,9 +305,37 @@ class HomeFragment : Fragment() {
         searchBarMenu = null
         avatarMenu = null
         loadingProgressBarMenu = null
+        chatRoomsRecyclerView = null
+        chatroomAdapter = null
+        usersRecyclerView = null
+        userAdapter = null
+        searchHistoriesRecyclerView = null
+        searchHistoryAdapter = null
+        storyRecyclerView = null
+        storyAdapter = null
     }
 
-    companion object {
-        const val TAG = "HomeFragment"
+    private fun removeSearchHistory(searchHistory: SearchHistory?, clearAll: Boolean) {
+        context?.let {
+            MaterialAlertDialogBuilder(it)
+                .setTitle(
+                    if (clearAll) R.string.clear_all_search_history_title
+                    else R.string.remove_search_history_title
+                )
+                .setMessage(
+                    if (clearAll) getString(R.string.clear_all_search_history_message)
+                    else getString(
+                        R.string.remove_search_history_message,
+                        searchHistory?.text
+                    )
+                )
+                .setCancelable(true)
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    if (clearAll) viewModel.clearAllSearchHistory()
+                    else viewModel.deleteSearchHistory(searchHistory!!)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
     }
 }

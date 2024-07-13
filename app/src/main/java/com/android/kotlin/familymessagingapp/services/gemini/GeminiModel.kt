@@ -8,7 +8,7 @@ class GeminiModel {
 
     val model: GenerativeModel =
         GenerativeModel(
-            BuildConfig.GEMINI_MODEL_NAME,
+            BuildConfig.geminiModelName,
             // Retrieve API key as an environmental variable defined in a Build Configuration
             // see https://github.com/google/secrets-gradle-plugin for further instructions
             // TODO: Add Gemini API key as an environmental variable

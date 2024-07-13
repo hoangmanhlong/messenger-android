@@ -21,22 +21,22 @@ class UserAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        val viewHolder = UserViewHolder(
+        return UserViewHolder(
             LayoutUserBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
         )
-
-        viewHolder.itemView.setOnClickListener {
-            onItemClicked(getItem(viewHolder.adapterPosition))
-        }
-        return viewHolder
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val item = getItem(position)
+
+        holder.itemView.setOnClickListener {
+            onItemClicked(item)
+        }
+        holder.bind(item)
     }
 
     companion object DiffCallback : DiffUtil.ItemCallback<UserData>() {

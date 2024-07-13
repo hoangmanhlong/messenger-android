@@ -10,7 +10,8 @@ import com.android.kotlin.familymessagingapp.databinding.LayoutSearchHistoryBind
 
 class SearchHistoryAdapter(
     private val onItemClicked: (SearchHistory) -> Unit,
-    private val onDeleteItem: (SearchHistory) -> Unit
+    private val onDeleteItem: (SearchHistory) -> Unit,
+    private val onPushItem: (SearchHistory) -> Unit
 ) : ListAdapter<SearchHistory, SearchHistoryAdapter.SearchHistoryViewHolder>(DiffCallback) {
 
     inner class SearchHistoryViewHolder(
@@ -43,8 +44,8 @@ class SearchHistoryAdapter(
             true
         }
 
-        holder.binding.remove.setOnClickListener {
-            onDeleteItem(item)
+        holder.binding.ivPush.setOnClickListener {
+            onPushItem(item)
         }
 
         holder.bind(item)

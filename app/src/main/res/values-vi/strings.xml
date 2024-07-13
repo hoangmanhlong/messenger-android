@@ -70,4 +70,12 @@
 
     <string name="suggested_answers">Gợi ý trả lời</string>
 
+    <string name="remove_search_history_title">Xóa lịch sử tìm kiếm</string>
+    <string name="remove_search_history_message">Bạn có chắc muốn xóa %s?</string>
+    <string name="clear_all_search_history_title">Xóa tất cả lịch sử tìm kiếm</string>
+    <string name="clear_all_search_history_message">Bạn có chắc muốn xóa tất cả lịch sử tìm kiếm?</string>
+    <string name="clear_all">Xóa tất cả</string>
+    <string name="push_text_to_search_box">Điền văn bản lên ô tìm kiếm</string>
+    <string name="this_function_will_be_updated_soon">Chức năng này sẽ được cập nhật sớm ❤️</string>
+
 </resources>

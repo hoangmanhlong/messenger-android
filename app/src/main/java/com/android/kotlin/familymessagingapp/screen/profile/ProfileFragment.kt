@@ -15,12 +15,11 @@ import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
-import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,10 +34,11 @@ class ProfileFragment : Fragment() {
 
     private var isDialogShowing: Boolean? = false
 
-    private lateinit var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment
+    private var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment? = null
 
     private lateinit var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,16 +46,43 @@ class ProfileFragment : Fragment() {
     ): View {
         _binding = FragmentPersonalBinding.inflate(inflater, container, false)
         binding.fragment = this@ProfileFragment
-        return binding.root
-    }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        binding.enabledAI.setOnCheckedChangeListener { _, isChecked ->
+            context?.let {
+                NetworkChecker.checkNetwork(it) {
+                    _viewModel.enableAI(isChecked)
+                }
+            }
+        }
+
+        binding.deleteAccountView.setOnClickListener {
+            if (confirmDeleteAccountFragment == null)
+                confirmDeleteAccountFragment = ConfirmDeleteAccountFragment(this)
+            confirmDeleteAccountFragment?.show(
+                this.parentFragmentManager,
+                ConfirmDeleteAccountFragment.TAG
+            )
+        }
 
         binding.logOutView.setOnClickListener {
             if (!isDialogShowing!!) onLogoutViewClick()
         }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+
+        binding.feedbackView.setOnClickListener {
+            activity?.let {
+                StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
+            }
+        }
+
+        binding.notificationView.setOnClickListener { requestNotificationPermission() }
+
+        return binding.root
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) {
             binding.isTheEnglishLanguageDisplayed = it
@@ -64,7 +91,8 @@ class ProfileFragment : Fragment() {
         binding.userAvatarCard.setOnClickListener {
             val userData = _viewModel.currentUserLiveData.value
             userData?.let {
-                val action = ProfileFragmentDirections.actionProfileFragmentToProfileDetailFragment(it)
+                val action =
+                    ProfileFragmentDirections.actionProfileFragmentToProfileDetailFragment(it)
                 findNavController().navigate(action)
             }
         }
@@ -82,25 +110,12 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        binding.deleteAccountView.setOnClickListener {
-            onDeleteAccountViewClick()
-        }
-
         _viewModel.areNotificationsEnabledLiveData.observe(this.viewLifecycleOwner) { areNotificationsEnabled ->
             binding.areNotificationsEnabled = areNotificationsEnabled
         }
 
-        binding.notificationView.setOnClickListener { requestNotificationPermission() }
-
-
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             (activity as MainActivity).isShowLoadingDialog(it)
-        }
-
-        binding.feedbackView.setOnClickListener {
-            activity?.let {
-                StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
-            }
         }
     }
 
@@ -150,14 +165,6 @@ class ProfileFragment : Fragment() {
         selectLanguageBottomSheetDialogFragment.show(
             this.parentFragmentManager,
             SelectLanguageBottomSheetDialogFragment.TAG
-        )
-    }
-
-    private fun onDeleteAccountViewClick() {
-        confirmDeleteAccountFragment = ConfirmDeleteAccountFragment(this)
-        confirmDeleteAccountFragment.show(
-            this.parentFragmentManager,
-            ConfirmDeleteAccountFragment.TAG
         )
     }
 }

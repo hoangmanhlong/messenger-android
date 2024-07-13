@@ -24,6 +24,9 @@ class ChatRoomViewModel @Inject constructor(
     private val geminiModel: GeminiModel
 ) : ViewModel() {
 
+    private val _emojiPickerVisible = MutableLiveData(false)
+    val emojiPickerVisible: LiveData<Boolean> = _emojiPickerVisible
+
     private val _sendMessageStatus = MutableLiveData(SendMessageStatus.SUCCESS)
     val sendMessageStatus: LiveData<SendMessageStatus> = _sendMessageStatus
 
@@ -43,10 +46,15 @@ class ChatRoomViewModel @Inject constructor(
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
 
-    val addMessageOberservable = MutableLiveData(false)
+    val addMessageListener = MutableLiveData(false)
 
-    fun updateMessagesInChatRoom(messages: List<Message>?) {
-        _chatRoom.value = _chatRoom.value?.copy(messages = messages)
+    fun setEmojiPickerVisible() {
+        _emojiPickerVisible.value = !_emojiPickerVisible.value!!
+    }
+
+    fun hideEmojiPicker() {
+        if (_emojiPickerVisible.value == true)
+            _emojiPickerVisible.value = false
     }
 
     fun setUserData(userData: UserData) {
@@ -87,20 +95,10 @@ class ChatRoomViewModel @Inject constructor(
                 .appRealtimeDatabaseService
                 .addChatRoomMessageListener(chatRoomId)
                 .asLiveData()
-//                .also { currentMessages ->
-//                    Log.d(TAG, "initMessageListener: ")
-//                    val lastMessage =
-//                        currentMessages.value.orEmpty().sortedBy { it.timestamp }.lastOrNull()
-//                    lastMessage?.let {
-//                        if (lastMessage.fromId != Firebase.auth.uid) {
-//                            val response = geminiModel.model.generateContentStream(
-//                                content { lastMessage.text }
-//                            )
-//                            Log.d(TAG, "initMessageListener: $response")
-//                        }
-//                    }
-//                }
-            addMessageOberservable.value = true
+            messages.observeForever {
+                _chatRoom.value = _chatRoom.value?.copy(messages = it)
+            }
+            addMessageListener.value = true
         }
     }
 

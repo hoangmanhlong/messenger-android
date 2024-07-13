@@ -8,6 +8,7 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.model.UserSettings
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.StringUtils
@@ -53,7 +54,7 @@ class AppRealtimeDatabaseService(
     private val databaseReference = Firebase.database.reference
 
     companion object {
-        const val TAG = "AppRealtimeDatabaseService"
+        val TAG: String = AppRealtimeDatabaseService::class.java.simpleName
     }
 
     val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
@@ -166,6 +167,26 @@ class AppRealtimeDatabaseService(
         }
     }
 
+    suspend fun updateEnabledAIUserData(enabled: Boolean): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val uid = auth.uid
+                if (uid != null) {
+                    userDataRef
+                        .child(uid)
+                        .child(UserData.SETTINGS)
+                        .child(UserSettings.ENABLED_AI)
+                        .setValue(enabled)
+                        .await()
+                    true
+                } else
+                    false
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
     suspend fun saveUserData(userData: UserData, imageUri: Uri?): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -242,31 +263,30 @@ class AppRealtimeDatabaseService(
      * usernameLowercase = username.toLoweCase
      */
     suspend fun search(keyword: String): List<UserData> {
-        val list = mutableListOf<UserData>()
         return try {
-            val dataSnapshot = if (StringUtils.isValidEmail(keyword)) {
-                userDataRef.orderByChild(UserData.EMAIL).equalTo(keyword).get().await()
-            } else if (StringUtils.isNumber(keyword)) {
-                userDataRef.orderByChild(UserData.PHONE_NUMBER).equalTo(keyword).get().await()
-            } else {
-                userDataRef.orderByChild(UserData.USERNAME).equalTo(keyword).get().await()
+            val query = when {
+                StringUtils.isValidEmail(keyword) -> userDataRef.orderByChild(UserData.EMAIL)
+                    .equalTo(keyword)
+
+                StringUtils.isNumber(keyword) -> userDataRef.orderByChild(UserData.PHONE_NUMBER)
+                    .equalTo(keyword)
+
+                else -> userDataRef.orderByChild(UserData.USERNAME).equalTo(keyword)
             }
 
+            val dataSnapshot = query.get().await()
             if (dataSnapshot.exists()) {
-                for (snapshot in dataSnapshot.children) {
-                    snapshot.getValue(UserData::class.java)?.let {
-                        if (it.uid != auth.uid) list.add(it)
-                    }
+                dataSnapshot.children.mapNotNull { snapshot ->
+                    snapshot.getValue(UserData::class.java)?.takeIf { it.uid != auth.uid }
                 }
-                list
             } else {
-                list
+                emptyList()
             }
         } catch (e: Exception) {
-            Log.d(TAG, "search: $e")
-            list
+            emptyList()
         }
     }
+
 
     /**
      * Lưu tin nhắn mới vào chatroom
@@ -281,20 +301,17 @@ class AppRealtimeDatabaseService(
      * @param message new message that send by user
      */
     suspend fun updateNewMessage(chatRoom: ChatRoom, message: Message): Result<ChatRoom?> {
-        var _chatroom: ChatRoom? = null
+        var newChatRoom: ChatRoom? = null
         return withContext(Dispatchers.IO) {
             try {
                 // Upload photo if it exists
-                val photoUrl = message.photo?.let {
-                    appFirebaseStorage.putUserAvatarUriToStorage(
-                        imageUri = it.toUri(),
-                        storageRef = appFirebaseStorage.chatroomRef.child(StringUtils.getCurrentTime().toString())
-                    )
-                }
+                val photoUrl = uploadPhotoMessageToStorage(message.photo)
+
+                val currentTimestamp = StringUtils.getCurrentTime()
 
                 val updatedMessage = message.copy(
-                    messageId = StringUtils.getCurrentTime().toString(),
-                    timestamp = StringUtils.getCurrentTime(),
+                    messageId = currentTimestamp.toString(),
+                    timestamp = currentTimestamp,
                     photo = photoUrl,
                     text = message.text,
                     audio = message.audio,
@@ -314,20 +331,22 @@ class AppRealtimeDatabaseService(
                         chatRoomId = StringUtils.generateChatRoomId(members[0], members[1]),
                         members = members,
                         messages = listOf(updatedMessage),
-                        latestTime = StringUtils.getCurrentTime(),
+                        latestTime = currentTimestamp,
                         lastMessage = updatedMessage.text
                     )
                     val chatroomID = finalChatRoom.chatRoomId!!
                     chatroomsRef.child(chatroomID)
                         .setValue(finalChatRoom)
                         .await()
-                    _chatroom = finalChatRoom
+                    newChatRoom = finalChatRoom
 
                     // Update user data with chat room ID
                     val updateUserChatRooms: suspend (String) -> Unit = { memberId ->
-                        val userChatRoomsRef = userDataRef.child(memberId).child(UserData.CHAT_ROOMS)
+                        val userChatRoomsRef =
+                            userDataRef.child(memberId).child(UserData.CHAT_ROOMS)
                         val userDataSnapshot = userChatRoomsRef.get().await()
-                        val currentChatRooms = userDataSnapshot.getValue(object : GenericTypeIndicator<List<String>>() {}) ?: listOf()
+                        val currentChatRooms = userDataSnapshot.getValue(object :
+                            GenericTypeIndicator<List<String>>() {}) ?: listOf()
                         val updatedChatRooms = currentChatRooms.toMutableList().apply {
                             if (!contains(chatroomID)) {
                                 add(chatroomID)
@@ -344,17 +363,28 @@ class AppRealtimeDatabaseService(
                     val chatRoomUpdates = mapOf(
                         ChatRoom.MESSAGES to messagesList,
                         ChatRoom.LAST_MESSAGE to message.text,
-                        ChatRoom.LATEST_TIME to StringUtils.getCurrentTime()
+                        ChatRoom.LATEST_TIME to currentTimestamp
                     )
 
                     chatroomsRef.child(chatRoom.chatRoomId)
                         .updateChildren(chatRoomUpdates)
                         .await()
                 }
-                Result.Success(_chatroom)
+                Result.Success(newChatRoom)
             } catch (e: Exception) {
                 Result.Error(e)
             }
+        }
+    }
+
+    private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {
+        return photo?.let {
+            appFirebaseStorage.putUserAvatarUriToStorage(
+                imageUri = it.toUri(),
+                storageRef = appFirebaseStorage.chatroomRef.child(
+                    StringUtils.getCurrentTime().toString()
+                )
+            )
         }
     }
 

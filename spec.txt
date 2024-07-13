@@ -3,3 +3,5 @@
 1. Chat Room được tạo lần đầu tiên (Khi user tìm kiếm 1 người dùng mới và chưa có bất kỳ tin nhắn nào)
 - Khi user click người dùng trên danh sách tìm kiếm
 + Khởi tạo 1 chatroom object với chatroom name, chatroom image từ user được nhấn
+
+2. CHAT ROOM SCREEN

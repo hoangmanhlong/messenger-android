@@ -6,6 +6,8 @@ object Constant {
 
     const val FCM_TOKEN_KEY = "FCM_TOKEN_KEY"
 
+    const val ENABLED_AI = "ENABLED_AI"
+
     const val BASE_URL = "https://developer.android.com/"
 
     const val DURATION_TIMEOUT = 60

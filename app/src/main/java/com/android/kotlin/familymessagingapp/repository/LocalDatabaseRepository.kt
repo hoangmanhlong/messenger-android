@@ -36,4 +36,13 @@ class LocalDatabaseRepository(
                 throw e
             }
         }
+
+    suspend fun clearAllSearchHistories() =
+        withContext(Dispatchers.IO) {
+            try {
+                appDatabase.searchHistoryDao.deleteAllSearchHistories()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
 }

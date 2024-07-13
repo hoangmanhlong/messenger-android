@@ -17,10 +17,30 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.screen.message_options.MessageOptionsFragment
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * ChatRoom hiển thị data với 2 trường hợp
+ *
+ *  Case 1: ChatRoom được mở từ Danh sách chatroom ở màn Home(HomeFragment)
+ *
+ *      - Lấy dữ liệu chatroom được truyền từ Home kiểm tra xem có null không(99% là không null, nếu null thì back về màn Home)
+ *      - Hiển thị toàn bộ dữ liệu chatroom được truyền từ Home lên màn hình
+ *      - Bắt đầu trình nghe tin nhắn theo chatroom ID
+ *
+ *  Case 2: ChatRoom được mở khi click từ User trong tìm kiếm
+ *
+ *      - Trong case này chatroom sẽ null và có userdata
+ *      - Lấy tên và ảnh của user đó đặt làm ảnh cho chatroom
+ *      - Thực hiện kiểm tra xem chatroom có tồn tại bằng cách: Vì chatroomID được đặt theo quy ước trước đó(có 2TH user1___user2 hoặc user2___user1)
+ *
+ *          + Nếu chatroom ID tồn tại: Bắt đầu trình nghe tin nhắn theo chatroom ID
+ *          + Nếu không tồn tại: Danh sách tin nhắn sẽ hiển thị rỗng. Khi người dùng nhắn tin
+ *          nhắn đầu tiên chatroom sẽ được tạo. Nếu chatroom được tạo thành công. Chatroom sẽ được lưu vào userdata của 2 người dùng. Bắt đầu trình nghe tin nhắn theo chatroom ID
+ */
 @AndroidEntryPoint
 class ChatRoomFragment : Fragment() {
 
@@ -59,6 +79,7 @@ class ChatRoomFragment : Fragment() {
 //            showMenu(binding.root, R.menu.menu_message)
 //            openMessageOptions()
         }
+//        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         messageRecyclerview = binding.messageRecyclerview
         messageRecyclerview?.layoutManager = LinearLayoutManager(activity).apply {
@@ -85,7 +106,9 @@ class ChatRoomFragment : Fragment() {
         }
 
         binding.ivLocation.setOnClickListener {
-
+            context?.let {
+                DialogUtils.functionNotAvailable(it).show()
+            }
         }
 
         binding.btSelectPhoto.setOnClickListener {
@@ -107,6 +130,18 @@ class ChatRoomFragment : Fragment() {
             }
         })
 
+        binding.emojiPicker.setOnEmojiPickedListener  {
+            binding.etMessage.append(it.emoji)
+        }
+
+        binding.ivOpenEmojiPicker.setOnClickListener {
+            _viewModel.setEmojiPickerVisible()
+        }
+
+//        binding.messagesView.setOnClickListener {
+//            _viewModel.hideEmojiPicker()
+//        }
+
         return binding.root
     }
 
@@ -115,24 +150,27 @@ class ChatRoomFragment : Fragment() {
         activity?.let { HideKeyboard.setupHideKeyboard(binding.messagesView, it) }
         getSharedData()
 
+        _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
+            binding.isEmojiPickerVisible = it
+        }
+
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
         }
 
-        _viewModel.addMessageOberservable.observe(this.viewLifecycleOwner) {
-            if(it) {
-                _viewModel.messages?.observe(this.viewLifecycleOwner) {
-                    binding.isMessageEmpty = it.isNullOrEmpty()
-                    messageAdapter?.submitList(it) {
-                        messageRecyclerview?.scrollToPosition(it.size - 1)
+        _viewModel.addMessageListener.observe(this.viewLifecycleOwner) {
+            if (it) {
+                _viewModel.messages.observe(this.viewLifecycleOwner) { messages ->
+                    binding.isMessageEmpty = messages.isNullOrEmpty()
+                    messageAdapter?.submitList(messages) {
+                        messageRecyclerview?.scrollToPosition(messages.size - 1)
                     }
-                    _viewModel.updateMessagesInChatRoom(it)
                 }
             }
         }
 
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
-            it?.let {chatroom ->
+            it?.let { chatroom ->
                 binding.chatroom = chatroom
                 val messages = chatroom.messages
                 binding.isMessageEmpty = messages.isNullOrEmpty()
@@ -142,14 +180,6 @@ class ChatRoomFragment : Fragment() {
                 }
             }
         }
-
-//        _viewModel.messages?.observe(this.viewLifecycleOwner) {
-//            binding.isMessageEmpty = it.isNullOrEmpty()
-//            messageAdapter?.submitList(it) {
-//                messageRecyclerview?.scrollToPosition(it.size - 1)
-//            }
-//            _viewModel.updateMessagesInChatRoom(it)
-//        }
 
         _viewModel.clearEdiText.observe(this.viewLifecycleOwner) {
             if (it) binding.etMessage.setText("")
@@ -182,6 +212,13 @@ class ChatRoomFragment : Fragment() {
         }
     }
 
+    /**
+     * Get data passed from HomeFragment
+     *
+     * If both chatroom and userdata is null, back to HomeFragment
+     *
+     * Else set chatroom and userdata to viewModel
+     */
     private fun getSharedData() {
         val chatroom = args.chatroom
         val userdata = args.userdata
@@ -198,6 +235,7 @@ class ChatRoomFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         _viewModel.removeMessageListener()
+//        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }
 
     fun openMessageOptions() {

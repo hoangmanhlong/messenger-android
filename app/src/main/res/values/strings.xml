@@ -81,6 +81,12 @@
     <string name="send">Send</string>
     <string name="sending">Sending</string>
     <string name="suggested_answers">Suggested answers</string>
-
+    <string name="remove_search_history_title">Delete search history</string>
+    <string name="clear_all_search_history_title">Delete all search history</string>
+    <string name="clear_all_search_history_message">Do you want to delete all search history?</string>
+    <string name="remove_search_history_message">Are you sure you want to delete %s?</string>
+    <string name="clear_all">Clear all</string>
+    <string name="push_text_to_search_box">Push text to search box</string>
+    <string name="this_function_will_be_updated_soon">This function will be updated soon ❤️</string>
 
 </resources>

@@ -17,7 +17,7 @@ class ConfirmDeleteAccountFragment(
 ) : BottomSheetDialogFragment() {
 
     companion object {
-        const val TAG = "ConfirmDeleteAccountFragment"
+        val TAG: String = ConfirmDeleteAccountFragment::class.java.simpleName
     }
 
     private var _binding: FragmentConfirmDeleteAccountBinding? = null

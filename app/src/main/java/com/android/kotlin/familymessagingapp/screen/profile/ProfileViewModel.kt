@@ -6,11 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
-import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,6 +18,12 @@ class ProfileViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
     localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
+
+    companion object {
+        val TAG: String = ProfileViewModel::class.java.simpleName
+    }
+
+    private var currentEnabledAIStatus = false
 
     val currentUserLiveData = firebaseServiceRepository
         .appRealtimeDatabaseService
@@ -37,6 +42,24 @@ class ProfileViewModel @Inject constructor(
 
     val authenticationStatus: LiveData<Boolean> =
         firebaseServiceRepository.authenticated.asLiveData()
+
+    init {
+        currentUserLiveData.observeForever { userdata ->
+            userdata?.let {
+                currentEnabledAIStatus = userdata.settings?.enabledAI ?: false
+            }
+        }
+    }
+
+    fun enableAI(enabled: Boolean) {
+        if (currentEnabledAIStatus != enabled) {
+            viewModelScope.launch {
+                firebaseServiceRepository
+                    .appRealtimeDatabaseService
+                    .updateEnabledAIUserData(enabled)
+            }
+        }
+    }
 
     fun logout() = firebaseServiceRepository.signOut()
 

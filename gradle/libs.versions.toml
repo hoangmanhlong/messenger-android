@@ -33,6 +33,7 @@ roomRuntime = "2.6.1"
 workRuntimeKtx = "2.9.0"
 googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
+emoji2Emojipicker = "1.4.0"
 
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -81,6 +82,7 @@ play-services-auth-v2050 = { module = "com.google.android.gms:play-services-auth
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+androidx-emoji2-emojipicker = { group = "androidx.emoji2", name = "emoji2-emojipicker", version.ref = "emoji2Emojipicker" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

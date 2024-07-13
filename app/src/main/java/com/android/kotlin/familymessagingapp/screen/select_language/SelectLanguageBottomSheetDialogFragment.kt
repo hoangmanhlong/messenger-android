@@ -1,16 +1,12 @@
 package com.android.kotlin.familymessagingapp.screen.select_language
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentSwitchLanguageBinding
-import com.android.kotlin.familymessagingapp.screen.login.LoginFragment
-import com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,7 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class SelectLanguageBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     companion object {
-        const val TAG = "SelectLanguageBottomSheetDialogFragment"
+        val TAG: String = SelectLanguageBottomSheetDialogFragment::class.java.simpleName
     }
 
     private val _viewModel: SelectLanguageViewModel by viewModels()
@@ -40,7 +36,6 @@ class SelectLanguageBottomSheetDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) { isTheEnglishLanguageDisplayed ->
-            Log.d(TAG, "system language: $isTheEnglishLanguageDisplayed")
             isTheEnglishLanguageDisplayed?.let {
                 (activity as MainActivity).isTheEnglishLanguageSelected(it)
                 binding.englishMaterialRadioButton.isChecked = it
