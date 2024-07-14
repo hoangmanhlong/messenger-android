@@ -157,5 +157,5 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGeminiModel(): GeminiModel = GeminiModel()
+    fun provideGeminiModel(application: Application): GeminiModel = GeminiModel(application)
 }

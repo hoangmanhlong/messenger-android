@@ -16,16 +16,14 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
-import com.android.kotlin.familymessagingapp.model.fakeStories
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.AppImageUtils
 import com.android.kotlin.familymessagingapp.utils.HideKeyboard
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.google.android.material.carousel.CarouselLayoutManager
-import com.google.android.material.carousel.CarouselSnapHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
@@ -91,6 +89,7 @@ class HomeFragment : Fragment() {
         loadingProgressBarMenu = searchBarMenu?.findItem(R.id.loadingProgressBarMenu)
 
         chatRoomsRecyclerView = binding.chatroomRecyclerView
+        (chatRoomsRecyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         chatroomAdapter = ChatRoomAdapter(
             onChatRoomClick = {
                 // Because information about the chat room other than messages
@@ -153,9 +152,9 @@ class HomeFragment : Fragment() {
         }
 
         searchView?.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
+            override fun afterTextChanged(s: Editable?) {}
 
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 viewModel.setIsShowSearchResult(false)
@@ -170,10 +169,6 @@ class HomeFragment : Fragment() {
                         View.VISIBLE
                     else
                         View.GONE
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
             }
         })
 
@@ -194,7 +189,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { HideKeyboard.setupHideKeyboard(binding.searchViewContent, it) }
+        activity?.let { HideKeyboard.setupHideKeyboard(binding.searchView, it) }
 //        storyAdapter?.submitList(fakeStories)
 
         viewModel.authenticated.observe(this.viewLifecycleOwner) { authenticated ->
@@ -211,6 +206,16 @@ class HomeFragment : Fragment() {
                 else
                     View.GONE
             searchHistoryAdapter?.submitList(it)
+        }
+
+        viewModel.searchResultList.observe(this.viewLifecycleOwner) {
+            searchView?.let { searchView ->
+                if (searchView.isShowing) {
+                    recentSearchHistory?.visibility = View.GONE
+                    binding.isSearchedUserEmpty = it.isNullOrEmpty()
+                    userAdapter?.submitList(it)
+                }
+            }
         }
 
         viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
@@ -264,16 +269,6 @@ class HomeFragment : Fragment() {
                 }
             }
         }
-
-        viewModel.searchResultList.observe(this.viewLifecycleOwner) {
-            searchView?.let { searchView ->
-                if (searchView.isShowing) {
-                    recentSearchHistory?.visibility = View.GONE
-                    binding.isSearchedUserEmpty = it.isNullOrEmpty()
-                    userAdapter?.submitList(it)
-                }
-            }
-        }
     }
 
     private fun onActionSearch() {
@@ -313,6 +308,7 @@ class HomeFragment : Fragment() {
         searchHistoryAdapter = null
         storyRecyclerView = null
         storyAdapter = null
+        recentSearchHistory = null
     }
 
     private fun removeSearchHistory(searchHistory: SearchHistory?, clearAll: Boolean) {

@@ -6,13 +6,18 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,10 +26,11 @@ enum class SendMessageStatus { SUCCESS, ERROR, SENDING }
 @HiltViewModel
 class ChatRoomViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
-    private val geminiModel: GeminiModel
+    private val geminiModel: GeminiModel,
+    private val localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
 
-    private val _emojiPickerVisible = MutableLiveData(false)
+    private val _emojiPickerVisible: MutableLiveData<Boolean> = MutableLiveData(false)
     val emojiPickerVisible: LiveData<Boolean> = _emojiPickerVisible
 
     private val _sendMessageStatus = MutableLiveData(SendMessageStatus.SUCCESS)
@@ -34,6 +40,12 @@ class ChatRoomViewModel @Inject constructor(
 
     private val _chatRoom: MutableLiveData<ChatRoom> = MutableLiveData(ChatRoom())
     val chatRoom: LiveData<ChatRoom> = _chatRoom
+
+    private val _AIGeneratedText: MutableLiveData<String?> = MutableLiveData(null)
+    val AIGeneratedText: LiveData<String?> = _AIGeneratedText
+
+    private val _AICreating = MutableLiveData(false)
+    val AICreating: LiveData<Boolean> = _AICreating
 
     private var message = Message()
 
@@ -46,10 +58,14 @@ class ChatRoomViewModel @Inject constructor(
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
 
-    val addMessageListener = MutableLiveData(false)
+    val startObservingMessages = MutableLiveData(false)
 
-    fun setEmojiPickerVisible() {
+    fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!
+    }
+
+    fun setAIGeneratedText(text: String?) {
+        _AIGeneratedText.value = text
     }
 
     fun hideEmojiPicker() {
@@ -95,10 +111,29 @@ class ChatRoomViewModel @Inject constructor(
                 .appRealtimeDatabaseService
                 .addChatRoomMessageListener(chatRoomId)
                 .asLiveData()
+
+            // start message listener
+            startObservingMessages.value = true
+
             messages.observeForever {
-                _chatRoom.value = _chatRoom.value?.copy(messages = it)
+                viewModelScope.launch {
+                    _chatRoom.value = _chatRoom.value?.copy(messages = it)
+                    val lastMessage = it.lastOrNull()
+                    if (lastMessage != null
+                        && lastMessage.fromId != Firebase.auth.uid
+                        && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(
+                            AppDataStore.ENABLED_AI,
+                            false
+                        ).first() == true
+                    ) {
+                        _AICreating.value = true
+                        _AIGeneratedText.value = geminiModel.generateContent(lastMessage)
+                        _AICreating.value = false
+                    } else {
+                        _AIGeneratedText.value = null
+                    }
+                }
             }
-            addMessageListener.value = true
         }
     }
 

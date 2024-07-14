@@ -1,20 +1,25 @@
 package com.android.kotlin.familymessagingapp.activity
 
+import android.Manifest
 import android.app.Dialog
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
+import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -44,6 +49,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private val activityResultLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        )
+        { permissions ->
+            // Handle Permission granted/rejected
+            var permissionGranted = true
+            permissions.entries.forEach {
+                if (it.key in REQUIRED_PERMISSIONS && !it.value)
+                    permissionGranted = false
+            }
+            _viewModel.saveNotificationStatus(permissionGranted)
+        }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -53,11 +74,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         _loadingDialog = DialogUtils.createLoadingDialog(this)
         networkListener()
+        if (allPermissionsGranted()) {
+            _viewModel.saveNotificationStatus(true)
+        } else {
+            requestPermissions()
+        }
         val navHostFragment = supportFragmentManager
             .findFragmentById(binding.appContainer.id) as NavHostFragment
         navController = navHostFragment.navController
-        PermissionUtils.askNotificationPermission(this, requestPermissionLauncher)
-        _viewModel.saveNotificationStatus(PermissionUtils.areNotificationsEnabled(this))
+
 
         _viewModel.isLoading.observe(this) {
             showLoadingDialog(it)
@@ -73,6 +98,11 @@ class MainActivity : AppCompatActivity() {
             if (isShow && !it.isShowing) it.show()
             else it.dismiss()
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestPermissions() {
+        activityResultLauncher.launch(CallFragment.REQUIRED_PERMISSIONS)
     }
 
     fun isTheEnglishLanguageSelected(isTheEnglishLanguageSelected: Boolean) {
@@ -148,4 +178,21 @@ class MainActivity : AppCompatActivity() {
 //        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
 //        return typedValue.data
 //    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(
+            this@MainActivity,
+            it
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    companion object {
+        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+        val REQUIRED_PERMISSIONS = mutableListOf<String>().apply {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }.toTypedArray()
+    }
 }

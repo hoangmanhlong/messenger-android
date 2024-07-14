@@ -25,6 +25,7 @@ android {
         versionName = "1.0"
         buildConfigField("String", "geminiApiKey", "\"AIzaSyCGETdkV_4RyNV4mZDZGAauqBf-W6zVQlM\"")
         buildConfigField("String", "geminiModelName", "\"gemini-1.5-flash\"")
+        buildConfigField("String", "agoraAppId", "\"41853202c4364057b9da170ac81148c7\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -160,6 +161,8 @@ dependencies {
     implementation("com.intuit.sdp:sdp-android:1.1.1")
 
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+
+//    implementation("com.github.AgoraIO-Community:VideoUIKit-Android:v4.0.1")
 }
 
 kapt {

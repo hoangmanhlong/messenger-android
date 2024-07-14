@@ -18,6 +18,9 @@
             android:name="chatroom"
             app:argType="com.android.kotlin.familymessagingapp.model.ChatRoom"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_chatRoomFragment_to_callFragment"
+            app:destination="@id/callFragment" />
     </fragment>
     <fragment
         android:id="@+id/loginFragment"
@@ -83,4 +86,14 @@
         android:name="com.android.kotlin.familymessagingapp.screen.scan_qr_code.ScanQRCodeFragment"
         android:label="fragment_scan_qr_code"
         tools:layout="@layout/fragment_scan_qr_code" />
+    <fragment
+        android:id="@+id/callFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.video_call.CallFragment"
+        android:label="fragment_call"
+        tools:layout="@layout/fragment_call">
+        <argument
+            android:name="chatroom"
+            app:argType="com.android.kotlin.familymessagingapp.model.ChatRoom"
+            app:nullable="true" />
+    </fragment>
 </navigation>

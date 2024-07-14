@@ -3,6 +3,7 @@
 <resources>
     <color name="white">#FFFFFF</color>
     <color name="splash_background">#FFFFFF</color>
+    <color name="dark">#000000</color>
     <color name="md_theme_primary">#4C662B</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
     <color name="md_theme_primaryContainer">#CDEDA3</color>

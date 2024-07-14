@@ -1,11 +1,15 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -41,8 +45,13 @@ import dagger.hilt.android.AndroidEntryPoint
  *          + Nếu không tồn tại: Danh sách tin nhắn sẽ hiển thị rỗng. Khi người dùng nhắn tin
  *          nhắn đầu tiên chatroom sẽ được tạo. Nếu chatroom được tạo thành công. Chatroom sẽ được lưu vào userdata của 2 người dùng. Bắt đầu trình nghe tin nhắn theo chatroom ID
  */
+// TODO: block screen capture
 @AndroidEntryPoint
 class ChatRoomFragment : Fragment() {
+    
+    companion object {
+        val TAG: String = ChatRoomFragment::class.java.simpleName
+    }
 
     private val _viewModel: ChatRoomViewModel by viewModels()
 
@@ -69,6 +78,7 @@ class ChatRoomFragment : Fragment() {
 
     private var selectedItemsRecyclerview: RecyclerView? = null
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -130,17 +140,33 @@ class ChatRoomFragment : Fragment() {
             }
         })
 
-        binding.emojiPicker.setOnEmojiPickedListener  {
+        binding.emojiPicker.setOnEmojiPickedListener {
             binding.etMessage.append(it.emoji)
         }
 
         binding.ivOpenEmojiPicker.setOnClickListener {
-            _viewModel.setEmojiPickerVisible()
+            _viewModel.changeEmojiPickerVisibleStatus()
         }
 
 //        binding.messagesView.setOnClickListener {
 //            _viewModel.hideEmojiPicker()
 //        }
+
+        binding.btVideoCall.setOnClickListener {
+            val action = ChatRoomFragmentDirections
+                .actionChatRoomFragmentToCallFragment(_viewModel.chatRoom.value)
+            findNavController().navigate(action)
+        }
+
+        binding.aiGenerateView.setOnClickListener {
+            binding.etMessage.text =
+                Editable.Factory.getInstance().newEditable(binding.tvAItext.text)
+            _viewModel.setAIGeneratedText(null)
+        }
+
+        binding.tvCloseGeneratedText.setOnClickListener {
+            _viewModel.setAIGeneratedText(null)
+        }
 
         return binding.root
     }
@@ -152,13 +178,18 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
             binding.isEmojiPickerVisible = it
+            binding.ivOpenEmojiPicker.setImageResource(if (it) R.drawable.ic_emoji_filled else R.drawable.ic_mood)
         }
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
         }
 
-        _viewModel.addMessageListener.observe(this.viewLifecycleOwner) {
+        _viewModel.AICreating.observe(this.viewLifecycleOwner) {
+            binding.aiCreating = it
+        }
+
+        _viewModel.startObservingMessages.observe(this.viewLifecycleOwner) {
             if (it) {
                 _viewModel.messages.observe(this.viewLifecycleOwner) { messages ->
                     binding.isMessageEmpty = messages.isNullOrEmpty()
@@ -189,6 +220,11 @@ class ChatRoomFragment : Fragment() {
             selectedItemAdapter?.submitList(it)
             selectedItemsRecyclerview?.visibility =
                 if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
+        }
+
+        _viewModel.AIGeneratedText.observe(this.viewLifecycleOwner) {
+            binding.hasAiText = !it.isNullOrEmpty()
+            binding.generatedText = it
         }
 
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
@@ -235,6 +271,7 @@ class ChatRoomFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         _viewModel.removeMessageListener()
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }
 
@@ -243,4 +280,10 @@ class ChatRoomFragment : Fragment() {
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
+    private fun blockScreenCapture() {
+        activity?.window?.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
+    }
 }
