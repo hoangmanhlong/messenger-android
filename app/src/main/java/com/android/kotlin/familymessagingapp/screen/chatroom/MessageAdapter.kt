@@ -96,8 +96,15 @@ class MessageAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is SenderMessageViewHolder) holder.bind(getItem(position))
-        if (holder is ReceiverMessageViewHolder) holder.bind(getItem(position))
+        val item = getItem(position)
+        if (holder is SenderMessageViewHolder || holder is ReceiverMessageViewHolder) {
+            holder.itemView.setOnLongClickListener {
+                onMessageLongClick(item)
+                false
+            }
+            if (holder is SenderMessageViewHolder) holder.bind(item)
+            if (holder is ReceiverMessageViewHolder) holder.bind(item)
+        }
     }
 
 //    @SuppressLint("RestrictedApi")

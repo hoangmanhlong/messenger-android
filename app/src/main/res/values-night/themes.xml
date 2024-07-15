@@ -1,4 +1,4 @@
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <style name="AppThemeGreen" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/md_theme_primary</item>
@@ -49,6 +49,10 @@
         <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
+        <!--    Color display is not correct on Android 10    -->
+        <!--        https://stackoverflow.com/questions/77103964/text-color-is-incorrect-in-dark-mode-on-real-device-->
+        <!--      if(Build.VERSION.SDK_INT >= 29) LocalView.current.isForceDarkAllowed = false-->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
 </resources>

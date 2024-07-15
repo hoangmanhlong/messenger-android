@@ -13,7 +13,7 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginWithEmailBinding
 import com.android.kotlin.familymessagingapp.model.AuthenticationStatus
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.HideKeyboard
+import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.screen.Screen
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,7 +41,7 @@ class LoginEmailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
+        activity?.let { KeyBoardUtils.setupHideKeyboard(view, it) }
 
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) {
             when(it) {

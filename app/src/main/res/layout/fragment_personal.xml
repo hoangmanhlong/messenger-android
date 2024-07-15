@@ -226,7 +226,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="16dp"
                                 android:text="@string/suggested_answers"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -270,7 +270,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="16dp"
                                 android:text="@string/notification"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -312,7 +312,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="16dp"
                                 android:text="@string/language"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -394,7 +394,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="16dp"
                                 android:text="@string/delete_account"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -426,7 +426,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="16dp"
                                 android:text="@string/feedback"
                                 android:textSize="16sp" />
                         </LinearLayout>
@@ -458,7 +458,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="16dp"
                                 android:text="@string/logout"
                                 android:textSize="16sp" />
                         </LinearLayout>

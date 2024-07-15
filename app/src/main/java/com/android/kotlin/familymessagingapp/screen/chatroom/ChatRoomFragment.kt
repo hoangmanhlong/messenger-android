@@ -2,11 +2,10 @@ package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Message
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -20,10 +19,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
-import com.android.kotlin.familymessagingapp.screen.message_options.MessageOptionsFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.HideKeyboard
+import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -85,10 +85,11 @@ class ChatRoomFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
-        messageAdapter = MessageAdapter {
-//            showMenu(binding.root, R.menu.menu_message)
-//            openMessageOptions()
-        }
+        messageAdapter = MessageAdapter (
+            onMessageLongClick = {
+                openMessageOptions(it.fromId == Firebase.auth.uid)
+            }
+        )
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         messageRecyclerview = binding.messageRecyclerview
@@ -173,7 +174,7 @@ class ChatRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { HideKeyboard.setupHideKeyboard(binding.messagesView, it) }
+        activity?.let { KeyBoardUtils.setupHideKeyboard(binding.messagesView, it) }
         getSharedData()
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
@@ -275,8 +276,8 @@ class ChatRoomFragment : Fragment() {
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }
 
-    fun openMessageOptions() {
-        messageOptionsFragment = MessageOptionsFragment()
+    fun openMessageOptions(isMessageOfMe: Boolean) {
+        messageOptionsFragment = MessageOptionsFragment(isMessageOfMe)
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 

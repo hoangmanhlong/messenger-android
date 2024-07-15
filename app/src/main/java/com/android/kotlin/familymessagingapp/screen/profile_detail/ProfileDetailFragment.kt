@@ -23,9 +23,7 @@ import androidx.navigation.fragment.navArgs
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
-import com.android.kotlin.familymessagingapp.model.UserData
-import com.android.kotlin.familymessagingapp.utils.Constant
-import com.android.kotlin.familymessagingapp.utils.HideKeyboard
+import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
@@ -71,7 +69,7 @@ class ProfileDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { HideKeyboard.setupHideKeyboard(view, it) }
+        activity?.let { KeyBoardUtils.setupHideKeyboard(view, it) }
         val userdata = args.userdata
         _viewModel.setUserData(userdata)
         binding.userData = userdata

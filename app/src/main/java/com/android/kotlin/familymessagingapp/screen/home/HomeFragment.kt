@@ -22,7 +22,7 @@ import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.AppImageUtils
-import com.android.kotlin.familymessagingapp.utils.HideKeyboard
+import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.search.SearchBar
@@ -189,7 +189,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { HideKeyboard.setupHideKeyboard(binding.searchView, it) }
+        activity?.let { KeyBoardUtils.setupHideKeyboard(binding.searchView, it) }
 //        storyAdapter?.submitList(fakeStories)
 
         viewModel.authenticated.observe(this.viewLifecycleOwner) { authenticated ->
