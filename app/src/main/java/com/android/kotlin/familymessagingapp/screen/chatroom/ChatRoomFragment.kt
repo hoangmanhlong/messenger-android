@@ -87,6 +87,7 @@ class ChatRoomFragment : Fragment() {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
         messageAdapter = MessageAdapter (
             onMessageLongClick = {
+                _viewModel.setSelectedMessage(it)
                 openMessageOptions(it.fromId == Firebase.auth.uid)
             }
         )
@@ -276,8 +277,8 @@ class ChatRoomFragment : Fragment() {
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }
 
-    fun openMessageOptions(isMessageOfMe: Boolean) {
-        messageOptionsFragment = MessageOptionsFragment(isMessageOfMe)
+    private fun openMessageOptions(isMessageOfMe: Boolean) {
+        messageOptionsFragment = MessageOptionsFragment(this@ChatRoomFragment, isMessageOfMe)
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
@@ -286,5 +287,11 @@ class ChatRoomFragment : Fragment() {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
+    }
+
+    fun copyMessage() {
+        if (activity != null && _viewModel.selectedMessage?.text != null) {
+            KeyBoardUtils.copyTextToClipBoard(requireActivity(), _viewModel.selectedMessage!!.text!!)
+        }
     }
 }

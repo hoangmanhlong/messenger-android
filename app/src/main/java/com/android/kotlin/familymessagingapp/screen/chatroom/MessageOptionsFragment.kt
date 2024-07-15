@@ -5,11 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.android.kotlin.familymessagingapp.databinding.FragmentMessageOptionsBinding
-import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 
 class MessageOptionsFragment(
+    private val fragment: ChatRoomFragment?,
     private val isMessageOfMe: Boolean
 ) : BottomSheetDialogFragment() {
     companion object {
@@ -26,14 +26,16 @@ class MessageOptionsFragment(
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMessageOptionsBinding.inflate(inflater, container, false)
-
+        binding.copyMessageView.setOnClickListener {
+            fragment?.copyMessage()
+            dismiss()
+        }
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.isMessageOfMe = isMessageOfMe
-
     }
 
 }

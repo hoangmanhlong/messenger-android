@@ -170,7 +170,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@{userData.email}"
-                    android:textColor="#000"
+                    android:textColor="@color/dark"
                     android:textSize="16sp"
                     tools:text="long@gmail.com" />
 

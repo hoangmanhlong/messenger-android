@@ -30,8 +30,9 @@ class AppFirebaseStorage(private val application: Application) {
         storageRef: StorageReference
     ): String? {
         return withContext(Dispatchers.IO) {
+            var localFile: File? = null
             try {
-                val localFile = File.createTempFile("avatar", "jpg")
+                localFile = File.createTempFile("avatar", "jpg")
 
                 // Load image from URL and save to local file
                 Glide.with(application)
@@ -57,6 +58,8 @@ class AppFirebaseStorage(private val application: Application) {
                 storageRef.downloadUrl.await().toString()
             } catch (e: Exception) {
                 null
+            } finally {
+                localFile?.delete()
             }
         }
     }

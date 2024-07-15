@@ -29,7 +29,7 @@
     <string name="cancel">Hủy bỏ</string>
     <string name="delete_account">Xóa tài khoản</string>
     <string name="agree">Đồng ý</string>
-    <string name="delete_account_waring">Sau khi xóa tài khoản tài khoản của bạn sẽ bị xóa vĩnh viễn.\nBạn có chắc muốn xóa?</string>
+    <string name="delete_account_waring">Cảnh báo: Toàn bộ dữ liệu của bạn sẽ bị xóa vĩnh viễn và không thể khôi phục.\nBạn có chắc muốn xóa?</string>
 
     <string name="my_account">Tài khoản của tôi</string>
     <string name="my_profile">Thông tin của tôi</string>

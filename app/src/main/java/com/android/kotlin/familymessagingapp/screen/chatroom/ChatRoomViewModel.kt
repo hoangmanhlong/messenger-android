@@ -38,6 +38,9 @@ class ChatRoomViewModel @Inject constructor(
 
     lateinit var messages: LiveData<List<Message>>
 
+    var selectedMessage: Message? = null
+        private set
+
     private val _chatRoom: MutableLiveData<ChatRoom> = MutableLiveData(ChatRoom())
     val chatRoom: LiveData<ChatRoom> = _chatRoom
 
@@ -66,6 +69,10 @@ class ChatRoomViewModel @Inject constructor(
 
     fun setAIGeneratedText(text: String?) {
         _AIGeneratedText.value = text
+    }
+
+    fun setSelectedMessage(message: Message) {
+        selectedMessage = message
     }
 
     fun hideEmojiPicker() {
