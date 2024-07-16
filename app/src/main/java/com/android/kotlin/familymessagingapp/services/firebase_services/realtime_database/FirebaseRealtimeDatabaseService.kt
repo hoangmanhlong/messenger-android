@@ -2,14 +2,13 @@ package com.android.kotlin.familymessagingapp.services.firebase_services.realtim
 
 import android.app.Application
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.model.UserSettings
-import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
@@ -39,10 +38,10 @@ import kotlinx.coroutines.withContext
  *
  * Solution: remove all listener before logout
  */
-class AppRealtimeDatabaseService(
+class FirebaseRealtimeDatabaseService(
     private val application: Application,
     private val auth: FirebaseAuth,
-    private val appFirebaseStorage: AppFirebaseStorage
+    private val firebaseStorageService: FirebaseStorageService
 ) {
 
     private val registeredChatRoomsListeners = mutableMapOf<DatabaseReference, ValueEventListener>()
@@ -54,7 +53,7 @@ class AppRealtimeDatabaseService(
     private val databaseReference = Firebase.database.reference
 
     companion object {
-        val TAG: String = AppRealtimeDatabaseService::class.java.simpleName
+        val TAG: String = FirebaseRealtimeDatabaseService::class.java.simpleName
     }
 
     val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
@@ -192,9 +191,9 @@ class AppRealtimeDatabaseService(
             try {
                 var updatedUserData = userData
                 if (imageUri != null) {
-                    val downloadUrl = appFirebaseStorage.putUserAvatarUriToStorage(
+                    val downloadUrl = firebaseStorageService.putUserAvatarUriToStorage(
                         imageUri,
-                        appFirebaseStorage.userAvatarRef.child(userData.uid!!)
+                        firebaseStorageService.userAvatarRef.child(userData.uid!!)
                     )
                     updatedUserData = userData.copy(userAvatar = downloadUrl)
                 }
@@ -208,13 +207,18 @@ class AppRealtimeDatabaseService(
 
     suspend fun checkChatRoomExist(otherUserId: String): String? = withContext(Dispatchers.IO) {
         try {
-            val chatroomIds = listOf(
-                StringUtils.generateChatRoomId(otherUserId, auth.uid!!),
-                StringUtils.generateChatRoomId(auth.uid!!, otherUserId)
-            )
+            val currentUserUid = auth.uid
+            if (currentUserUid == null) {
+                null
+            } else {
+                val chatroomIds = listOf(
+                    StringUtils.generateChatRoomId(otherUserId, currentUserUid),
+                    StringUtils.generateChatRoomId(currentUserUid, otherUserId)
+                )
 
-            chatroomIds.firstOrNull { chatroomId ->
-                chatroomsRef.child(chatroomId).get().await().exists()
+                chatroomIds.firstOrNull { chatroomId ->
+                    chatroomsRef.child(chatroomId).get().await().exists()
+                }
             }
         } catch (e: Exception) {
             null
@@ -379,9 +383,9 @@ class AppRealtimeDatabaseService(
 
     private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {
         return photo?.let {
-            appFirebaseStorage.putUserAvatarUriToStorage(
+            firebaseStorageService.putUserAvatarUriToStorage(
                 imageUri = it.toUri(),
-                storageRef = appFirebaseStorage.chatroomRef.child(
+                storageRef = firebaseStorageService.chatroomRef.child(
                     StringUtils.getCurrentTime().toString()
                 )
             )

@@ -35,7 +35,7 @@ class RegisterFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRegisterBinding.inflate(inflater, container, false)
-        _dialog = activity?.let { DialogUtils.createLoadingDialog(it) }
+        _dialog = activity?.let { DialogUtils.loadingDialogInitialize(it) }
         return binding.root
     }
 

@@ -4,18 +4,16 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.model.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileDetailViewModel @Inject constructor(
-    private val appRealtimeDatabaseService: AppRealtimeDatabaseService
+    private val firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService
 ) : ViewModel() {
 
     private var imageUri: Uri? = null
@@ -61,7 +59,7 @@ class ProfileDetailViewModel @Inject constructor(
     fun saveUserData() {
         viewModelScope.launch {
             _isLoading.value = true
-            val saveUserDataResult = appRealtimeDatabaseService.saveUserData(userData, imageUri)
+            val saveUserDataResult = firebaseRealtimeDatabaseService.saveUserData(userData, imageUri)
             _isSaveSuccess.value = saveUserDataResult
             _isEditingStatus.value = !saveUserDataResult
 

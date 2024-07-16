@@ -1,6 +1,5 @@
 <resources>
     <string name="author">Hoang Manh Long</string>
-    <string name="web_client_id" translatable="false">767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="fcm_message" translatable="false">FCM Message</string>
     <string name="app_name" translatable="false">Family Messaging App</string>
@@ -94,5 +93,8 @@
     <string name="copy">Copy</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+
+    <string name="no_google_account_warning">No Google accounts could be found. Please create an account and try again</string>
+    <string name="error_occurred">Unexpected error occurred. Please try again later</string>
 
 </resources>

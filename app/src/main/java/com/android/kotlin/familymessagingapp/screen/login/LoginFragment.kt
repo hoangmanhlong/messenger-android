@@ -6,19 +6,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.screen.Screen
+import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FindIntentSenderResult
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -43,6 +48,8 @@ class LoginFragment : Fragment() {
 
     private val binding get() = _binding!!
 
+    private var noGoogleAccountDialog: MaterialAlertDialogBuilder? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,6 +57,11 @@ class LoginFragment : Fragment() {
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         binding.fragment = this@LoginFragment
+        binding.btLoginWithGoogleAccount.root.setOnClickListener {
+            context?.let { context ->
+                NetworkChecker.checkNetwork(context) { _viewModel.launchGoogleSignIn() }
+            }
+        }
         return binding.root
     }
 
@@ -57,7 +69,10 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
-            if (authenticated) navigateToHomeScreen()
+            authenticated?.let {
+                if (authenticated) navigateToHomeScreen()
+                else showErrorDialog(false)
+            }
         }
 
         _viewModel.loadingStatus.observe(this.viewLifecycleOwner) {
@@ -67,8 +82,6 @@ class LoginFragment : Fragment() {
         _viewModel.isTheEnglishLanguageDisplayedLiveData.observe(this.viewLifecycleOwner) {
             binding.isTheEnglishLanguageDisplayed = it
         }
-
-        binding.btLoginWithGoogleAccount.root.setOnClickListener { onLoginWithGoogleAccountButtonClick() }
 
 //        binding.btLoginWithYourAccount.setOnClickListener {
 //            findNavController().navigate(Screen.LoginScreen.toSignInYourAccount())
@@ -94,6 +107,27 @@ class LoginFragment : Fragment() {
                 }
             },
         )
+
+        _viewModel.findIntentSenderStatus.observe(this.viewLifecycleOwner) { status ->
+            status?.let {
+                when (status) {
+                    is FindIntentSenderResult.NoAccountFound -> {
+                        showErrorDialog(true)
+                    }
+
+                    is FindIntentSenderResult.Success -> {
+                        loginWithGoogleAccountLauncher.launch(
+                            IntentSenderRequest.Builder(status.intentSender).build()
+                        )
+                    }
+
+                    is FindIntentSenderResult.Error -> {
+                        showErrorDialog(false)
+                    }
+                }
+                _viewModel.setFindIntentSenderStatus(null)
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -101,14 +135,6 @@ class LoginFragment : Fragment() {
 
         // Pass the activity result back to the Facebook SDK
         callbackManager.onActivityResult(requestCode, resultCode, data)
-    }
-
-    private fun onLoginWithGoogleAccountButtonClick() {
-        context?.let { context ->
-            NetworkChecker.checkNetwork(context) {
-                _viewModel.launchGoogleSignIn(loginWithGoogleAccountLauncher)
-            }
-        }
     }
 
     private fun navigateToHomeScreen() {
@@ -119,6 +145,9 @@ class LoginFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        noGoogleAccountDialog = null;
+        _viewModel.setFindIntentSenderStatus(null)
+        _viewModel.setAuthenticationStatus(null)
         (activity as MainActivity).isShowLoadingDialog(false)
     }
 
@@ -127,5 +156,15 @@ class LoginFragment : Fragment() {
             this.parentFragmentManager,
             SelectLanguageBottomSheetDialogFragment.TAG
         )
+    }
+
+    private fun showErrorDialog(isNoGoogleAccountError: Boolean) {
+        if (noGoogleAccountDialog == null && activity != null) {
+            noGoogleAccountDialog = DialogUtils.showNotificationDialog(
+                requireActivity(),
+                if (isNoGoogleAccountError) R.string.no_google_account_warning else R.string.error_occurred
+            )
+        }
+        noGoogleAccountDialog?.show()
     }
 }

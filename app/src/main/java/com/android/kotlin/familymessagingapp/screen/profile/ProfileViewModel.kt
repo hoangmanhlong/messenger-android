@@ -9,7 +9,6 @@ import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,7 +25,7 @@ class ProfileViewModel @Inject constructor(
     private var currentEnabledAIStatus = false
 
     val currentUserLiveData = firebaseServiceRepository
-        .appRealtimeDatabaseService
+        .firebaseRealtimeDatabaseService
         .currentUserDataFlow
         .asLiveData()
 
@@ -55,7 +54,7 @@ class ProfileViewModel @Inject constructor(
         if (currentEnabledAIStatus != enabled) {
             viewModelScope.launch {
                 firebaseServiceRepository
-                    .appRealtimeDatabaseService
+                    .firebaseRealtimeDatabaseService
                     .updateEnabledAIUserData(enabled)
             }
         }

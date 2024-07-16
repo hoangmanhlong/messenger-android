@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-class AppFirebaseStorage(private val application: Application) {
+class FirebaseStorageService(private val application: Application) {
 
     private val storageRef = Firebase.storage.reference
 

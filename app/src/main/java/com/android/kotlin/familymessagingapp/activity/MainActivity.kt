@@ -29,17 +29,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var connectivityManager: ConnectivityManager
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        _viewModel.saveNotificationStatus(isGranted)
-    }
-
     private var _loadingDialog: Dialog? = null
 
     private val networkRequest = NetworkRequest.Builder()
         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        .build();
+        .build()
 
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
@@ -51,10 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val activityResultLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        )
-        { permissions ->
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             // Handle Permission granted/rejected
             var permissionGranted = true
             permissions.entries.forEach {
@@ -72,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
-        _loadingDialog = DialogUtils.createLoadingDialog(this)
+        _loadingDialog = DialogUtils.loadingDialogInitialize(this)
         networkListener()
         if (allPermissionsGranted()) {
             _viewModel.saveNotificationStatus(true)

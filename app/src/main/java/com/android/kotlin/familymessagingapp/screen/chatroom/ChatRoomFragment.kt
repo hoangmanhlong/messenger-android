@@ -48,7 +48,7 @@ import dagger.hilt.android.AndroidEntryPoint
 // TODO: block screen capture
 @AndroidEntryPoint
 class ChatRoomFragment : Fragment() {
-    
+
     companion object {
         val TAG: String = ChatRoomFragment::class.java.simpleName
     }
@@ -85,7 +85,7 @@ class ChatRoomFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
-        messageAdapter = MessageAdapter (
+        messageAdapter = MessageAdapter(
             onMessageLongClick = {
                 _viewModel.setSelectedMessage(it)
                 openMessageOptions(it.fromId == Firebase.auth.uid)
@@ -119,7 +119,9 @@ class ChatRoomFragment : Fragment() {
 
         binding.ivLocation.setOnClickListener {
             context?.let {
-                DialogUtils.functionNotAvailable(it).show()
+                DialogUtils
+                    .showNotificationDialog(it, R.string.this_function_will_be_updated_soon)
+                    .show()
             }
         }
 
@@ -142,13 +144,9 @@ class ChatRoomFragment : Fragment() {
             }
         })
 
-        binding.emojiPicker.setOnEmojiPickedListener {
-            binding.etMessage.append(it.emoji)
-        }
+        binding.emojiPicker.setOnEmojiPickedListener { binding.etMessage.append(it.emoji) }
 
-        binding.ivOpenEmojiPicker.setOnClickListener {
-            _viewModel.changeEmojiPickerVisibleStatus()
-        }
+        binding.ivOpenEmojiPicker.setOnClickListener { _viewModel.changeEmojiPickerVisibleStatus() }
 
 //        binding.messagesView.setOnClickListener {
 //            _viewModel.hideEmojiPicker()
@@ -178,6 +176,10 @@ class ChatRoomFragment : Fragment() {
         activity?.let { KeyBoardUtils.setupHideKeyboard(binding.messagesView, it) }
         getSharedData()
 
+        _viewModel.isLoading.observe(this.viewLifecycleOwner) {
+            binding.isLoading = it
+        }
+
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
             binding.isEmojiPickerVisible = it
             binding.ivOpenEmojiPicker.setImageResource(if (it) R.drawable.ic_emoji_filled else R.drawable.ic_mood)
@@ -185,6 +187,7 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
+            if (_viewModel.sendMessageStatus.value == SendMessageStatus.SENDING) binding.btSendMessage.isEnabled = false
         }
 
         _viewModel.AICreating.observe(this.viewLifecycleOwner) {
@@ -230,23 +233,26 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
-            when (it) {
-                SendMessageStatus.SENDING -> {
-                    binding.inputView.isClickable = false
-                    binding.btSendMessage.text = getString(R.string.sending)
-                }
+            it?.let {
+                when (it) {
+                    SendMessageStatus.SENDING -> {
+                        binding.btSendMessage.text = getString(R.string.sending)
+                        binding.btSendMessage.isEnabled = false
+                    }
 
-                SendMessageStatus.SUCCESS -> {
-                    binding.inputView.isClickable = true
-                    binding.btSendMessage.text = getString(R.string.send)
-                }
+                    SendMessageStatus.SUCCESS -> {
+                        binding.btSendMessage.text = getString(R.string.send)
+                        binding.btSendMessage.isEnabled = true
+                        _viewModel.setSendMessageStatus(null)
+                    }
 
-                SendMessageStatus.ERROR -> {
-                    binding.inputView.isClickable = true
-                    binding.btSendMessage.text = getString(R.string.send)
+                    SendMessageStatus.ERROR -> {
+                        binding.btSendMessage.text = getString(R.string.send)
+                        binding.btSendMessage.isEnabled = true
+                        _viewModel.setSendMessageStatus(null)
+                    }
                 }
             }
-
         }
     }
 
@@ -291,7 +297,10 @@ class ChatRoomFragment : Fragment() {
 
     fun copyMessage() {
         if (activity != null && _viewModel.selectedMessage?.text != null) {
-            KeyBoardUtils.copyTextToClipBoard(requireActivity(), _viewModel.selectedMessage!!.text!!)
+            KeyBoardUtils.copyTextToClipBoard(
+                requireActivity(),
+                _viewModel.selectedMessage!!.text!!
+            )
         }
     }
 }

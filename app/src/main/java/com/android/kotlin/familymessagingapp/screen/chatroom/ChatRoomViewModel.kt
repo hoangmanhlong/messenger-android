@@ -30,11 +30,14 @@ class ChatRoomViewModel @Inject constructor(
     private val localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
 
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
     private val _emojiPickerVisible: MutableLiveData<Boolean> = MutableLiveData(false)
     val emojiPickerVisible: LiveData<Boolean> = _emojiPickerVisible
 
-    private val _sendMessageStatus = MutableLiveData(SendMessageStatus.SUCCESS)
-    val sendMessageStatus: LiveData<SendMessageStatus> = _sendMessageStatus
+    private val _sendMessageStatus: MutableLiveData<SendMessageStatus?> = MutableLiveData(null)
+    val sendMessageStatus: LiveData<SendMessageStatus?> = _sendMessageStatus
 
     lateinit var messages: LiveData<List<Message>>
 
@@ -80,6 +83,15 @@ class ChatRoomViewModel @Inject constructor(
             _emojiPickerVisible.value = false
     }
 
+    fun setSendMessageStatus(status: SendMessageStatus?) {
+        _sendMessageStatus.value = status
+    }
+
+    /**
+     * Case: Chatroom opened from Search
+     * use username, user avatar of user is chatroom name, image.
+     * Check chatroom exist => true => add messages listener
+     */
     fun setUserData(userData: UserData) {
         _chatRoom.value = _chatRoom.value?.copy(
             chatroomName = userData.username,
@@ -87,11 +99,14 @@ class ChatRoomViewModel @Inject constructor(
             members = listOf(userData.uid!!)
         )
         viewModelScope.launch {
-            val chatroomID =
-                firebaseServiceRepository.appRealtimeDatabaseService.checkChatRoomExist(userData.uid!!)
-            if (!chatroomID.isNullOrEmpty()) {
-                _chatRoom.value = _chatRoom.value?.copy(chatRoomId = chatroomID)
-                initMessageListener()
+            if(!userData.uid.isNullOrEmpty()) {
+                val chatroomID = firebaseServiceRepository
+                    .firebaseRealtimeDatabaseService
+                    .checkChatRoomExist(userData.uid)
+                if (!chatroomID.isNullOrEmpty()) {
+                    _chatRoom.value = _chatRoom.value?.copy(chatRoomId = chatroomID)
+                    initMessageListener()
+                }
             }
         }
     }
@@ -113,9 +128,9 @@ class ChatRoomViewModel @Inject constructor(
 
     private fun initMessageListener() {
         val chatRoomId = _chatRoom.value?.chatRoomId
-        chatRoomId?.let {
+        if (!chatRoomId.isNullOrEmpty()) {
             messages = firebaseServiceRepository
-                .appRealtimeDatabaseService
+                .firebaseRealtimeDatabaseService
                 .addChatRoomMessageListener(chatRoomId)
                 .asLiveData()
 
@@ -145,7 +160,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun removeMessageListener() {
-        firebaseServiceRepository.appRealtimeDatabaseService.removeMessageListener()
+        firebaseServiceRepository.firebaseRealtimeDatabaseService.removeMessageListener()
     }
 
     fun setTextMessage(text: String) {
@@ -170,10 +185,10 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun sendMessage() {
-        _sendMessageStatus.value = SendMessageStatus.SENDING
         viewModelScope.launch {
+            _sendMessageStatus.value = SendMessageStatus.SENDING
             val sendResult = firebaseServiceRepository
-                .appRealtimeDatabaseService
+                .firebaseRealtimeDatabaseService
                 .updateNewMessage(
                     chatRoom = _chatRoom.value!!,
                     message = message

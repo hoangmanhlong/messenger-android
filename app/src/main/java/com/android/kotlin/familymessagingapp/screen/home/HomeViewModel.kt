@@ -30,12 +30,12 @@ class HomeViewModel @Inject constructor(
     val authenticated: LiveData<Boolean> = firebaseServiceRepository.authenticated.asLiveData()
 
     val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
-        .appRealtimeDatabaseService
+        .firebaseRealtimeDatabaseService
         .currentUserDataFlow
         .asLiveData()
 
     val chatRoomsLiveData: LiveData<List<ChatRoom>> = firebaseServiceRepository
-        .appRealtimeDatabaseService.chatRoomsFlow
+        .firebaseRealtimeDatabaseService.chatRoomsFlow
         .distinctUntilChanged() // Only update when data changes
         .asLiveData()
 
@@ -54,14 +54,16 @@ class HomeViewModel @Inject constructor(
         private set
 
     init {
-        currentUserLiveData.observeForever {
-            it?.let {
+        currentUserLiveData.observeForever { userdata ->
+            if (userdata != null) {
                 viewModelScope.launch(Dispatchers.IO) {
                     localDatabaseRepository.appDataStore.saveBoolean(
                         AppDataStore.ENABLED_AI,
-                        it.settings?.enabledAI ?: false
+                        userdata.settings?.enabledAI ?: false
                     )
                 }
+            } else {
+                firebaseServiceRepository.signOut()
             }
         }
     }
@@ -84,7 +86,7 @@ class HomeViewModel @Inject constructor(
                 //            _searchedUser.value = emptyList() // clear old list when start query
                 viewModelScope.launch {
                     _searchResultList.value =
-                        firebaseServiceRepository.appRealtimeDatabaseService.search(keyword)
+                        firebaseServiceRepository.firebaseRealtimeDatabaseService.search(keyword)
                 }
             } else {
                 _searchResultList.value = searchResultList.value

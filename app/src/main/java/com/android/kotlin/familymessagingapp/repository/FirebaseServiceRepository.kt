@@ -4,8 +4,8 @@ import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.services.firebase_services.facebook.FacebookService
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleService
-import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.AppRealtimeDatabaseService
-import com.android.kotlin.familymessagingapp.services.firebase_services.storage.AppFirebaseStorage
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
+import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.ktx.auth
@@ -23,8 +23,8 @@ class FirebaseServiceRepository(
     private val auth: FirebaseAuth,
     val firebaseGoogleService: FirebaseGoogleService,
     val firebaseEmailService: FirebaseEmailService,
-    val appFirebaseStorage: AppFirebaseStorage,
-    val appRealtimeDatabaseService: AppRealtimeDatabaseService,
+    val firebaseStorageService: FirebaseStorageService,
+    val firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
     private val localDatabaseRepository: LocalDatabaseRepository,
     val facebookService: FacebookService
 ) {
@@ -48,8 +48,8 @@ class FirebaseServiceRepository(
                 val firebaseUser = auth.currentUser
                 val uid = firebaseUser?.uid
                 if (uid != null) {
-                    appFirebaseStorage.deleteUserData(uid)
-                    appRealtimeDatabaseService.deleteUserData(uid)
+                    firebaseStorageService.deleteUserData(uid)
+                    firebaseRealtimeDatabaseService.deleteUserData(uid)
                     auth.currentUser?.run { delete().await() }
                     Result.Success(true)
                 } else {
@@ -69,7 +69,7 @@ class FirebaseServiceRepository(
      */
     fun signOut() {
         try {
-            appRealtimeDatabaseService.removeAllListener()
+            firebaseRealtimeDatabaseService.removeAllListener()
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()

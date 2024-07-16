@@ -72,11 +72,11 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/userAvatarCard"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
                         android:layout_gravity="center"
-                        android:layout_marginTop="32dp"
-                        app:cardCornerRadius="50dp"
+                        android:layout_marginTop="16dp"
+                        app:cardCornerRadius="40dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         app:strokeWidth="0dp">
 
@@ -101,12 +101,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:layout_marginBottom="16dp"
                         android:gravity="center"
                         android:orientation="horizontal">
 
                         <TextView
-                            style="@style/TextAppearance.Material3.TitleMedium"
+                            style="@style/TextAppearance.Material3.HeadlineSmall"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
@@ -124,6 +123,16 @@
                             app:layout_constraintBottom_toBottomOf="@id/tvChatRoomName"/>
 
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="16dp"
+                        android:layout_width="match_parent"
+                        android:gravity="center"
+                        android:layout_height="wrap_content"
+                        android:text="@{userData.email}"
+                        android:textSize="18sp"
+                        tools:text="@string/feedback_mail" />
 
 <!--                    <androidx.constraintlayout.widget.ConstraintLayout-->
 <!--                        android:layout_width="match_parent"-->

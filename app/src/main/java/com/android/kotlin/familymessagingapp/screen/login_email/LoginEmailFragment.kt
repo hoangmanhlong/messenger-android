@@ -35,7 +35,7 @@ class LoginEmailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginWithEmailBinding.inflate(inflater, container, false)
-        _loadingDialog = activity?.let { DialogUtils.createLoadingDialog(it) }
+        _loadingDialog = activity?.let { DialogUtils.loadingDialogInitialize(it) }
         return binding.root
     }
 

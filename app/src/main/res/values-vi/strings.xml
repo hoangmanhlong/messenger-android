@@ -84,4 +84,7 @@
     <string name="edit">Chỉnh sửa</string>
     <string name="delete">Xóa</string>
 
+    <string name="no_google_account_warning">Không thể tìm thấy tài khoản Google nào. Vui lòng tạo tài khoản và thử lại</string>
+    <string name="error_occurred">Lỗi không mong muốn xảy ra. Vui lòng thử lại sau </string>
+
 </resources>

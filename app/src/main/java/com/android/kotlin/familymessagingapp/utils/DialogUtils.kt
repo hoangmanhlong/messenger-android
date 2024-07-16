@@ -5,12 +5,12 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import com.android.kotlin.familymessagingapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 object DialogUtils {
-    fun createLoadingDialog(context: Context): Dialog {
+
+    fun loadingDialogInitialize(context: Context): Dialog {
         val dialog = Dialog(context)
         dialog.setContentView(R.layout.progress_indicator)
         dialog.setCancelable(false)
@@ -76,8 +76,11 @@ object DialogUtils {
         )
     }
 
-    fun functionNotAvailable(context: Context): MaterialAlertDialogBuilder =
+    fun showNotificationDialog(
+        context: Context,
+        @StringRes message: Int
+    ): MaterialAlertDialogBuilder =
         MaterialAlertDialogBuilder(context)
-            .setMessage(context.getString(R.string.this_function_will_be_updated_soon))
+            .setMessage(context.getString(message))
             .setPositiveButton(R.string.ok, null)
 }
