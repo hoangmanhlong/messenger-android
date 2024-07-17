@@ -60,6 +60,15 @@
             <!--            </intent-filter>-->
         </activity>
 
+        <!-- https://developer.android.com/develop/ui/views/notifications/bubbles#bubble-api        -->
+        <activity
+            android:name=".activity.BubbleActivity"
+            android:allowEmbedded="true"
+            android:documentLaunchMode="always"
+            android:label="@string/send"
+            android:resizeableActivity="true"
+            android:theme="@style/AppThemeGreen" />
+
         <service
             android:name=".services.firebase_services.fcm.AppFirebaseMessagingService"
             android:exported="false">

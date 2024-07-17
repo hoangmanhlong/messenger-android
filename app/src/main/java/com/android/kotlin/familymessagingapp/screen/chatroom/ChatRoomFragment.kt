@@ -165,8 +165,9 @@ class ChatRoomFragment : Fragment() {
             _viewModel.setAIGeneratedText(null)
         }
 
-        binding.etMessage.setOnClickListener {
+        binding.etMessage.setOnTouchListener { _, _ ->
             _viewModel.hideEmojiPicker()
+            false
         }
 
         return binding.root
