@@ -5,12 +5,16 @@ import android.os.Bundle
 import android.os.Message
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -117,14 +121,6 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
-        binding.ivLocation.setOnClickListener {
-            context?.let {
-                DialogUtils
-                    .showNotificationDialog(it, R.string.this_function_will_be_updated_soon)
-                    .show()
-            }
-        }
-
         binding.btSelectPhoto.setOnClickListener {
             pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
@@ -135,6 +131,7 @@ class ChatRoomFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                Log.d(TAG, "onTextChanged: " + s.toString().trim())
                 _viewModel.setTextMessage(s.toString().trim())
                 _viewModel.clearEditText(false)
             }
@@ -152,11 +149,11 @@ class ChatRoomFragment : Fragment() {
 //            _viewModel.hideEmojiPicker()
 //        }
 
-        binding.btVideoCall.setOnClickListener {
-            val action = ChatRoomFragmentDirections
-                .actionChatRoomFragmentToCallFragment(_viewModel.chatRoom.value)
-            findNavController().navigate(action)
-        }
+//        binding.btVideoCall.setOnClickListener {
+//            val action = ChatRoomFragmentDirections
+//                .actionChatRoomFragmentToCallFragment(_viewModel.chatRoom.value)
+//            findNavController().navigate(action)
+//        }
 
         binding.aiGenerateView.setOnClickListener {
             binding.etMessage.text =
@@ -166,6 +163,10 @@ class ChatRoomFragment : Fragment() {
 
         binding.tvCloseGeneratedText.setOnClickListener {
             _viewModel.setAIGeneratedText(null)
+        }
+
+        binding.etMessage.setOnClickListener {
+            _viewModel.hideEmojiPicker()
         }
 
         return binding.root
@@ -181,13 +182,15 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
+            if (it) activity?.let { KeyBoardUtils.hideKeyboard(view, requireActivity()) }
             binding.isEmojiPickerVisible = it
             binding.ivOpenEmojiPicker.setImageResource(if (it) R.drawable.ic_emoji_filled else R.drawable.ic_mood)
         }
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
-            if (_viewModel.sendMessageStatus.value == SendMessageStatus.SENDING) binding.btSendMessage.isEnabled = false
+            if (_viewModel.sendMessageStatus.value == SendMessageStatus.SENDING) binding.btSendMessage.isEnabled =
+                false
         }
 
         _viewModel.AICreating.observe(this.viewLifecycleOwner) {
@@ -218,7 +221,7 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.clearEdiText.observe(this.viewLifecycleOwner) {
-            if (it) binding.etMessage.setText("")
+            if (it) binding.etMessage.text = null
         }
 
         _viewModel.selectedItems.observe(this.viewLifecycleOwner) {
@@ -236,19 +239,19 @@ class ChatRoomFragment : Fragment() {
             it?.let {
                 when (it) {
                     SendMessageStatus.SENDING -> {
-                        binding.btSendMessage.text = getString(R.string.sending)
+//                        binding.btSendMessage.text = getString(R.string.sending)
                         binding.btSendMessage.isEnabled = false
                     }
 
                     SendMessageStatus.SUCCESS -> {
-                        binding.btSendMessage.text = getString(R.string.send)
-                        binding.btSendMessage.isEnabled = true
+//                        binding.btSendMessage.text = getString(R.string.send)
+//                        binding.btSendMessage.isEnabled = true
                         _viewModel.setSendMessageStatus(null)
                     }
 
                     SendMessageStatus.ERROR -> {
-                        binding.btSendMessage.text = getString(R.string.send)
-                        binding.btSendMessage.isEnabled = true
+//                        binding.btSendMessage.text = getString(R.string.send)
+//                        binding.btSendMessage.isEnabled = true
                         _viewModel.setSendMessageStatus(null)
                     }
                 }

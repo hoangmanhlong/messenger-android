@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -20,9 +21,7 @@ private const val APP_PREFERENCES_NAME = "APP_PREFERENCES_NAME"
 // stores the value as a key value
 // Create a DataStore instance using the preferencesDataStore delegate, with the Context as
 // receiver.
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-    name = APP_PREFERENCES_NAME
-)
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = APP_PREFERENCES_NAME)
 
 class AppDataStore(
     private val context: Context,
@@ -88,5 +87,12 @@ class AppDataStore(
         context.dataStore.edit { preferences ->
             preferences[key] = value
         }
+    }
+
+    suspend fun saveCurrentlyDisplayedLanguageOfPhone() {
+        var isEnglishLanguage = true
+        val languageCode = DeviceUtils.getCurrentLanguage(context)
+        if (languageCode == Constant.VIETNAM_COUNTRY_CODE) isEnglishLanguage = false
+        saveBoolean(IS_THE_ENGLISH_LANGUAGE_DISPLAYED, isEnglishLanguage)
     }
 }

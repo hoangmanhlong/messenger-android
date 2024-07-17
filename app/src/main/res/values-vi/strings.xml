@@ -29,7 +29,7 @@
     <string name="cancel">Hủy bỏ</string>
     <string name="delete_account">Xóa tài khoản</string>
     <string name="agree">Đồng ý</string>
-    <string name="delete_account_waring">Cảnh báo: Toàn bộ dữ liệu của bạn sẽ bị xóa vĩnh viễn và không thể khôi phục.\nBạn có chắc muốn xóa?</string>
+    <string name="delete_account_waring"><b>Cảnh báo:</b> Toàn bộ dữ liệu của bạn sẽ bị xóa vĩnh viễn và không thể khôi phục.\n\nBạn có chắc muốn xóa?</string>
 
     <string name="my_account">Tài khoản của tôi</string>
     <string name="my_profile">Thông tin của tôi</string>
@@ -86,5 +86,6 @@
 
     <string name="no_google_account_warning">Không thể tìm thấy tài khoản Google nào. Vui lòng tạo tài khoản và thử lại</string>
     <string name="error_occurred">Lỗi không mong muốn xảy ra. Vui lòng thử lại sau </string>
+    <string name="verified">Đã xác minh</string>
 
 </resources>

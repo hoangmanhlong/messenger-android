@@ -20,6 +20,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
+import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -65,16 +66,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         _loadingDialog = DialogUtils.loadingDialogInitialize(this)
         networkListener()
-        if (allPermissionsGranted()) {
-            _viewModel.saveNotificationStatus(true)
-        } else {
-            requestPermissions()
-        }
+        checkNotificationPermission()
         val navHostFragment = supportFragmentManager
             .findFragmentById(binding.appContainer.id) as NavHostFragment
         navController = navHostFragment.navController
-
-
         _viewModel.isLoading.observe(this) {
             showLoadingDialog(it)
         }
@@ -178,10 +173,23 @@ class MainActivity : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!allPermissionsGranted()) requestPermissions()
+        } else {
+            saveNotificationStatus(PermissionUtils.areNotificationsEnabled(this))
+        }
+    }
+
+    fun saveNotificationStatus(enabled: Boolean) {
+        _viewModel.saveNotificationStatus(enabled)
+    }
+
     companion object {
+        val TAG: String = MainActivity::class.java.simpleName
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         val REQUIRED_PERMISSIONS = mutableListOf<String>().apply {
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 add(Manifest.permission.POST_NOTIFICATIONS)
             }
         }.toTypedArray()

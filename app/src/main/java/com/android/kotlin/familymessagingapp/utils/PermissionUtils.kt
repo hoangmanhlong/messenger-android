@@ -33,10 +33,6 @@ object PermissionUtils {
     fun areNotificationsEnabled(context: Context): Boolean {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationManager.areNotificationsEnabled()
-        } else {
-            true
-        }
+        return notificationManager.areNotificationsEnabled()
     }
 }

@@ -17,6 +17,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+sealed class SearchViewStatus {
+    object ShowSearchHistory : SearchViewStatus()
+    object ShowSearchResult : SearchViewStatus()
+    object Other : SearchViewStatus()
+}
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
@@ -43,15 +49,15 @@ class HomeViewModel @Inject constructor(
         .getSearchHistories()
         .asLiveData()
 
+    private val _searchViewStatus: MutableLiveData<SearchViewStatus> = MutableLiveData(SearchViewStatus.ShowSearchHistory)
+    val searchViewStatus: LiveData<SearchViewStatus> = _searchViewStatus
+
     private var currentKeyword = ""
 
     var isFragmentCreatedFirstTime = false
 
     private val _searchResultList: MutableLiveData<List<UserData>> = MutableLiveData(emptyList())
     val searchResultList: LiveData<List<UserData>> = _searchResultList
-
-    var isShowSearchResult = false
-        private set
 
     init {
         currentUserLiveData.observeForever { userdata ->
@@ -68,29 +74,31 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun setIsShowSearchResult(isShow: Boolean) {
-        isShowSearchResult = isShow
+    fun setSearchViewStatus(status: SearchViewStatus) {
+        _searchViewStatus.value = status
     }
 
     fun searchKeyword(keyword: String) {
-        isShowSearchResult = true
-        if (keyword.isEmpty()) {
-            _searchResultList.value = emptyList()
-        } else {
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
+            if (keyword.isEmpty()) {
+                _searchResultList.value = emptyList()
+            } else {
+
                 localDatabaseRepository.saveSearchHistory(keyword)
-            }
-            // if new keyword and old keyword is same then skip
-            if (currentKeyword != keyword) {
-                currentKeyword = keyword
-                //            _searchedUser.value = emptyList() // clear old list when start query
-                viewModelScope.launch {
+
+                // if new keyword and old keyword is same then skip
+                if (currentKeyword != keyword) {
+                    currentKeyword = keyword
+                    //            _searchedUser.value = emptyList() // clear old list when start query
+
                     _searchResultList.value =
                         firebaseServiceRepository.firebaseRealtimeDatabaseService.search(keyword)
+
+                } else {
+                    _searchResultList.value = searchResultList.value
                 }
-            } else {
-                _searchResultList.value = searchResultList.value
             }
+            _searchViewStatus.value = SearchViewStatus.ShowSearchResult
         }
     }
 

@@ -53,7 +53,7 @@
         android:id="@+id/profileFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.profile.ProfileFragment"
         android:label="fragment_setting"
-        tools:layout="@layout/fragment_personal">
+        tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_profileFragment_to_profileDetailFragment"
             app:destination="@id/profileDetailFragment" />

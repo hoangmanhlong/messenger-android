@@ -34,7 +34,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="delete_account">Delete account</string>
-    <string name="delete_account_waring">Warning: All of your data will be permanently deleted and cannot be recovered.\nAre you sure you want to delete?</string>
+    <string name="delete_account_waring"><b>Warning:</b> All of your data will be permanently deleted and cannot be recovered.\n\nAre you sure you want to delete?</string>
     <string name="my_account">My account</string>
     <string name="conversation">Conversation</string>
     <string name="my_profile">My profile</string>
@@ -96,5 +96,5 @@
 
     <string name="no_google_account_warning">No Google accounts could be found. Please create an account and try again</string>
     <string name="error_occurred">Unexpected error occurred. Please try again later</string>
-
+    <string name="verified">Verified</string>
 </resources>

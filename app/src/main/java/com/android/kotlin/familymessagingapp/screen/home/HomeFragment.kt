@@ -157,18 +157,7 @@ class HomeFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.setIsShowSearchResult(false)
-                binding.tvSearchedUserEmpty.visibility = View.GONE
-                usersRecyclerView?.visibility = View.GONE
-                recentSearchHistory?.visibility =
-                    if (
-                        s.isNullOrEmpty()
-                        && !viewModel.searchHistories.value.isNullOrEmpty()
-                        && !viewModel.isShowSearchResult
-                    )
-                        View.VISIBLE
-                    else
-                        View.GONE
+                viewModel.setSearchViewStatus(SearchViewStatus.Other)
             }
         })
 
@@ -200,20 +189,34 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.searchHistories.observe(this.viewLifecycleOwner) {
-            recentSearchHistory?.visibility =
-                if (!it.isNullOrEmpty() && !viewModel.isShowSearchResult)
-                    View.VISIBLE
-                else
-                    View.GONE
             searchHistoryAdapter?.submitList(it)
         }
 
         viewModel.searchResultList.observe(this.viewLifecycleOwner) {
-            searchView?.let { searchView ->
-                if (searchView.isShowing) {
+            userAdapter?.submitList(it)
+        }
+
+        viewModel.searchViewStatus.observe(this.viewLifecycleOwner) {
+            when (it) {
+                is SearchViewStatus.ShowSearchResult -> {
                     recentSearchHistory?.visibility = View.GONE
-                    binding.isSearchedUserEmpty = it.isNullOrEmpty()
-                    userAdapter?.submitList(it)
+                    binding.isSearchedUserEmpty = viewModel.searchResultList.value.isNullOrEmpty()
+                }
+
+                is SearchViewStatus.ShowSearchHistory -> {
+                    usersRecyclerView?.visibility = View.GONE
+                    binding.tvSearchedUserEmpty.visibility = View.GONE
+                    recentSearchHistory?.visibility =
+                        if (!viewModel.searchHistories.value.isNullOrEmpty())
+                            View.VISIBLE
+                        else
+                            View.GONE
+                }
+
+                is SearchViewStatus.Other -> {
+                    if (searchView?.editText?.text.isNullOrEmpty()) {
+                        viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchHistory)
+                    }
                 }
             }
         }
@@ -309,6 +312,7 @@ class HomeFragment : Fragment() {
         storyRecyclerView = null
         storyAdapter = null
         recentSearchHistory = null
+        viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchResult)
     }
 
     private fun removeSearchHistory(searchHistory: SearchHistory?, clearAll: Boolean) {

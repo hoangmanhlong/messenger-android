@@ -216,6 +216,7 @@ class ChatRoomViewModel @Inject constructor(
     private fun clearInput() {
         clearEditText(true)
         setImageUri(null)
+
     }
 
     companion object {

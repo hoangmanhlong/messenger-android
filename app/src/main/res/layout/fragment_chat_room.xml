@@ -44,10 +44,10 @@
 
         <LinearLayout
             android:id="@+id/chatroomActionBarView"
-            app:layout_constraintTop_toTopOf="parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <TextView
-                    style="@style/TextAppearance.Material3.LabelLarge"
+                    style="@style/TextAppearance.Material3.BodyLarge"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -87,24 +87,36 @@
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="@{chatroom.chatroomName}"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     tools:text="@string/author" />
 
-                <Button
-                    android:id="@+id/btVideoCall"
-                    style="?attr/materialIconButtonStyle"
+                <ImageView
+                    android:id="@+id/AI_animation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_videocam"
-                    app:iconSize="26dp" />
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="10dp"
+                    android:src="@drawable/ai_animation"
+                    android:visibility="@{aiCreating ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                <Button
-                    android:id="@+id/btCall"
-                    style="?attr/materialIconButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_call"
-                    app:iconSize="26dp" />
+<!--                <Button-->
+<!--                    android:id="@+id/btVideoCall"-->
+<!--                    style="?attr/materialIconButtonStyle"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    app:icon="@drawable/ic_videocam"-->
+<!--                    app:iconSize="26dp" />-->
+
+<!--                <Button-->
+<!--                    android:id="@+id/btCall"-->
+<!--                    style="?attr/materialIconButtonStyle"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    app:icon="@drawable/ic_call"-->
+<!--                    app:iconSize="26dp" />-->
 
                 <Button
                     android:id="@+id/btInfo"
@@ -121,11 +133,11 @@
                 android:layout_height="0.5dp" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:visibility="@{isLoading ? View.VISIBLE : View.GONE}"
                 android:id="@+id/linearProgressIndicator"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:indeterminate="true"/>
+                android:indeterminate="true"
+                android:visibility="@{isLoading ? View.VISIBLE : View.GONE}" />
         </LinearLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -159,17 +171,17 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
-            app:layout_constraintBottom_toBottomOf="parent"
             android:id="@+id/inputView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:clipToPadding="false"
-            android:orientation="vertical">
 
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp" />
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <!--            <com.google.android.material.divider.MaterialDivider-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="0.5dp" />-->
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/aiGenerateView"
@@ -193,9 +205,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/ic_auto_awesome"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"/>
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <TextView
                         android:id="@+id/tvAItext"
@@ -203,19 +215,20 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="8dp"
-                        android:maxLines="2"
                         android:ellipsize="end"
+                        android:maxLines="2"
                         android:textColor="@color/dark"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/tvCloseGeneratedText"
                         app:layout_constraintStart_toEndOf="@id/ivAutoAwesome"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
                         tools:text="Hi, I am Hoang Manh Long, Android Developer" />
 
                     <ImageView
                         android:id="@+id/tvCloseGeneratedText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_clear"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -234,100 +247,167 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/layout_selected_photo" />
 
-            <EditText
-                android:id="@+id/etMessage"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:hint="@string/message"
-                android:maxLines="3"
-                android:padding="10dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:clipToPadding="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
                 android:padding="8dp">
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_attach_file"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageView
-                    android:id="@+id/ivOpenEmojiPicker"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_mood"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/btSelectPhoto"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_outline_insert_photo"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/ivLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_place"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_alternate_email"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="10dp"
-                    android:src="@drawable/ai_animation"
-                    android:visibility="@{aiCreating ? View.VISIBLE : View.GONE}"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <View
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_message_input"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/btSendMessage"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <EditText
+                        android:id="@+id/etMessage"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="@string/message"
+                        android:maxLines="4"
+                        android:padding="10dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/ivOpenEmojiPicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_mood"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/btSelectPhoto" />
+
+                    <ImageView
+                        android:id="@+id/btSelectPhoto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_outline_insert_photo"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <Button
                     android:id="@+id/btSendMessage"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="?attr/materialIconButtonFilledTonalStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/send" />
+                    app:icon="@drawable/ic_send"
+                    app:iconSize="24dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!--            <EditText-->
+            <!--                android:id="@+id/etMessage"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:background="@android:color/transparent"-->
+            <!--                android:hint="@string/message"-->
+            <!--                android:maxLines="3"-->
+            <!--                android:padding="10dp" />-->
+
+            <!--            <LinearLayout-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="?attr/actionBarSize"-->
+            <!--                android:clipToPadding="false"-->
+            <!--                android:gravity="center_vertical"-->
+            <!--                android:orientation="horizontal"-->
+            <!--                android:padding="8dp">-->
+
+            <!--                <ImageView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
+            <!--                    android:padding="10dp"-->
+            <!--                    android:src="@drawable/ic_attach_file"-->
+            <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                    app:layout_constraintStart_toStartOf="parent"-->
+            <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+            <!--                <ImageView-->
+            <!--                    android:id="@+id/ivOpenEmojiPicker"-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
+            <!--                    android:padding="10dp"-->
+            <!--                    android:src="@drawable/ic_mood"-->
+            <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                    app:layout_constraintStart_toStartOf="parent"-->
+            <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+            <!--                <ImageView-->
+            <!--                    android:id="@+id/btSelectPhoto"-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
+            <!--                    android:padding="10dp"-->
+            <!--                    android:src="@drawable/ic_outline_insert_photo"-->
+            <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                    app:layout_constraintStart_toStartOf="parent"-->
+            <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+            <!--                <ImageView-->
+            <!--                    android:id="@+id/ivLocation"-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
+            <!--                    android:padding="10dp"-->
+            <!--                    android:src="@drawable/ic_place"-->
+            <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                    app:layout_constraintStart_toStartOf="parent"-->
+            <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+            <!--                <ImageView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
+            <!--                    android:padding="10dp"-->
+            <!--                    android:src="@drawable/ic_alternate_email"-->
+            <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                    app:layout_constraintStart_toStartOf="parent"-->
+            <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+            <!--                <ImageView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
+            <!--                    android:padding="10dp"-->
+            <!--                    android:src="@drawable/ai_animation"-->
+            <!--                    android:visibility="@{aiCreating ? View.VISIBLE : View.GONE}"-->
+            <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                    app:layout_constraintStart_toStartOf="parent"-->
+            <!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+            <!--                <View-->
+            <!--                    android:layout_width="0dp"-->
+            <!--                    android:layout_height="match_parent"-->
+            <!--                    android:layout_weight="1" />-->
+
+            <!--                <Button-->
+            <!--                    android:id="@+id/btSendMessage"-->
+            <!--                    style="@style/Widget.Material3.Button.OutlinedButton"-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="@string/send" />-->
+
+            <!--            </LinearLayout>-->
 
             <androidx.emoji2.emojipicker.EmojiPickerView
                 android:id="@+id/emoji_picker"

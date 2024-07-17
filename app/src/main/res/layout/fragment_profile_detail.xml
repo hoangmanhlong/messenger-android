@@ -68,158 +68,164 @@
 
         </LinearLayout>
 
-        <FrameLayout
-            android:id="@+id/container"
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <LinearLayout
+            <FrameLayout
+                android:id="@+id/container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="32dp">
+                android:layout_height="match_parent">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="200dp"
-                    android:layout_height="200dp"
-                    android:layout_gravity="center"
-                    app:cardCornerRadius="100dp"
-                    app:strokeWidth="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="32dp">
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center_horizontal"
-                        android:background="?attr/selectableItemBackgroundBorderless">
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_gravity="center"
+                        app:cardCornerRadius="100dp"
+                        app:strokeWidth="0dp">
 
-                        <ImageView
-                            android:id="@+id/ivAvatar"
-                            bindNormalImage="@{userData.userAvatar}"
+                        <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:contentDescription="@null"
-                            android:scaleType="centerCrop"
-                            tools:src="@tools:sample/avatars" />
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:onClick="@{() -> fragment.onEditImageButtonClick()}"
-                            android:visibility="@{isEditing ? View.VISIBLE : View.GONE}"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintHeight_percent="0.3"
-                            app:layout_constraintStart_toStartOf="parent">
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:alpha="0.5"
-                                android:background="#000"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintStart_toStartOf="parent" />
+                            android:layout_gravity="center_horizontal"
+                            android:background="?attr/selectableItemBackgroundBorderless">
 
                             <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_camera_white" />
+                                android:id="@+id/ivAvatar"
+                                bindNormalImage="@{userData.userAvatar}"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@null"
+                                android:scaleType="centerCrop"
+                                tools:src="@tools:sample/avatars" />
 
-                        </FrameLayout>
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:onClick="@{() -> fragment.onEditImageButtonClick()}"
+                                android:visibility="@{isEditing ? View.VISIBLE : View.GONE}"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintHeight_percent="0.3"
+                                app:layout_constraintStart_toStartOf="parent">
 
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+                                <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:alpha="0.5"
+                                    android:background="#000"
+                                    app:layout_constraintBottom_toBottomOf="parent"
+                                    app:layout_constraintEnd_toEndOf="parent"
+                                    app:layout_constraintStart_toStartOf="parent" />
 
-                </com.google.android.material.card.MaterialCardView>
+                                <ImageView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_camera_alt" />
 
-                <TextView
+                            </FrameLayout>
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="@string/display_name"
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etDisplayName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:imeOptions="actionNext"
+                        android:lines="1"
+                        android:maxLength="25"
+                        android:maxLines="1"
+                        android:paddingVertical="8dp"
+                        android:singleLine="true"
+                        android:text="@{userData.username}"
+                        android:textSize="16sp"
+                        tools:text="@string/author" />
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginVertical="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/email"
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp"
+                        android:text="@{userData.email}"
+                        android:textColor="@color/dark"
+                        android:textSize="16sp"
+                        tools:text="long@gmail.com" />
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginVertical="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/phone_number"
+                        android:textAllCaps="true"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etPhoneNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:imeOptions="actionDone"
+                        android:lines="1"
+                        android:maxLength="12"
+                        android:maxLines="1"
+                        android:paddingVertical="8dp"
+                        android:singleLine="true"
+                        android:text="@{userData.phoneNumber}"
+                        android:textSize="16sp"
+                        tools:text="09886668888888" />
+
+                    <Button
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:onClick="@{() -> fragment.onSaveButtonClick()}"
+                        android:text="@string/save"
+                        android:visibility="@{isEditing ? View.VISIBLE : View.GONE}" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/expanded_image"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="@string/display_name"
-                    android:textSize="16sp"
-                    android:textAllCaps="true" />
+                    android:layout_height="match_parent" />
 
-                <EditText
-                    android:paddingVertical="8dp"
-                    android:id="@+id/etDisplayName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    android:imeOptions="actionNext"
-                    android:lines="1"
-                    android:maxLength="25"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="@{userData.username}"
-                    android:textSize="16sp"
-                    tools:text="@string/author" />
+            </FrameLayout>
 
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp" />
-
-                <TextView
-                    android:textAllCaps="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/email"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:paddingVertical="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{userData.email}"
-                    android:textColor="@color/dark"
-                    android:textSize="16sp"
-                    tools:text="long@gmail.com" />
-
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp" />
-
-                <TextView
-                    android:textAllCaps="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/phone_number"
-                    android:textSize="14sp" />
-
-                <EditText
-                    android:paddingVertical="8dp"
-                    android:id="@+id/etPhoneNumber"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    android:imeOptions="actionDone"
-                    android:lines="1"
-                    android:maxLength="12"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="@{userData.phoneNumber}"
-                    android:textSize="16sp"
-                    tools:text="09886668888888" />
-
-                <Button
-                    style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:onClick="@{() -> fragment.onSaveButtonClick()}"
-                    android:text="@string/save"
-                    android:visibility="@{isEditing ? View.VISIBLE : View.GONE}" />
-
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/expanded_image"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </FrameLayout>
+        </ScrollView>
 
     </LinearLayout>
 

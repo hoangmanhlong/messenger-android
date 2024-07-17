@@ -1,9 +1,7 @@
 package com.android.kotlin.familymessagingapp.screen.profile
 
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,15 +9,16 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
-import com.android.kotlin.familymessagingapp.databinding.FragmentPersonalBinding
+import com.android.kotlin.familymessagingapp.databinding.FragmentProfileBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -28,7 +27,7 @@ class ProfileFragment : Fragment() {
 
     private val _viewModel: ProfileViewModel by viewModels()
 
-    private var _binding: FragmentPersonalBinding? = null
+    private var _binding: FragmentProfileBinding? = null
 
     private val binding get() = _binding!!
 
@@ -44,7 +43,7 @@ class ProfileFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentPersonalBinding.inflate(inflater, container, false)
+        _binding = FragmentProfileBinding.inflate(inflater, container, false)
         binding.fragment = this@ProfileFragment
 
         binding.enabledAI.setOnCheckedChangeListener { _, isChecked ->
@@ -71,11 +70,13 @@ class ProfileFragment : Fragment() {
 
         binding.feedbackView.setOnClickListener {
             activity?.let {
-                StringUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
+                DeviceUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
             }
         }
 
-        binding.notificationView.setOnClickListener { requestNotificationPermission() }
+        binding.notificationView.setOnClickListener {
+            activity?.let { DeviceUtils.openNotificationPermissionSetting(it) }
+        }
 
         return binding.root
     }
@@ -88,7 +89,7 @@ class ProfileFragment : Fragment() {
             binding.isTheEnglishLanguageDisplayed = it
         }
 
-        binding.userAvatarCard.setOnClickListener {
+        binding.ivAvatar.setOnClickListener {
             val userData = _viewModel.currentUserLiveData.value
             userData?.let {
                 val action =
@@ -119,13 +120,13 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun requestNotificationPermission() {
-        val intent = Intent().apply {
-            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-            putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID)
+    override fun onStart() {
+        super.onStart()
+        activity?.let {
+            (activity as MainActivity).saveNotificationStatus(
+                PermissionUtils.areNotificationsEnabled(it)
+            )
         }
-        startActivity(intent)
     }
 
     fun deleteAccount() {

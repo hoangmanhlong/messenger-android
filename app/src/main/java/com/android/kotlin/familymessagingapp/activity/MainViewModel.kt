@@ -77,7 +77,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-//    init {
+    //    init {
 //        firstCheck()
 //    }
 //
@@ -123,7 +123,7 @@ class MainViewModel @Inject constructor(
             ) {
                 localDatabaseRepository.appDataStore.apply {
                     saveBoolean(AppDataStore.IS_THE_FIRST_LAUNCH, true)
-                    saveBoolean(AppDataStore.IS_THE_ENGLISH_LANGUAGE_DISPLAYED, true)
+                    saveCurrentlyDisplayedLanguageOfPhone()
                 }
             }
         }

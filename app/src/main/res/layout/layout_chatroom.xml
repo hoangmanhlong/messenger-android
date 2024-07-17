@@ -55,16 +55,18 @@
             android:layout_weight="1">
 
             <TextView
+                style="@style/TextAppearance.Material3.BodyLarge"
                 android:id="@+id/tvChatRoomName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{chatroom.chatroomName}"
-                android:textSize="16sp"
+
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Hoang Manh Long" />
 
             <TextView
+                android:layout_marginTop="4dp"
                 android:id="@+id/tvLastMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -83,7 +85,7 @@
                 android:id="@+id/tvLastMessageTime"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:text="8:00 AM" />
+                tools:text="12:00" />
 
             <ImageView
                 android:layout_width="15dp"
