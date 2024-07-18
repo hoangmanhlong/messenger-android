@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
@@ -65,6 +66,8 @@ class HomeFragment : Fragment() {
 
     private var searchView: SearchView? = null
 
+    private var searchViewEditText: EditText? = null
+
     private var searchHistoriesRecyclerView: RecyclerView? = null
 
     private var searchHistoryAdapter: SearchHistoryAdapter? = null
@@ -84,6 +87,7 @@ class HomeFragment : Fragment() {
 
         searchBar = binding.searchBar
         searchView = binding.searchView
+        searchViewEditText = searchView?.editText
         searchBarMenu = searchBar?.menu
         avatarMenu = searchBarMenu?.findItem(R.id.avatarMenu)
         loadingProgressBarMenu = searchBarMenu?.findItem(R.id.loadingProgressBarMenu)
@@ -111,11 +115,12 @@ class HomeFragment : Fragment() {
         searchHistoryAdapter = SearchHistoryAdapter(
             onDeleteItem = { removeSearchHistory(it, false) },
             onItemClicked = {
-                searchView?.editText?.text = Editable.Factory.getInstance().newEditable(it.text)
+                searchViewEditText?.text = Editable.Factory.getInstance().newEditable(it.text)
                 onActionSearch()
             },
             onPushItem = {
-                searchView?.editText?.text = Editable.Factory.getInstance().newEditable(it.text)
+                searchViewEditText?.text = Editable.Factory.getInstance().newEditable(it.text)
+                searchViewEditText?.setSelection(it.text.length)
             }
         )
         searchHistoriesRecyclerView?.adapter = searchHistoryAdapter
@@ -146,12 +151,12 @@ class HomeFragment : Fragment() {
             }
         }
 
-        searchView?.editText?.setOnEditorActionListener { _, actionId, _ ->
+        searchViewEditText?.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch()
             false
         }
 
-        searchView?.editText?.addTextChangedListener(object : TextWatcher {
+        searchViewEditText?.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -190,6 +195,7 @@ class HomeFragment : Fragment() {
 
         viewModel.searchHistories.observe(this.viewLifecycleOwner) {
             searchHistoryAdapter?.submitList(it)
+            if (it.isNullOrEmpty()) recentSearchHistory?.visibility = View.GONE
         }
 
         viewModel.searchResultList.observe(this.viewLifecycleOwner) {
@@ -199,22 +205,25 @@ class HomeFragment : Fragment() {
         viewModel.searchViewStatus.observe(this.viewLifecycleOwner) {
             when (it) {
                 is SearchViewStatus.ShowSearchResult -> {
+                    // ẩn searchHistories và hiện search result
                     recentSearchHistory?.visibility = View.GONE
                     binding.isSearchedUserEmpty = viewModel.searchResultList.value.isNullOrEmpty()
                 }
 
                 is SearchViewStatus.ShowSearchHistory -> {
+                    // Ẩn search result và hiện search hístories nếu có
                     usersRecyclerView?.visibility = View.GONE
                     binding.tvSearchedUserEmpty.visibility = View.GONE
                     recentSearchHistory?.visibility =
-                        if (!viewModel.searchHistories.value.isNullOrEmpty())
-                            View.VISIBLE
-                        else
+                        if (viewModel.searchHistories.value.isNullOrEmpty())
                             View.GONE
+                        else
+                            View.VISIBLE
                 }
 
                 is SearchViewStatus.Other -> {
-                    if (searchView?.editText?.text.isNullOrEmpty()) {
+                    // Hiện Search Histories nếu text trong ô tìm kiếm rỗng
+                    if (searchViewEditText?.text.isNullOrEmpty()) {
                         viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchHistory)
                     }
                 }
@@ -277,7 +286,10 @@ class HomeFragment : Fragment() {
     private fun onActionSearch() {
         activity?.let {
             NetworkChecker.checkNetwork(it) {
-                viewModel.searchKeyword(searchView?.editText?.text.toString().trim())
+                searchViewEditText?.text?.length?.let { length ->
+                    searchViewEditText?.setSelection(length)
+                }
+                viewModel.searchKeyword(searchViewEditText?.text.toString().trim())
             }
         }
     }
@@ -300,6 +312,7 @@ class HomeFragment : Fragment() {
         _binding = null
         searchBar = null
         searchView = null
+        searchViewEditText = null
         searchBarMenu = null
         avatarMenu = null
         loadingProgressBarMenu = null

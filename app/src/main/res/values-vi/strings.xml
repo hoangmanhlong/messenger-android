@@ -77,7 +77,7 @@
     <string name="clear_all">Xóa tất cả</string>
     <string name="push_text_to_search_box">Điền văn bản lên ô tìm kiếm</string>
     <string name="this_function_will_be_updated_soon">Chức năng này sẽ được cập nhật sớm ❤️</string>
-    <string name="copied_to_clipboard">Sao chép vào ô nhớ tạm</string>
+    <string name="copied_to_clipboard">Đã sao chép</string>
 
     <!--    Message Options-->
     <string name="copy">Sao chép</string>

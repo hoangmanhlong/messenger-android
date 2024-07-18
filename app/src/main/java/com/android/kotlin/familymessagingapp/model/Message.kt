@@ -16,17 +16,3 @@ data class Message(
     val status: Int? = null,
     val type: Int? = null
 ) : Parcelable
-
-enum class MessageStatus {
-    PENDING,
-    SENT,
-    DELIVERED,
-    READ
-}
-
-enum class MessageType {
-    TEXT,
-    IMAGE,
-    VIDEO,
-    AUDIO
-}

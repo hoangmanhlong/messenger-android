@@ -82,7 +82,7 @@
                     style="@style/TextAppearance.Material3.BodyLarge"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
                     android:ellipsize="end"
                     android:singleLine="true"
@@ -277,19 +277,9 @@
                         android:maxLines="4"
                         android:padding="10dp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker"
+                        app:layout_constraintEnd_toStartOf="@id/btSelectPhoto"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/ivOpenEmojiPicker"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_mood"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/btSelectPhoto" />
 
                     <ImageView
                         android:id="@+id/btSelectPhoto"
@@ -299,7 +289,18 @@
                         android:padding="10dp"
                         android:src="@drawable/ic_outline_insert_photo"
                         app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker" />
+
+                    <ImageView
+                        android:id="@+id/ivOpenEmojiPicker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_mood"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <Button

@@ -21,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
@@ -65,8 +66,7 @@ class ChatRoomFragment : Fragment() {
 
     private lateinit var messageOptionsFragment: MessageOptionsFragment
 
-    //     Registers a photo picker activity launcher in multi-select mode.
-//     In this example, the app lets the user select up to 5 media files.
+    // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             _viewModel.setImageUri(uri)
@@ -89,19 +89,27 @@ class ChatRoomFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
-        messageAdapter = MessageAdapter(
-            onMessageLongClick = {
-                _viewModel.setSelectedMessage(it)
-                openMessageOptions(it.fromId == Firebase.auth.uid)
-            }
-        )
+
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         messageRecyclerview = binding.messageRecyclerview
+        (messageRecyclerview?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         messageRecyclerview?.layoutManager = LinearLayoutManager(activity).apply {
             stackFromEnd = true
             reverseLayout = false
         }
+        messageAdapter = MessageAdapter(
+            onMessageContentViewClick = {
+                if (activity != null && messageRecyclerview != null) {
+                    KeyBoardUtils.hideKeyboard(messageRecyclerview!!, requireActivity())
+                }
+            },
+            onTextMessageClick = { isSender, message ->
+                _viewModel.setSelectedMessage(message)
+                openMessageOptions(isSender)
+            }
+        )
+
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter {
@@ -122,6 +130,7 @@ class ChatRoomFragment : Fragment() {
         }
 
         binding.btSelectPhoto.setOnClickListener {
+            // Launch the photo picker and let the user choose only images.
             pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
@@ -175,7 +184,7 @@ class ChatRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { KeyBoardUtils.setupHideKeyboard(binding.messagesView, it) }
+//        activity?.let { KeyBoardUtils.setupHideKeyboard(binding.messagesView, it) }
         getSharedData()
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {

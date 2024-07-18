@@ -87,7 +87,7 @@
     <string name="clear_all">Clear all</string>
     <string name="push_text_to_search_box">Push text to search box</string>
     <string name="this_function_will_be_updated_soon">This function will be updated soon ❤️</string>
-    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="copied_to_clipboard">Copied</string>
 
 <!--    Message Options-->
     <string name="copy">Copy</string>

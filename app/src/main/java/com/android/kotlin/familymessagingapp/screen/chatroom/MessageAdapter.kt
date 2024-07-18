@@ -23,7 +23,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 class MessageAdapter(
-    private val onMessageLongClick: (Message) -> Unit
+    private val onMessageContentViewClick: () -> Unit,
+    private val onTextMessageClick: (Boolean, Message) -> Unit
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
 
     private val ICON_MARGIN = 16
@@ -32,22 +33,28 @@ class MessageAdapter(
 
     private val receiver = 2
 
+    private var expandedMessageId: String? = null
+
+    private var expandedMessagePosition: Int? = null
+
     inner class SenderMessageViewHolder(
-        private val binding: LayoutSenderMessageBinding
+        val binding: LayoutSenderMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.hasText = message.text != null
             binding.hasImage = message.photo != null
+            binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
             binding.message = message
         }
     }
 
     inner class ReceiverMessageViewHolder(
-        private val binding: LayoutReceiverMessageBinding
+        val binding: LayoutReceiverMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.hasText = message.text != null
             binding.hasImage = message.photo != null
+            binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
             binding.message = message
         }
     }
@@ -98,12 +105,45 @@ class MessageAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = getItem(position)
         if (holder is SenderMessageViewHolder || holder is ReceiverMessageViewHolder) {
-            holder.itemView.setOnLongClickListener {
-                onMessageLongClick(item)
-                false
+            holder.itemView.setOnClickListener {
+                onMessageContentViewClick()
             }
-            if (holder is SenderMessageViewHolder) holder.bind(item)
-            if (holder is ReceiverMessageViewHolder) holder.bind(item)
+            if (holder is SenderMessageViewHolder) {
+                if (!item.text.isNullOrEmpty()) {
+                    holder.binding.textMessageConstraintLayout.setOnLongClickListener {
+                        onTextMessageClick(true, item)
+                        false
+                    }
+                    holder.binding.textMessageConstraintLayout.setOnClickListener {
+                        handleTextMessageClick(position)
+                    }
+                }
+                holder.bind(item)
+            }
+            if (holder is ReceiverMessageViewHolder) {
+                if (!item.text.isNullOrEmpty()) {
+                    holder.binding.textMessageConstraintLayout.setOnLongClickListener {
+                        onTextMessageClick(false, item)
+                        false
+                    }
+                    holder.binding.textMessageConstraintLayout.setOnClickListener {
+                        handleTextMessageClick(position)
+                    }
+                }
+                holder.bind(item)
+            }
+        }
+    }
+
+    private fun handleTextMessageClick(position: Int) {
+        val previousExpandedPosition = expandedMessagePosition
+        expandedMessagePosition = if (position == expandedMessagePosition) null else position
+
+        previousExpandedPosition?.let {
+            notifyItemChanged(it)
+        }
+        expandedMessagePosition?.let {
+            notifyItemChanged(it)
         }
     }
 
