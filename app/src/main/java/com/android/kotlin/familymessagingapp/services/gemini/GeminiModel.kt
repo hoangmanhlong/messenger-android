@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.Bitmap
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.Message
-import com.android.kotlin.familymessagingapp.utils.AppImageUtils
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
@@ -38,7 +37,7 @@ class GeminiModel(private val application: Application) {
                 val text = message.text
                 var photoBitmap: Bitmap? = null
 //                if (photoUrl != null)
-//                    photoBitmap = AppImageUtils.convertImageUrlToBitmap(photoUrl, application)
+//                    photoBitmap = AppImageUtils.convertImageUrlToBitmap(application, photoUrl)
                 if (photoBitmap == null && text.isNullOrEmpty()) return@withContext null
                 val content = content {
 //                    if (photoBitmap != null) {

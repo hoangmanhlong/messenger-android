@@ -103,15 +103,13 @@ object AppModule {
         auth: FirebaseAuth,
         signInClient: SignInClient,
         appDataStore: AppDataStore,
-        firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-        firebaseStorageService: FirebaseStorageService
+        firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService
     ): FirebaseGoogleService =
         FirebaseGoogleService(
             auth,
             signInClient,
             appDataStore,
-            firebaseRealtimeDatabaseService,
-            firebaseStorageService
+            firebaseRealtimeDatabaseService
         )
 
     @Singleton

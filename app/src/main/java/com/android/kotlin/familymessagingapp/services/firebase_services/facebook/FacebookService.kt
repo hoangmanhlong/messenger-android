@@ -7,9 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-class FacebookService(
-    private val auth: FirebaseAuth
-) {
+class FacebookService(private val auth: FirebaseAuth) {
     suspend fun handleFacebookAccessToken(token: AccessToken): Boolean {
         return withContext(Dispatchers.IO) {
             try {

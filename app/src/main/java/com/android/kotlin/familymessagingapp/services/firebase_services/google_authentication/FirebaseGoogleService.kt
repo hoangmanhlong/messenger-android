@@ -1,14 +1,11 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication
 
-import android.content.Context
 import android.content.Intent
 import com.android.kotlin.familymessagingapp.BuildConfig
-import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.model.toUserData
 import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
-import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.common.api.ApiException
@@ -23,15 +20,12 @@ class FirebaseGoogleService(
     private val auth: FirebaseAuth,
     private val oneTapClient: SignInClient,
     private val appDataStore: AppDataStore,
-    private val firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-    private val firebaseStorageService: FirebaseStorageService
-)  {
+    private val firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService
+) {
 
     companion object {
         val TAG: String = FirebaseGoogleService::class.java.simpleName
     }
-
-    private val userAvatarImageRef = firebaseStorageService.userAvatarRef
 
     /**
      * 13:26:12.649  W  com.google.android.gms.common.api.ApiException: 16: [28433] Cannot find a matching credential.
@@ -65,31 +59,12 @@ class FirebaseGoogleService(
                 val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
                 val firebaseUser = auth.signInWithCredential(googleCredentials).await().user
                 firebaseUser?.let {
-                    val userData = firebaseUser.run {
-                        UserData(
-                            uid = uid,
-                            username = displayName,
-                            userAvatar = photoUrl?.toString(),
-                            email = email,
-                            phoneNumber = phoneNumber
-                        )
-                    }
                     val userDataRef = firebaseRealtimeDatabaseService.userDataRef
                     val userInfoSnapshot = userDataRef.child(it.uid).get().await()
                     if (userInfoSnapshot.value == null) {
-                        // User does not exist, update user data
-                        if (!userData.userAvatar.isNullOrEmpty()) {
-                            val downloadUrl = firebaseStorageService.createDownloadUrlFromImageUrl(
-                                userData.userAvatar,
-                                userAvatarImageRef.child(firebaseUser.uid)
-                            )
-
-                            // Update user data with avatar URL
-                            val updatedUserData = userData.copy(userAvatar = downloadUrl)
-                            userDataRef.child(firebaseUser.uid).setValue(updatedUserData).await()
-                        } else {
-                            userDataRef.child(it.uid).setValue(userData).await()
-                        }
+                        firebaseRealtimeDatabaseService.updateNewUserDataInRealtime(
+                            firebaseUser.toUserData()
+                        )
                     }
                 }
                 appDataStore.saveBoolean(AppDataStore.IS_AUTHENTICATE_BY_EMAIL, false)

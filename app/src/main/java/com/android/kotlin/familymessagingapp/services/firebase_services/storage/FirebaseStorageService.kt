@@ -2,12 +2,9 @@ package com.android.kotlin.familymessagingapp.services.firebase_services.storage
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.net.Uri
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
@@ -33,25 +30,11 @@ class FirebaseStorageService(private val application: Application) {
             var localFile: File? = null
             try {
                 localFile = File.createTempFile("avatar", "jpg")
-
-                // Load image from URL and save to local file
-                Glide.with(application)
-                    .asBitmap()
-                    .load(imageUrl)
-                    .into(object : CustomTarget<Bitmap>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap>?
-                        ) {
-                            FileOutputStream(localFile).use { out ->
-                                resource.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                            }
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            // Handle if needed
-                        }
-                    })
+                val bitmap = MediaUtils.convertImageUrlToBitmap(application, imageUrl)
+                    ?: return@withContext null
+                FileOutputStream(localFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                }
 
                 val avatarUri = Uri.fromFile(localFile)
                 storageRef.putFile(avatarUri).await()

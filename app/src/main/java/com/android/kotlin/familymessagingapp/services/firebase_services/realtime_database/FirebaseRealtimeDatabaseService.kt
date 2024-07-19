@@ -60,6 +60,8 @@ class FirebaseRealtimeDatabaseService(
 
     val chatroomsRef = databaseReference.child(Constant.REALTIME_DATABASE_CHAT_ROOM_REF)
 
+    private val userAvatarImageRef = firebaseStorageService.userAvatarRef
+
     /**
      * Event Listener Flow of current User Data
      */
@@ -405,5 +407,22 @@ class FirebaseRealtimeDatabaseService(
     fun removeAllListener() {
         clearUserDataListener()
         clearChatRoomsListener()
+    }
+
+    suspend fun updateNewUserDataInRealtime(userData: UserData) {
+        val currentUid = userData.uid
+        if (!currentUid.isNullOrEmpty()) {
+            if (!userData.userAvatar.isNullOrEmpty()) {
+                val downloadUrl = firebaseStorageService.createDownloadUrlFromImageUrl(
+                    userData.userAvatar,
+                    userAvatarImageRef.child(userData.uid)
+                )
+                // Update user data with avatar URL
+                val updatedUserData = userData.copy(userAvatar = downloadUrl)
+                userDataRef.child(currentUid).setValue(updatedUserData).await()
+            } else {
+                userDataRef.child(currentUid).setValue(userData).await()
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.model
 
 import android.os.Parcelable
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
@@ -44,4 +45,12 @@ data class UserData(
             && !this.uid.isNullOrEmpty()
             && !this.chatrooms.isNullOrEmpty()
 }
+
+fun FirebaseUser.toUserData(): UserData = UserData(
+    uid = uid,
+    username = displayName,
+    userAvatar = photoUrl?.toString(),
+    email = email,
+    phoneNumber = phoneNumber
+)
 

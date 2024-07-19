@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -45,10 +46,8 @@ import dagger.hilt.android.AndroidEntryPoint
  *      - Trong case này chatroom sẽ null và có userdata
  *      - Lấy tên và ảnh của user đó đặt làm ảnh cho chatroom
  *      - Thực hiện kiểm tra xem chatroom có tồn tại bằng cách: Vì chatroomID được đặt theo quy ước trước đó(có 2TH user1___user2 hoặc user2___user1)
- *
  *          + Nếu chatroom ID tồn tại: Bắt đầu trình nghe tin nhắn theo chatroom ID
- *          + Nếu không tồn tại: Danh sách tin nhắn sẽ hiển thị rỗng. Khi người dùng nhắn tin
- *          nhắn đầu tiên chatroom sẽ được tạo. Nếu chatroom được tạo thành công. Chatroom sẽ được lưu vào userdata của 2 người dùng. Bắt đầu trình nghe tin nhắn theo chatroom ID
+ *          + Nếu không tồn tại: Danh sách tin nhắn sẽ hiển thị rỗng. Khi người dùng nhắn tin nhắn đầu tiên chatroom sẽ được tạo. Nếu chatroom được tạo thành công. Chatroom sẽ được lưu vào userdata của 2 người dùng. Bắt đầu trình nghe tin nhắn theo chatroom ID
  */
 // TODO: block screen capture
 @AndroidEntryPoint
@@ -70,6 +69,11 @@ class ChatRoomFragment : Fragment() {
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             _viewModel.setImageUri(uri)
+            if (Lifecycle.State.STARTED == lifecycle.currentState) {
+                if (binding.etMessage.hasFocus()) {
+                    KeyBoardUtils.showKeyboard(binding.etMessage)
+                }
+            }
         }
 
     private val binding get() = _binding!!
@@ -100,9 +104,7 @@ class ChatRoomFragment : Fragment() {
         }
         messageAdapter = MessageAdapter(
             onMessageContentViewClick = {
-                if (activity != null && messageRecyclerview != null) {
-                    KeyBoardUtils.hideKeyboard(messageRecyclerview!!, requireActivity())
-                }
+                if (messageRecyclerview != null) KeyBoardUtils.hideKeyboard(messageRecyclerview!!)
             },
             onTextMessageClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
@@ -132,6 +134,7 @@ class ChatRoomFragment : Fragment() {
         binding.btSelectPhoto.setOnClickListener {
             // Launch the photo picker and let the user choose only images.
             pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            _viewModel.hideEmojiPicker()
         }
 
         binding.etMessage.addTextChangedListener(object : TextWatcher {
@@ -179,6 +182,9 @@ class ChatRoomFragment : Fragment() {
             false
         }
 
+        binding.messagesView.setOnClickListener {
+            KeyBoardUtils.hideKeyboard(binding.messagesView)
+        }
         return binding.root
     }
 
@@ -192,15 +198,15 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
-            if (it) activity?.let { KeyBoardUtils.hideKeyboard(view, requireActivity()) }
+            if (it) KeyBoardUtils.hideKeyboard(view)
             binding.isEmojiPickerVisible = it
             binding.ivOpenEmojiPicker.setImageResource(if (it) R.drawable.ic_emoji_filled else R.drawable.ic_mood)
         }
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
-            if (_viewModel.sendMessageStatus.value == SendMessageStatus.SENDING) binding.btSendMessage.isEnabled =
-                false
+            if (_viewModel.sendMessageStatus.value == SendMessageStatus.SENDING)
+                binding.btSendMessage.isEnabled = false
         }
 
         _viewModel.AICreating.observe(this.viewLifecycleOwner) {
