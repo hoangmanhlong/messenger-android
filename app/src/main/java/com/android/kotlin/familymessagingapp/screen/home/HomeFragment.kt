@@ -22,7 +22,7 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
-import com.android.kotlin.familymessagingapp.utils.AppImageUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -247,7 +247,7 @@ class HomeFragment : Fragment() {
                     _binding?.let {
                         loadingProgressBarMenu?.isVisible = !viewModel.isFragmentCreatedFirstTime
                     }
-                    AppImageUtils.loadImageWithListener(
+                    MediaUtils.loadImageWithListener(
                         context = context,
                         photo = user.userAvatar ?: R.drawable.ic_broken_image,
                         actionOnResourceReady = { draw ->

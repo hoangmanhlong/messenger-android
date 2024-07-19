@@ -1,21 +1,10 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.drawable.InsetDrawable
-import android.os.Build
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.MenuRes
-import androidx.appcompat.view.menu.MenuBuilder
-import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutReceiverMessageBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBinding
 import com.android.kotlin.familymessagingapp.model.Message
@@ -32,8 +21,6 @@ class MessageAdapter(
     private val sender = 1
 
     private val receiver = 2
-
-    private var expandedMessageId: String? = null
 
     private var expandedMessagePosition: Int? = null
 
