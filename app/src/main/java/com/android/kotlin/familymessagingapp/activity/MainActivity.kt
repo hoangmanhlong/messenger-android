@@ -12,16 +12,21 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
+import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -39,6 +44,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
     private var _binding: ActivityMainBinding? = null
+
+    private var networkNotificationDialog: AlertDialog? = null
 
     private val binding get() = _binding!!
 
@@ -64,6 +71,10 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
+        networkNotificationDialog = DialogUtils.showNotificationDialog(this, R.string.network_not_available_message)
+        if (!NetworkChecker.isNetworkAvailable(this)) {
+            networkNotificationDialog?.show()
+        }
         _loadingDialog = DialogUtils.loadingDialogInitialize(this)
         networkListener()
         checkNotificationPermission()
@@ -130,12 +141,16 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
-//                showNetworkErrorDialogDialog(false)
+                if (networkNotificationDialog?.isShowing == true) {
+                    networkNotificationDialog?.dismiss()
+                }
             }
 
             override fun onLost(network: Network) {
                 super.onLost(network)
-//                showNetworkErrorDialogDialog(true)
+                lifecycleScope.launch {
+                    networkNotificationDialog?.show()
+                }
             }
         }
     }
@@ -156,6 +171,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         _loadingDialog = null
         _binding = null
+        networkNotificationDialog = null
     }
 
 //    fun getPrimaryColor(context: Context): Int {
@@ -187,6 +203,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         val TAG: String = MainActivity::class.java.simpleName
+
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         val REQUIRED_PERMISSIONS = mutableListOf<String>().apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

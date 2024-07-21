@@ -45,6 +45,11 @@ class ConfirmDeleteAccountFragment(
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        binding.checkboxAgree.isChecked = false
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

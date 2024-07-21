@@ -1,5 +1,8 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.app.Application
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Result
@@ -25,10 +29,15 @@ enum class SendMessageStatus { SUCCESS, ERROR, SENDING }
 
 @HiltViewModel
 class ChatRoomViewModel @Inject constructor(
+    private val application: Application,
     private val firebaseServiceRepository: FirebaseServiceRepository,
     private val geminiModel: GeminiModel,
-    private val localDatabaseRepository: LocalDatabaseRepository
+    private val localDatabaseRepository: LocalDatabaseRepository,
+    private val workManager: AppWorkManager
 ) : ViewModel() {
+
+    private val _imageDetailShown = MutableLiveData(false)
+    val imageDetailShown: LiveData<Boolean> = _imageDetailShown
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -39,9 +48,12 @@ class ChatRoomViewModel @Inject constructor(
     private val _sendMessageStatus: MutableLiveData<SendMessageStatus?> = MutableLiveData(null)
     val sendMessageStatus: LiveData<SendMessageStatus?> = _sendMessageStatus
 
-    lateinit var messages: LiveData<List<Message>>
+    lateinit var messages: LiveData<Map<String, Message>>
 
     var selectedMessage: Message? = null
+        private set
+
+    var imageMessageDrawable: Drawable? = null
         private set
 
     private val _chatRoom: MutableLiveData<ChatRoom> = MutableLiveData(ChatRoom())
@@ -70,6 +82,11 @@ class ChatRoomViewModel @Inject constructor(
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!
     }
 
+    fun setImageDetailShown(shown: Boolean, drawable: Drawable?) {
+        imageMessageDrawable = drawable
+        _imageDetailShown.value = shown
+    }
+
     fun setAIGeneratedText(text: String?) {
         _AIGeneratedText.value = text
     }
@@ -87,6 +104,14 @@ class ChatRoomViewModel @Inject constructor(
         _sendMessageStatus.value = status
     }
 
+    fun saveImageToDeviceStorage() {
+        imageMessageDrawable?.let {
+            viewModelScope.launch {
+                workManager.saveImageToFile((imageMessageDrawable as BitmapDrawable).bitmap)
+            }
+        }
+    }
+
     /**
      * Case: Chatroom opened from Search
      * use username, user avatar of user is chatroom name, image.
@@ -99,7 +124,7 @@ class ChatRoomViewModel @Inject constructor(
             members = listOf(userData.uid!!)
         )
         viewModelScope.launch {
-            if(!userData.uid.isNullOrEmpty()) {
+            if (!userData.uid.isNullOrEmpty()) {
                 val chatroomID = firebaseServiceRepository
                     .firebaseRealtimeDatabaseService
                     .checkChatRoomExist(userData.uid)
@@ -140,9 +165,9 @@ class ChatRoomViewModel @Inject constructor(
             messages.observeForever {
                 viewModelScope.launch {
                     _chatRoom.value = _chatRoom.value?.copy(messages = it)
-                    val lastMessage = it.lastOrNull()
+                    val lastMessage = it.values.lastOrNull()
                     if (lastMessage != null
-                        && lastMessage.fromId != Firebase.auth.uid
+                        && lastMessage.senderId != Firebase.auth.uid
                         && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(
                             AppDataStore.ENABLED_AI,
                             false
@@ -161,6 +186,18 @@ class ChatRoomViewModel @Inject constructor(
 
     fun removeMessageListener() {
         firebaseServiceRepository.firebaseRealtimeDatabaseService.removeMessageListener()
+    }
+
+    fun updateMessageEmoji(emoji: String) {
+        viewModelScope.launch {
+            val chatRoomId = _chatRoom.value?.chatRoomId
+            val messageId = selectedMessage?.messageId
+            if (!chatRoomId.isNullOrEmpty() && !messageId.isNullOrEmpty()) {
+                firebaseServiceRepository
+                    .firebaseRealtimeDatabaseService
+                    .updateEmojiMessage(chatRoomId, messageId, emoji)
+            }
+        }
     }
 
     fun setTextMessage(text: String) {

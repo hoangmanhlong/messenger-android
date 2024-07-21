@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.data_store.dataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
+import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
 import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
 import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
@@ -124,18 +125,14 @@ object AppModule {
     @Singleton
     @Provides
     fun provinceFirebaseEmailService(
-        application: Application,
         auth: FirebaseAuth,
         appDataStore: AppDataStore,
-        firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-        firebaseStorageService: FirebaseStorageService
+        firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService
     ): FirebaseEmailService =
         FirebaseEmailService(
-            application,
             auth,
             appDataStore,
-            firebaseRealtimeDatabaseService,
-            firebaseStorageService
+            firebaseRealtimeDatabaseService
         )
 
     @Provides
@@ -146,4 +143,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGeminiModel(application: Application): GeminiModel = GeminiModel(application)
+
+    @Provides
+    @Singleton
+    fun provideAppWorkManager(application: Application) = AppWorkManager(application)
 }

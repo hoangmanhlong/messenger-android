@@ -59,4 +59,10 @@ object StringUtils {
             else -> date.format(DateTimeFormatter.ofPattern("d MMM yyyy"))
         }
     }
+
+    fun isValidUrl(url: String): Boolean {
+        val urlPattern = "^(http|https|ftp)://[a-zA-Z0-9\\-._~:/?#[\\]@!$&'()*+,;=%]+$"
+        val regex = Regex(urlPattern)
+        return regex.matches(url)
+    }
 }

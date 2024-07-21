@@ -83,6 +83,10 @@
     <string name="copy">Sao chép</string>
     <string name="edit">Chỉnh sửa</string>
     <string name="delete">Xóa</string>
+    <string name="pin">Ghim</string>
+    <string name="reply">Trả lời lại</string>
+    <string name="pinned">Được ghim</string>
+    <string name="message_removed">Tin nhắn đã bị xóa</string>
 
     <string name="no_google_account_warning">Không thể tìm thấy tài khoản Google nào. Vui lòng tạo tài khoản và thử lại</string>
     <string name="error_occurred">Lỗi không mong muốn xảy ra. Vui lòng thử lại sau </string>

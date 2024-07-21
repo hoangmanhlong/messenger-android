@@ -45,6 +45,25 @@ object Constant {
     const val CHAT_ROOM_KEY = "CHAT_ROOM_KEY"
 
     val number_of_images_can_be_selected = 1
+
+    // Notification Channel constants
+
+    // Name of Notification Channel for verbose notifications of background work
+    @JvmField val VERBOSE_NOTIFICATION_CHANNEL_NAME: CharSequence =
+        "Verbose WorkManager Notifications"
+    const val VERBOSE_NOTIFICATION_CHANNEL_DESCRIPTION =
+        "Shows notifications whenever work starts"
+    @JvmField val NOTIFICATION_TITLE: CharSequence = "WorkRequest Starting"
+    const val CHANNEL_ID = "VERBOSE_NOTIFICATION"
+    const val NOTIFICATION_ID = 1
+
+    const val IMAGE_KEY = "IMAGE_KEY"
+
+    const val OUTPUT_PATH = "save_image_temp"
+
+    // The name of the image manipulation work
+    const val IMAGE_MANIPULATION_WORK_NAME = "image_manipulation_work"
+    const val TAG_OUTPUT = "OUTPUT"
 }
 
 

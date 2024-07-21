@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -13,7 +14,8 @@ import com.google.firebase.ktx.Firebase
 
 class MessageAdapter(
     private val onMessageContentViewClick: () -> Unit,
-    private val onTextMessageClick: (Boolean, Message) -> Unit
+    private val onTextMessageClick: (Boolean, Message) -> Unit,
+    private val onImageMessageClick: (Drawable, Message) -> Unit
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
 
     private val ICON_MARGIN = 16
@@ -25,29 +27,53 @@ class MessageAdapter(
     private var expandedMessagePosition: Int? = null
 
     inner class SenderMessageViewHolder(
-        val binding: LayoutSenderMessageBinding
+        private val binding: LayoutSenderMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
-            binding.hasText = message.text != null
-            binding.hasImage = message.photo != null
+            if (!message.isTextEmpty()) {
+                binding.textMessageConstraintLayout.setOnLongClickListener {
+                    onTextMessageClick(true, message)
+                    false
+                }
+                binding.textMessageConstraintLayout.setOnClickListener {
+                    handleTextMessageClick(bindingAdapterPosition)
+                }
+            }
+            if (!message.isPhotoEmpty()) {
+                binding.imageMessageCardView.setOnClickListener {
+                    onImageMessageClick(binding.image.drawable, message)
+                }
+            }
             binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
             binding.message = message
         }
     }
 
     inner class ReceiverMessageViewHolder(
-        val binding: LayoutReceiverMessageBinding
+        private val binding: LayoutReceiverMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
-            binding.hasText = message.text != null
-            binding.hasImage = message.photo != null
+            if (!message.isTextEmpty()) {
+                binding.textMessageConstraintLayout.setOnLongClickListener {
+                    onTextMessageClick(false, message)
+                    false
+                }
+                binding.textMessageConstraintLayout.setOnClickListener {
+                    handleTextMessageClick(bindingAdapterPosition)
+                }
+            }
+            if (!message.isPhotoEmpty()) {
+                binding.imageMessageCardView.setOnClickListener {
+                    onImageMessageClick(binding.image.drawable, message)
+                }
+            }
             binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
             binding.message = message
         }
     }
 
     override fun getItemViewType(position: Int): Int =
-        if (getItem(position).fromId == Firebase.auth.uid)
+        if (getItem(position).senderId == Firebase.auth.uid)
             sender
         else
             receiver
@@ -63,7 +89,7 @@ class MessageAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val viewHolder = if (viewType == sender) {
+        return if (viewType == sender) {
             SenderMessageViewHolder(
                 LayoutSenderMessageBinding.inflate(
                     LayoutInflater.from(parent.context),
@@ -80,58 +106,22 @@ class MessageAdapter(
                 )
             )
         }
-
-//        if (viewType == sender) viewHolder.itemView.setOnLongClickListener {
-//            showMenu(viewHolder.itemView.context, it, R.menu.menu_message)
-//            onMessageLongClick(getItem(viewHolder.adapterPosition))
-//            true
-//        }
-        return viewHolder
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = getItem(position)
         if (holder is SenderMessageViewHolder || holder is ReceiverMessageViewHolder) {
-            holder.itemView.setOnClickListener {
-                onMessageContentViewClick()
-            }
-            if (holder is SenderMessageViewHolder) {
-                if (!item.text.isNullOrEmpty()) {
-                    holder.binding.textMessageConstraintLayout.setOnLongClickListener {
-                        onTextMessageClick(true, item)
-                        false
-                    }
-                    holder.binding.textMessageConstraintLayout.setOnClickListener {
-                        handleTextMessageClick(position)
-                    }
-                }
-                holder.bind(item)
-            }
-            if (holder is ReceiverMessageViewHolder) {
-                if (!item.text.isNullOrEmpty()) {
-                    holder.binding.textMessageConstraintLayout.setOnLongClickListener {
-                        onTextMessageClick(false, item)
-                        false
-                    }
-                    holder.binding.textMessageConstraintLayout.setOnClickListener {
-                        handleTextMessageClick(position)
-                    }
-                }
-                holder.bind(item)
-            }
+            holder.itemView.setOnClickListener { onMessageContentViewClick() }
+            if (holder is SenderMessageViewHolder) holder.bind(item)
+            if (holder is ReceiverMessageViewHolder) holder.bind(item)
         }
     }
 
     private fun handleTextMessageClick(position: Int) {
         val previousExpandedPosition = expandedMessagePosition
         expandedMessagePosition = if (position == expandedMessagePosition) null else position
-
-        previousExpandedPosition?.let {
-            notifyItemChanged(it)
-        }
-        expandedMessagePosition?.let {
-            notifyItemChanged(it)
-        }
+        previousExpandedPosition?.let { notifyItemChanged(it) }
+        expandedMessagePosition?.let { notifyItemChanged(it) }
     }
 
 //    @SuppressLint("RestrictedApi")

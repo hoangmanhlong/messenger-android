@@ -238,16 +238,24 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    fun addChatRoomMessageListener(chatroomId: String): Flow<List<Message>> = callbackFlow {
-        val messageRef = chatroomsRef.child(chatroomId).child(ChatRoom.MESSAGES)
+    fun addChatRoomMessageListener(chatroomId: String): Flow<Map<String, Message>> = callbackFlow {
+        val messageRef = chatroomsRef.child("$chatroomId/${ChatRoom.MESSAGES}")
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val messages = snapshot.children.mapNotNull { it.getValue(Message::class.java) }
+                val messages = snapshot.children.mapNotNull { dataSnapshot ->
+                    val key = dataSnapshot.key
+                    val message = dataSnapshot.getValue(Message::class.java)
+                    if (key != null && message != null) {
+                        key to message
+                    } else {
+                        null
+                    }
+                }.toMap()
                 trySend(messages).isSuccess
             }
 
             override fun onCancelled(error: DatabaseError) {
-                trySend(emptyList())
+                trySend(emptyMap())
                 close(error.toException())
             }
         }
@@ -255,6 +263,7 @@ class FirebaseRealtimeDatabaseService(
         registerMessagesListener[messageRef] = listener
         awaitClose { messageRef.removeEventListener(listener) }
     }
+
 
     fun removeMessageListener() {
         registerMessagesListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
@@ -321,11 +330,11 @@ class FirebaseRealtimeDatabaseService(
                     photo = photoUrl,
                     text = message.text,
                     audio = message.audio,
-                    fromId = auth.uid,
-                    toId = chatRoom.members?.first { it != auth.uid },
+                    senderId = auth.uid,
                     video = message.video,
                     type = message.type,
-                    status = message.status
+                    status = message.status,
+                    emoticon = message.emoticon
                 )
 
                 if (chatRoom.chatRoomId == null) {
@@ -336,7 +345,7 @@ class FirebaseRealtimeDatabaseService(
                     val finalChatRoom = ChatRoom(
                         chatRoomId = StringUtils.generateChatRoomId(members[0], members[1]),
                         members = members,
-                        messages = listOf(updatedMessage),
+                        messages = hashMapOf(updatedMessage.messageId!! to updatedMessage),
                         latestTime = currentTimestamp,
                         lastMessage = updatedMessage.text
                     )
@@ -363,11 +372,8 @@ class FirebaseRealtimeDatabaseService(
 
                     members.forEach { member -> updateUserChatRooms(member) }
                 } else {
-                    val messagesList = chatRoom.messages.orEmpty().toMutableList().apply {
-                        add(updatedMessage)
-                    }
                     val chatRoomUpdates = mapOf(
-                        ChatRoom.MESSAGES to messagesList,
+                        "${ChatRoom.MESSAGES}/${updatedMessage.messageId}" to updatedMessage,
                         ChatRoom.LAST_MESSAGE to message.text,
                         ChatRoom.LATEST_TIME to currentTimestamp
                     )
@@ -423,6 +429,24 @@ class FirebaseRealtimeDatabaseService(
             } else {
                 userDataRef.child(currentUid).setValue(userData).await()
             }
+        }
+    }
+
+    suspend fun updateEmojiMessage(
+        chatroomId: String,
+        messageId: String,
+        emoji: String
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            chatroomsRef.child(chatroomId)
+                .child(ChatRoom.MESSAGES)
+                .child(messageId)
+                .child(Message.EMOTICON)
+                .setValue(emoji)
+                .await()
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
         }
     }
 }

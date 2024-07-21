@@ -2,19 +2,16 @@ package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Message
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -25,11 +22,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
-import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -105,12 +99,27 @@ class ChatRoomFragment : Fragment() {
         messageAdapter = MessageAdapter(
             onMessageContentViewClick = {
                 if (messageRecyclerview != null) KeyBoardUtils.hideKeyboard(messageRecyclerview!!)
+                _viewModel.hideEmojiPicker()
             },
             onTextMessageClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
                 openMessageOptions(isSender)
+            },
+            onImageMessageClick = { drawable, message ->
+                KeyBoardUtils.hideKeyboard(messageRecyclerview!!)
+                _viewModel.setImageDetailShown(true, drawable)
             }
         )
+
+        binding.btDownloadImage.setOnClickListener {
+            activity?.let {
+                _viewModel.saveImageToDeviceStorage()
+            }
+        }
+
+        binding.btCloseImageDetail.setOnClickListener {
+            _viewModel.setImageDetailShown(false, null)
+        }
 
         messageRecyclerview?.adapter = messageAdapter
 
@@ -184,17 +193,32 @@ class ChatRoomFragment : Fragment() {
 
         binding.messagesView.setOnClickListener {
             KeyBoardUtils.hideKeyboard(binding.messagesView)
+            _viewModel.hideEmojiPicker()
         }
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        activity?.let { KeyBoardUtils.setupHideKeyboard(binding.messagesView, it) }
         getSharedData()
+
+        // Khi nhấn nút back trên thiết bị nếu đang show Image Detail thì đóng Image Detail View
+        // chứ không back về fragment trước
+        activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
+            if (_viewModel.imageDetailShown.value == true)
+                _viewModel.setImageDetailShown(false, null)
+            else {
+                findNavController().navigateUp()
+            }
+        }
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             binding.isLoading = it
+        }
+
+        _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
+            binding.imageDetailShown = it
+            if (it) binding.imageDetailImageView.setImageDrawable(_viewModel.imageMessageDrawable)
         }
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
@@ -215,10 +239,12 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.startObservingMessages.observe(this.viewLifecycleOwner) {
             if (it) {
-                _viewModel.messages.observe(this.viewLifecycleOwner) { messages ->
-                    binding.isMessageEmpty = messages.isNullOrEmpty()
-                    messageAdapter?.submitList(messages) {
-                        messageRecyclerview?.scrollToPosition(messages.size - 1)
+                _viewModel.messages.observe(this.viewLifecycleOwner) { messagesMap ->
+                    val messages = messagesMap.values.toList()
+                    binding.isMessageEmpty = messages.isEmpty()
+                    val finalMessage = messages.sortedBy { message ->  message.timestamp }
+                    messageAdapter?.submitList(finalMessage) {
+                        messageRecyclerview?.scrollToPosition(finalMessage.size - 1)
                     }
                 }
             }
@@ -227,11 +253,12 @@ class ChatRoomFragment : Fragment() {
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatroom ->
                 binding.chatroom = chatroom
-                val messages = chatroom.messages
+                val messages = chatroom.messages?.values?.toList()
                 binding.isMessageEmpty = messages.isNullOrEmpty()
-                messageAdapter?.submitList(messages) {
-                    if (!messages.isNullOrEmpty())
-                        messageRecyclerview?.scrollToPosition(messages.size - 1)
+                val finalMessage = messages?.sortedBy { message ->  message.timestamp }
+                messageAdapter?.submitList(finalMessage) {
+                    if (!finalMessage.isNullOrEmpty())
+                        messageRecyclerview?.scrollToPosition(finalMessage.size - 1)
                 }
             }
         }
@@ -294,6 +321,10 @@ class ChatRoomFragment : Fragment() {
         userdata?.let { _viewModel.setUserData(userdata) }
     }
 
+    fun updateMessageEmoji(emoji: String) {
+        _viewModel.updateMessageEmoji(emoji)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -303,7 +334,7 @@ class ChatRoomFragment : Fragment() {
     }
 
     private fun openMessageOptions(isMessageOfMe: Boolean) {
-        messageOptionsFragment = MessageOptionsFragment(this@ChatRoomFragment, isMessageOfMe)
+        messageOptionsFragment = MessageOptionsFragment(this, isMessageOfMe)
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 

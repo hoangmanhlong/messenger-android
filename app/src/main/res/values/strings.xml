@@ -89,10 +89,14 @@
     <string name="this_function_will_be_updated_soon">This function will be updated soon ❤️</string>
     <string name="copied_to_clipboard">Copied</string>
 
-<!--    Message Options-->
+    <!--    Message Options-->
     <string name="copy">Copy</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="pin">Pin</string>
+    <string name="reply">Reply</string>
+    <string name="pinned">Pinned</string>
+    <string name="message_removed">Message removed</string>
 
     <string name="no_google_account_warning">No Google accounts could be found. Please create an account and try again</string>
     <string name="error_occurred">Unexpected error occurred. Please try again later</string>

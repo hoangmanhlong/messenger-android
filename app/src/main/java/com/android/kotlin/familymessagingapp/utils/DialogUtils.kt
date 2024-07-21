@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AlertDialog
 import com.android.kotlin.familymessagingapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -79,8 +80,9 @@ object DialogUtils {
     fun showNotificationDialog(
         context: Context,
         @StringRes message: Int
-    ): MaterialAlertDialogBuilder =
+    ): AlertDialog =
         MaterialAlertDialogBuilder(context)
             .setMessage(context.getString(message))
             .setPositiveButton(R.string.ok, null)
+            .create()
 }

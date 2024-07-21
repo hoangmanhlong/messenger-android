@@ -6,11 +6,7 @@
     <data>
 
         <variable
-            name="hasImage"
-            type="Boolean" />
-
-        <variable
-            name="hasText"
+            name="isPinnedMessage"
             type="Boolean" />
 
         <variable
@@ -47,42 +43,77 @@
             app:layout_constraintStart_toEndOf="@id/guideline"
             app:layout_constraintTop_toTopOf="parent">
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/pinned"
+                android:textSize="12sp"
+                android:visibility="@{isPinnedMessage ? View.VISIBLE : View.GONE}" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/imageMessageCardView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="@{message.isPhotoEmpty() ? View.GONE : View.VISIBLE}"
                 app:cardCornerRadius="16dp"
                 app:strokeWidth="0dp">
 
                 <ImageView
                     android:id="@+id/image"
                     bindNormalImage="@{message.photo}"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:adjustViewBounds="true"
-                    android:visibility="@{hasImage ? View.VISIBLE : View.GONE}"
+                    android:maxHeight="300dp"
                     tools:src="@drawable/baohong" />
+
             </com.google.android.material.card.MaterialCardView>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/textMessageConstraintLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/bg_message_sender"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:visibility="@{hasText ? View.VISIBLE : View.GONE}">
+                android:visibility="@{message.isTextEmpty() ? View.GONE : View.VISIBLE}">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/textMessageConstraintLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_message_sender"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/messageText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@{message.text}"
+                        android:textColor="#ffffff"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="How are you?" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{message.text}"
-                    android:textColor="#ffffff"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:background="@drawable/bg_message_emoji"
+                    android:paddingHorizontal="6dp"
+                    android:text="@{message.emoticon}"
+                    android:textSize="12sp"
+                    android:visibility="@{message.isEmoticonEmpty() ? View.GONE : View.VISIBLE}"
+                    app:layout_constraintBottom_toBottomOf="@id/textMessageConstraintLayout"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="How are you?" />
+                    app:layout_constraintTop_toBottomOf="@id/textMessageConstraintLayout"
+                    tools:text="❤️" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView

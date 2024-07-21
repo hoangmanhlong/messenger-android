@@ -35,7 +35,7 @@ class ProfileFragment : Fragment() {
 
     private var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment? = null
 
-    private lateinit var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment
+    private var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -137,6 +137,8 @@ class ProfileFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         (activity as MainActivity).isShowLoadingDialog(false)
+        confirmDeleteAccountFragment = null
+        selectLanguageBottomSheetDialogFragment = null
     }
 
     private fun onLogoutViewClick() {
@@ -163,7 +165,7 @@ class ProfileFragment : Fragment() {
 
     fun onSelectLanguageViewClick() {
         selectLanguageBottomSheetDialogFragment = SelectLanguageBottomSheetDialogFragment()
-        selectLanguageBottomSheetDialogFragment.show(
+        selectLanguageBottomSheetDialogFragment?.show(
             this.parentFragmentManager,
             SelectLanguageBottomSheetDialogFragment.TAG
         )

@@ -2,7 +2,6 @@ package com.android.kotlin.familymessagingapp.model
 
 import android.os.Parcelable
 import com.google.firebase.database.IgnoreExtraProperties
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -19,7 +18,7 @@ import kotlinx.parcelize.Parcelize
 data class ChatRoom(
     val chatRoomId: String? = null,
     val members: List<String>? = null,
-    val messages: List<Message>? = null,
+    val messages: Map<String, Message>? = null,
     val latestTime: Long? = null,
     val isActive: Boolean? = null,
     val lastMessage: String? = null,
