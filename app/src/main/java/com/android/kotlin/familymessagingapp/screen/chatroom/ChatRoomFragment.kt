@@ -24,14 +24,12 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import okio.Timeout
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
 
 /**
  * ChatRoom hiển thị data với 2 trường hợp
@@ -245,14 +243,6 @@ class ChatRoomFragment : Fragment() {
             binding.aiCreating = it
         }
 
-        _viewModel.startObservingMessages.observe(this.viewLifecycleOwner) {
-            if (it) {
-                _viewModel.messages.observe(this.viewLifecycleOwner) { messages ->
-                    bindMessages(messages)
-                }
-            }
-        }
-
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatroom ->
                 binding.chatroom = chatroom
@@ -295,7 +285,7 @@ class ChatRoomFragment : Fragment() {
                             Snackbar.make(
                                 binding.inputView,
                                 R.string.max_pin_message_warning,
-                                1000
+                                Constant.ONE_SECOND
                             ).show()
                         }
                     }

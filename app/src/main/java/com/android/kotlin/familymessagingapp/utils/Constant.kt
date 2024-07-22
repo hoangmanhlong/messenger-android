@@ -66,6 +66,8 @@ object Constant {
     const val TAG_OUTPUT = "OUTPUT"
 
     const val MAX_PINNED_MESSAGE = "MAX_PINNED_MESSAGE"
+
+    const val ONE_SECOND = 1000
 }
 
 

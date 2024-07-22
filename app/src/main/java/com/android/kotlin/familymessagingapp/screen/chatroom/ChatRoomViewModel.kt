@@ -49,16 +49,16 @@ class ChatRoomViewModel @Inject constructor(
     private val _sendMessageStatus: MutableLiveData<SendMessageStatus?> = MutableLiveData(null)
     val sendMessageStatus: LiveData<SendMessageStatus?> = _sendMessageStatus
 
-    lateinit var messages: LiveData<Map<String, Message>>
-
     var selectedMessage: Message? = null
         private set
 
     var imageMessageDrawable: Drawable? = null
         private set
 
-    private val _chatRoom: MutableLiveData<ChatRoom> = MutableLiveData(ChatRoom())
-    val chatRoom: LiveData<ChatRoom> = _chatRoom
+    private val _chatRoom: MutableLiveData<ChatRoom?> = MutableLiveData(ChatRoom())
+    val chatRoom: LiveData<ChatRoom?> = _chatRoom
+
+    private lateinit var chatroomLiveData: LiveData<ChatRoom?>
 
     private val _AIGeneratedText: MutableLiveData<String?> = MutableLiveData(null)
     val AIGeneratedText: LiveData<String?> = _AIGeneratedText
@@ -77,8 +77,6 @@ class ChatRoomViewModel @Inject constructor(
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
 
-    val startObservingMessages = MutableLiveData(false)
-
     fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!
     }
@@ -86,6 +84,10 @@ class ChatRoomViewModel @Inject constructor(
     fun setImageDetailShown(shown: Boolean, drawable: Drawable?) {
         imageMessageDrawable = drawable
         _imageDetailShown.value = shown
+    }
+
+    fun setIsLoading(isLoading: Boolean) {
+        _isLoading.value = isLoading
     }
 
     fun setAIGeneratedText(text: String?) {
@@ -131,7 +133,9 @@ class ChatRoomViewModel @Inject constructor(
                     .checkChatRoomExist(userData.uid)
                 if (!chatroomID.isNullOrEmpty()) {
                     _chatRoom.value = _chatRoom.value?.copy(chatRoomId = chatroomID)
-                    initMessageListener()
+                    initChatRoomListener()
+                } else {
+                    //TODO: chatroom not exist
                 }
             }
         }
@@ -167,36 +171,38 @@ class ChatRoomViewModel @Inject constructor(
             members = chatRoom.members,
             pinnedMessages = chatRoom.pinnedMessages
         )
-        initMessageListener()
+        initChatRoomListener()
     }
 
-    private fun initMessageListener() {
+    private fun initChatRoomListener() {
         val chatRoomId = _chatRoom.value?.chatRoomId
         if (!chatRoomId.isNullOrEmpty()) {
-            messages = firebaseServiceRepository
+            chatroomLiveData = firebaseServiceRepository
                 .firebaseRealtimeDatabaseService
-                .addChatRoomMessageListener(chatRoomId)
+                .addChatRoomListener(chatRoomId)
                 .asLiveData()
 
-            // start message listener
-            startObservingMessages.value = true
-
-            messages.observeForever {
-                viewModelScope.launch {
-                    _chatRoom.value = _chatRoom.value?.copy(messages = it)
-                    val lastMessage = it.values.lastOrNull()
-                    if (lastMessage != null
-                        && lastMessage.senderId != Firebase.auth.uid
-                        && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(
-                            AppDataStore.ENABLED_AI,
-                            false
-                        ).first() == true
-                    ) {
-                        _AICreating.value = true
-                        _AIGeneratedText.value = geminiModel.generateContent(lastMessage)
-                        _AICreating.value = false
-                    } else {
-                        _AIGeneratedText.value = null
+            chatroomLiveData.observeForever { chatRoom ->
+                _chatRoom.value = _chatRoom.value?.copy(
+                    pinnedMessages = chatRoom?.pinnedMessages,
+                    messages = chatRoom?.messages
+                )
+                if (chatRoom != null) {
+                    viewModelScope.launch {
+                        val lastMessage = chatRoom.messages?.values?.lastOrNull()
+                        if (lastMessage != null
+                            && lastMessage.senderId != Firebase.auth.uid
+                            && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(
+                                AppDataStore.ENABLED_AI,
+                                false
+                            ).first() == true
+                        ) {
+                            _AICreating.value = true
+                            _AIGeneratedText.value = geminiModel.generateContent(lastMessage)
+                            _AICreating.value = false
+                        } else {
+                            _AIGeneratedText.value = null
+                        }
                     }
                 }
             }
@@ -213,7 +219,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun removeMessageListener() {
-        firebaseServiceRepository.firebaseRealtimeDatabaseService.removeMessageListener()
+        firebaseServiceRepository.firebaseRealtimeDatabaseService.removeChatRoomListener()
     }
 
     fun updateMessageEmoji(emoji: String) {
@@ -267,7 +273,7 @@ class ChatRoomViewModel @Inject constructor(
                     val data = sendResult.data
                     if (data != null && _chatRoom.value!!.chatRoomId == null) {
                         _chatRoom.value = _chatRoom.value?.copy(chatRoomId = data.chatRoomId)
-                        initMessageListener()
+                        initChatRoomListener()
                     }
                 }
 
