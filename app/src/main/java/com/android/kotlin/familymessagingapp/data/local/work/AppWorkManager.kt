@@ -2,7 +2,6 @@ package com.android.kotlin.familymessagingapp.data.local.work
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
@@ -10,13 +9,12 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
-import java.net.URI
 
 class AppWorkManager(private val application: Application) {
 
     private val workManager = WorkManager.getInstance(application)
 
-    suspend fun saveImageToFile(bitmap: Bitmap) {
+    suspend fun saveImageToDeviceStorage(bitmap: Bitmap) {
         val imageUri = MediaUtils.writeBitmapToFile(application, bitmap)
         var continuation = workManager.beginUniqueWork(
             Constant.IMAGE_MANIPULATION_WORK_NAME,

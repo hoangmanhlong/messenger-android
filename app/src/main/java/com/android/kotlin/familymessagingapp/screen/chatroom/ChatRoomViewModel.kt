@@ -1,6 +1,5 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
-import android.app.Application
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -29,7 +28,6 @@ enum class SendMessageStatus { SUCCESS, ERROR, SENDING }
 
 @HiltViewModel
 class ChatRoomViewModel @Inject constructor(
-    private val application: Application,
     private val firebaseServiceRepository: FirebaseServiceRepository,
     private val geminiModel: GeminiModel,
     private val localDatabaseRepository: LocalDatabaseRepository,
@@ -41,6 +39,9 @@ class ChatRoomViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _pinMessageStatus: MutableLiveData<Result<Boolean>?> = MutableLiveData(null)
+    val pinMessageStatus: LiveData<Result<Boolean>?> = _pinMessageStatus
 
     private val _emojiPickerVisible: MutableLiveData<Boolean> = MutableLiveData(false)
     val emojiPickerVisible: LiveData<Boolean> = _emojiPickerVisible
@@ -107,7 +108,7 @@ class ChatRoomViewModel @Inject constructor(
     fun saveImageToDeviceStorage() {
         imageMessageDrawable?.let {
             viewModelScope.launch {
-                workManager.saveImageToFile((imageMessageDrawable as BitmapDrawable).bitmap)
+                workManager.saveImageToDeviceStorage((imageMessageDrawable as BitmapDrawable).bitmap)
             }
         }
     }
@@ -136,6 +137,24 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
+    fun pinMessage() {
+        viewModelScope.launch {
+            if (_chatRoom.value != null && selectedMessage?.messageId != null) {
+                val pinnedMessage = _chatRoom.value!!.pinnedMessages ?: emptyList()
+                if (pinnedMessage.size < 3) {
+                    val result =
+                        firebaseServiceRepository.firebaseRealtimeDatabaseService.addNewPinnedMessage(
+                            _chatRoom.value!!,
+                            selectedMessage!!.messageId!!
+                        )
+                    _pinMessageStatus.value = result
+                } else {
+                    _pinMessageStatus.value = Result.Error(CountExceededException())
+                }
+            }
+        }
+    }
+
     fun setChatRoom(chatRoom: ChatRoom) {
         _chatRoom.value = _chatRoom.value?.copy(
             chatRoomId = chatRoom.chatRoomId,
@@ -146,7 +165,7 @@ class ChatRoomViewModel @Inject constructor(
             isActive = chatRoom.isActive,
             chatRoomImage = chatRoom.chatRoomImage,
             members = chatRoom.members,
-            pinned = chatRoom.pinned
+            pinnedMessages = chatRoom.pinnedMessages
         )
         initMessageListener()
     }
@@ -181,6 +200,15 @@ class ChatRoomViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun isPinnedMessage(messageId: String?): Boolean {
+        return if (_chatRoom.value != null && !messageId.isNullOrEmpty()) {
+            val pinnedMessages = _chatRoom.value!!.pinnedMessages
+            pinnedMessages != null && pinnedMessages.contains(messageId)
+        } else {
+            false
         }
     }
 
@@ -253,10 +281,9 @@ class ChatRoomViewModel @Inject constructor(
     private fun clearInput() {
         clearEditText(true)
         setImageUri(null)
-
     }
 
     companion object {
-        const val TAG = "ChatRoomViewModel"
+        val TAG: String = ChatRoomViewModel::class.java.simpleName
     }
 }

@@ -41,7 +41,7 @@ class ChatRoomAdapter(
 
         holder.itemView.setOnLongClickListener {
             onChatRoomLongClick(item)
-            true
+            false
         }
 
         holder.bind(item)

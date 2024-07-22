@@ -55,34 +55,33 @@
             android:layout_weight="1">
 
             <TextView
-                style="@style/TextAppearance.Material3.BodyLarge"
                 android:id="@+id/tvChatRoomName"
+                style="@style/TextAppearance.Material3.BodyLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{chatroom.chatroomName}"
-
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Hoang Manh Long" />
 
             <TextView
-                android:layout_marginTop="4dp"
                 android:id="@+id/tvLastMessage"
+                bindLastMessageOfChatroom="@{chatroom}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:maxWidth="200dp"
                 android:singleLine="true"
-                android:text="@{chatroom.lastMessage}"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvChatRoomName"
                 tools:text="@string/logout_message" />
 
             <TextView
+                android:id="@+id/tvLastMessageTime"
                 bindChatroomFormattedTime="@{chatroom.latestTime}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
-                android:id="@+id/tvLastMessageTime"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="12:00" />
@@ -92,8 +91,8 @@
                 android:layout_height="15dp"
                 android:layout_marginEnd="8dp"
                 android:src="@drawable/ic_push_pin"
+                android:visibility="gone"
                 app:layout_constraintEnd_toStartOf="@id/tvLastMessageTime"
-                android:visibility="@{chatroom.pinned ? View.VISIBLE : View.GONE}"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

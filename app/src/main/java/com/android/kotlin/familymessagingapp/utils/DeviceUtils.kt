@@ -33,4 +33,14 @@ object DeviceUtils {
         val currentLocale: Locale = context.resources.configuration.locales[0]
         return currentLocale.language
     }
+
+    fun shareImage(context: Context, uriToImage: Uri) {
+        val shareIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            // Example: content://com.google.android.apps.photos.contentprovider/...
+            putExtra(Intent.EXTRA_STREAM, uriToImage)
+            type = "image/*"
+        }
+        context.startActivity(Intent.createChooser(shareIntent, null))
+    }
 }

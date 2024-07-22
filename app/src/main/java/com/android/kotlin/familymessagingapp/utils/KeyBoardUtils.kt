@@ -14,7 +14,7 @@ import com.android.kotlin.familymessagingapp.R
 
 object KeyBoardUtils {
 
-    private fun hideSoftKeyboard(activity: Activity) {
+    fun hideSoftKeyboard(activity: Activity) {
         val currentFocus = activity.currentFocus ?: return
         val inputMethodManager = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         if (inputMethodManager.isAcceptingText) {
@@ -37,11 +37,6 @@ object KeyBoardUtils {
                 setupHideKeyboard(innerView, activity)
             }
         }
-    }
-
-    fun hideKeyboard(view: View) {
-        val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     fun showKeyboard(view: View) {

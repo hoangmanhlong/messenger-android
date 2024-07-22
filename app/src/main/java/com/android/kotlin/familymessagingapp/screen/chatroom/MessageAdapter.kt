@@ -14,7 +14,7 @@ import com.google.firebase.ktx.Firebase
 
 class MessageAdapter(
     private val onMessageContentViewClick: () -> Unit,
-    private val onTextMessageClick: (Boolean, Message) -> Unit,
+    private val onMessageLongClick: (Boolean, Message) -> Unit,
     private val onImageMessageClick: (Drawable, Message) -> Unit
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
 
@@ -32,7 +32,7 @@ class MessageAdapter(
         fun bind(message: Message) {
             if (!message.isTextEmpty()) {
                 binding.textMessageConstraintLayout.setOnLongClickListener {
-                    onTextMessageClick(true, message)
+                    onMessageLongClick(true, message)
                     false
                 }
                 binding.textMessageConstraintLayout.setOnClickListener {
@@ -42,6 +42,10 @@ class MessageAdapter(
             if (!message.isPhotoEmpty()) {
                 binding.imageMessageCardView.setOnClickListener {
                     onImageMessageClick(binding.image.drawable, message)
+                }
+                binding.imageMessageCardView.setOnLongClickListener {
+                    onMessageLongClick(true, message)
+                    false
                 }
             }
             binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
@@ -55,7 +59,7 @@ class MessageAdapter(
         fun bind(message: Message) {
             if (!message.isTextEmpty()) {
                 binding.textMessageConstraintLayout.setOnLongClickListener {
-                    onTextMessageClick(false, message)
+                    onMessageLongClick(false, message)
                     false
                 }
                 binding.textMessageConstraintLayout.setOnClickListener {
@@ -65,6 +69,10 @@ class MessageAdapter(
             if (!message.isPhotoEmpty()) {
                 binding.imageMessageCardView.setOnClickListener {
                     onImageMessageClick(binding.image.drawable, message)
+                }
+                binding.imageMessageCardView.setOnLongClickListener {
+                    onMessageLongClick(false, message)
+                    false
                 }
             }
             binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition

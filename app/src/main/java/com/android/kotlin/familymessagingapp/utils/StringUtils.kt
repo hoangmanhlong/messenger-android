@@ -47,7 +47,7 @@ object StringUtils {
     fun getCurrentTime(): Long = System.currentTimeMillis()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun formatTime(milliseconds: Long): String {
+    fun formatTime(milliseconds: Long, isChatRoomFormat: Boolean): String {
         val now = LocalDate.now()
         val dateTime =
             Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime()
@@ -55,8 +55,8 @@ object StringUtils {
 
         return when {
             date.isEqual(now) -> dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-            date.year == now.year -> date.format(DateTimeFormatter.ofPattern("d MMM"))
-            else -> date.format(DateTimeFormatter.ofPattern("d MMM yyyy"))
+            date.year == now.year -> dateTime.format(DateTimeFormatter.ofPattern(if (isChatRoomFormat) "d MMM" else "HH:mm d/MM"))
+            else -> dateTime.format(DateTimeFormatter.ofPattern(if (isChatRoomFormat) "d MMM yyyy" else "HH:mm d/MM/yyyy"))
         }
     }
 

@@ -104,7 +104,8 @@ class FirebaseRealtimeDatabaseService(
                 if (chatRooms.isNullOrEmpty()) {
                     flowOf(emptyList()) // Emit empty list for empty chatrooms
                 } else {
-                    val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map { getChatRoomFlow(it) }
+                    val chatroomFlows: List<Flow<ChatRoom?>> =
+                        chatRooms.map { getChatRoomFlow(it, userData) }
                     combine(chatroomFlows) {
                         // Sort chat room list by latestTime
                         it.filterNotNull().toList()
@@ -124,49 +125,51 @@ class FirebaseRealtimeDatabaseService(
      * chỉ đăng ký 1 lần và huỷ khi Flow đóng
      * @param chatroomId chatroomID of userdata
      */
-    private fun getChatRoomFlow(chatroomId: String): Flow<ChatRoom?> = callbackFlow {
-        val chatroomRef = chatroomsRef.child(chatroomId)
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                var chatroom = snapshot.getValue(ChatRoom::class.java)
-                val otherUserUid = chatroom?.members?.first { it != auth.uid }
-                otherUserUid?.let {
-                    userDataRef.child(otherUserUid)
-                        .addListenerForSingleValueEvent(object : ValueEventListener {
-                            override fun onDataChange(snapshot: DataSnapshot) {
-                                val userdata = snapshot.getValue(UserData::class.java)
-                                chatroom = chatroom?.copy(
-                                    chatRoomImage = userdata?.userAvatar,
-                                    chatroomName = userdata?.username
-                                )
-                                this@callbackFlow.trySend(chatroom)
-                            }
+    private fun getChatRoomFlow(chatroomId: String, currentUserData: UserData): Flow<ChatRoom?> =
+        callbackFlow {
+            val chatroomRef = chatroomsRef.child(chatroomId)
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var chatroom = snapshot.getValue(ChatRoom::class.java)
+                    val otherUserUid = chatroom?.members?.first { it != auth.uid }
+                    val membersData: MutableList<UserData> = mutableListOf()
+                    membersData.add(currentUserData)
+                    otherUserUid?.let {
+                        userDataRef.child(otherUserUid)
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val userdata = snapshot.getValue(UserData::class.java)
+                                    if (userdata != null) membersData.add(userdata)
+                                    chatroom = chatroom?.copy(membersData = membersData)
+                                    chatroom?.getChatRoomNameAndImage()
+                                    this@callbackFlow.trySend(chatroom)
+                                }
 
-                            override fun onCancelled(error: DatabaseError) {
+                                override fun onCancelled(error: DatabaseError) {
 //                                close(error.toException())
-                                trySend(null).isSuccess
-                            }
-                        })
+                                    trySend(null).isSuccess
+                                }
+                            })
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    close(error.toException())
+                    trySend(null).isSuccess
                 }
             }
 
-            override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
-                trySend(null).isSuccess
+            // Check if listener is already registered
+            if (!registeredChatRoomsListeners.containsKey(chatroomRef)) {
+                chatroomRef.addValueEventListener(listener)
+                registeredChatRoomsListeners[chatroomRef] = listener
+            }
+
+            awaitClose {
+                chatroomRef.removeEventListener(listener)
+                registeredChatRoomsListeners.remove(chatroomRef)
             }
         }
-
-        // Check if listener is already registered
-        if (!registeredChatRoomsListeners.containsKey(chatroomRef)) {
-            chatroomRef.addValueEventListener(listener)
-            registeredChatRoomsListeners[chatroomRef] = listener
-        }
-
-        awaitClose {
-            chatroomRef.removeEventListener(listener)
-            registeredChatRoomsListeners.remove(chatroomRef)
-        }
-    }
 
     suspend fun updateEnabledAIUserData(enabled: Boolean): Boolean {
         return withContext(Dispatchers.IO) {
@@ -334,7 +337,8 @@ class FirebaseRealtimeDatabaseService(
                     video = message.video,
                     type = message.type,
                     status = message.status,
-                    emoticon = message.emoticon
+                    emoticon = message.emoticon,
+                    replyMessageId = message.replyMessageId
                 )
 
                 if (chatRoom.chatRoomId == null) {
@@ -347,7 +351,7 @@ class FirebaseRealtimeDatabaseService(
                         members = members,
                         messages = hashMapOf(updatedMessage.messageId!! to updatedMessage),
                         latestTime = currentTimestamp,
-                        lastMessage = updatedMessage.text
+                        lastMessage = updatedMessage
                     )
                     val chatroomID = finalChatRoom.chatRoomId!!
                     chatroomsRef.child(chatroomID)
@@ -374,7 +378,7 @@ class FirebaseRealtimeDatabaseService(
                 } else {
                     val chatRoomUpdates = mapOf(
                         "${ChatRoom.MESSAGES}/${updatedMessage.messageId}" to updatedMessage,
-                        ChatRoom.LAST_MESSAGE to message.text,
+                        ChatRoom.LAST_MESSAGE to updatedMessage,
                         ChatRoom.LATEST_TIME to currentTimestamp
                     )
 
@@ -429,6 +433,42 @@ class FirebaseRealtimeDatabaseService(
             } else {
                 userDataRef.child(currentUid).setValue(userData).await()
             }
+        }
+    }
+
+    suspend fun addNewPinnedMessage(
+        chatRoom: ChatRoom,
+        messageId: String
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val pinnedMessage = mutableListOf<String>()
+            pinnedMessage.addAll(chatRoom.pinnedMessages ?: emptyList())
+            pinnedMessage.add(messageId)
+            chatroomsRef
+                .child(chatRoom.chatRoomId!!)
+                .child(ChatRoom.PINNED_MESSAGES)
+                .setValue(pinnedMessage)
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    suspend fun deletePinnedMessage(
+        chatRoom: ChatRoom,
+        messageId: String
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val pinnedMessage = mutableListOf<String>()
+            pinnedMessage.addAll(chatRoom.pinnedMessages ?: emptyList())
+            pinnedMessage.remove(messageId)
+            chatroomsRef
+                .child(chatRoom.chatRoomId!!)
+                .child(ChatRoom.PINNED_MESSAGES)
+                .setValue(pinnedMessage)
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
         }
     }
 

@@ -178,15 +178,17 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
+                    android:id="@+id/ivPin"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_push_pin" />
+                    tools:src="@drawable/ic_push_pin" />
 
                 <TextView
+                    android:id="@+id/tvPin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="@string/pin"
+                    tools:text="@string/pin"
                     android:textSize="16sp" />
             </LinearLayout>
 

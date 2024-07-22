@@ -5,13 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentMessageOptionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 
 class MessageOptionsFragment(
     private var parentFragment: ChatRoomFragment? = null,
-    private var isMessageOfMe: Boolean? = null
+    private var isMessageOfMe: Boolean? = null,
+    private var isPinned: Boolean? = null
 ) : BottomSheetDialogFragment() {
 
     companion object {
@@ -44,12 +46,20 @@ class MessageOptionsFragment(
             parentFragment?.copyMessage()
             dismiss()
         }
+
+        binding.pinMessageView.setOnClickListener {
+            parentFragment?.pinMessage()
+            dismiss()
+        }
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.isMessageOfMe = isMessageOfMe
+
+        binding.ivPin.setImageResource(if (isPinned == true) R.drawable.ic_duo else R.drawable.ic_push_pin)
+        binding.tvPin.text = if (isPinned == true) getString(R.string.unpin) else getString(R.string.pin)
     }
 
     override fun onDestroyView() {

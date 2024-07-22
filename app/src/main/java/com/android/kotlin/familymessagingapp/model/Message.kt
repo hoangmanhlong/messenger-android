@@ -17,7 +17,9 @@ data class Message(
     val timestamp: Long? = null,
     val status: Int? = null,
     val type: Int? = null,
-    val emoticon: String? = null
+    val emoticon: String? = null,
+    val replyMessageId: String? = null,
+    @Exclude var pinned: Boolean? = null
 ) : Parcelable {
 
     @Exclude
@@ -28,6 +30,9 @@ data class Message(
 
     @Exclude
     fun isTextEmpty(): Boolean = text.isNullOrEmpty()
+
+    @Exclude
+    fun isPinned(): Boolean = pinned ?: false
 
     companion object {
         const val EMOTICON = "emoticon"

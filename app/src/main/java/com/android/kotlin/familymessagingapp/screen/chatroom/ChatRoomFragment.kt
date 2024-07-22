@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +11,7 @@ import android.view.WindowManager
 import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -22,9 +22,16 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
+import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import okio.Timeout
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 /**
  * ChatRoom hiển thị data với 2 trường hợp
@@ -88,8 +95,6 @@ class ChatRoomFragment : Fragment() {
     ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
 
-//        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-
         messageRecyclerview = binding.messageRecyclerview
         (messageRecyclerview?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         messageRecyclerview?.layoutManager = LinearLayoutManager(activity).apply {
@@ -98,23 +103,21 @@ class ChatRoomFragment : Fragment() {
         }
         messageAdapter = MessageAdapter(
             onMessageContentViewClick = {
-                if (messageRecyclerview != null) KeyBoardUtils.hideKeyboard(messageRecyclerview!!)
+                hideKeyboard()
                 _viewModel.hideEmojiPicker()
             },
-            onTextMessageClick = { isSender, message ->
+            onMessageLongClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
-                openMessageOptions(isSender)
+                openMessageOptions(isSender, message)
             },
             onImageMessageClick = { drawable, message ->
-                KeyBoardUtils.hideKeyboard(messageRecyclerview!!)
+                hideKeyboard()
                 _viewModel.setImageDetailShown(true, drawable)
             }
         )
 
         binding.btDownloadImage.setOnClickListener {
-            activity?.let {
-                _viewModel.saveImageToDeviceStorage()
-            }
+            _viewModel.saveImageToDeviceStorage()
         }
 
         binding.btCloseImageDetail.setOnClickListener {
@@ -152,7 +155,6 @@ class ChatRoomFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                Log.d(TAG, "onTextChanged: " + s.toString().trim())
                 _viewModel.setTextMessage(s.toString().trim())
                 _viewModel.clearEditText(false)
             }
@@ -192,8 +194,14 @@ class ChatRoomFragment : Fragment() {
         }
 
         binding.messagesView.setOnClickListener {
-            KeyBoardUtils.hideKeyboard(binding.messagesView)
+            hideKeyboard()
             _viewModel.hideEmojiPicker()
+        }
+
+        binding.btShare.setOnClickListener {
+            activity?.let {
+                DeviceUtils.shareImage(requireActivity(), "".toUri())
+            }
         }
         return binding.root
     }
@@ -222,7 +230,7 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
-            if (it) KeyBoardUtils.hideKeyboard(view)
+            if (it) hideKeyboard()
             binding.isEmojiPickerVisible = it
             binding.ivOpenEmojiPicker.setImageResource(if (it) R.drawable.ic_emoji_filled else R.drawable.ic_mood)
         }
@@ -239,13 +247,8 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.startObservingMessages.observe(this.viewLifecycleOwner) {
             if (it) {
-                _viewModel.messages.observe(this.viewLifecycleOwner) { messagesMap ->
-                    val messages = messagesMap.values.toList()
-                    binding.isMessageEmpty = messages.isEmpty()
-                    val finalMessage = messages.sortedBy { message ->  message.timestamp }
-                    messageAdapter?.submitList(finalMessage) {
-                        messageRecyclerview?.scrollToPosition(finalMessage.size - 1)
-                    }
+                _viewModel.messages.observe(this.viewLifecycleOwner) { messages ->
+                    bindMessages(messages)
                 }
             }
         }
@@ -253,13 +256,7 @@ class ChatRoomFragment : Fragment() {
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatroom ->
                 binding.chatroom = chatroom
-                val messages = chatroom.messages?.values?.toList()
-                binding.isMessageEmpty = messages.isNullOrEmpty()
-                val finalMessage = messages?.sortedBy { message ->  message.timestamp }
-                messageAdapter?.submitList(finalMessage) {
-                    if (!finalMessage.isNullOrEmpty())
-                        messageRecyclerview?.scrollToPosition(finalMessage.size - 1)
-                }
+                bindMessages(chatroom.messages)
             }
         }
 
@@ -281,25 +278,36 @@ class ChatRoomFragment : Fragment() {
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
             it?.let {
                 when (it) {
-                    SendMessageStatus.SENDING -> {
-//                        binding.btSendMessage.text = getString(R.string.sending)
-                        binding.btSendMessage.isEnabled = false
-                    }
+                    SendMessageStatus.SENDING -> binding.btSendMessage.isEnabled = false
 
-                    SendMessageStatus.SUCCESS -> {
-//                        binding.btSendMessage.text = getString(R.string.send)
-//                        binding.btSendMessage.isEnabled = true
-                        _viewModel.setSendMessageStatus(null)
-                    }
+                    SendMessageStatus.SUCCESS -> _viewModel.setSendMessageStatus(null)
 
-                    SendMessageStatus.ERROR -> {
-//                        binding.btSendMessage.text = getString(R.string.send)
-//                        binding.btSendMessage.isEnabled = true
-                        _viewModel.setSendMessageStatus(null)
-                    }
+                    SendMessageStatus.ERROR -> _viewModel.setSendMessageStatus(null)
                 }
             }
         }
+
+        _viewModel.pinMessageStatus.observe(this.viewLifecycleOwner) { status ->
+            status?.let {
+                when (status) {
+                    is Result.Error -> {
+                        if (status.exception is CountExceededException) {
+                            Snackbar.make(
+                                binding.inputView,
+                                R.string.max_pin_message_warning,
+                                1000
+                            ).show()
+                        }
+                    }
+
+                    is Result.Success -> {}
+                }
+            }
+        }
+    }
+
+    private fun hideKeyboard() {
+        activity?.let { KeyBoardUtils.hideSoftKeyboard(requireActivity()) }
     }
 
     /**
@@ -325,16 +333,35 @@ class ChatRoomFragment : Fragment() {
         _viewModel.updateMessageEmoji(emoji)
     }
 
+    /**
+     * Update message list to RecyclerView
+     *
+     * @param messages data from backend(Firebase)
+     */
+    private fun bindMessages(messages: Map<String, Message>?) {
+        val list = messages?.values?.toList()
+        binding.isMessageEmpty = list.isNullOrEmpty()
+        val finalMessage = list?.sortedBy { message -> message.timestamp }
+        messageAdapter?.submitList(finalMessage) {
+            if (!finalMessage.isNullOrEmpty())
+                messageRecyclerview?.scrollToPosition(finalMessage.size - 1)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
         _viewModel.removeMessageListener()
-        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+//        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }
 
-    private fun openMessageOptions(isMessageOfMe: Boolean) {
-        messageOptionsFragment = MessageOptionsFragment(this, isMessageOfMe)
+    private fun openMessageOptions(isMessageOfMe: Boolean, message: Message) {
+        messageOptionsFragment = MessageOptionsFragment(
+            this,
+            isMessageOfMe,
+            _viewModel.isPinnedMessage(message.messageId)
+        )
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
@@ -352,5 +379,9 @@ class ChatRoomFragment : Fragment() {
                 _viewModel.selectedMessage!!.text!!
             )
         }
+    }
+
+    fun pinMessage() {
+        _viewModel.pinMessage()
     }
 }

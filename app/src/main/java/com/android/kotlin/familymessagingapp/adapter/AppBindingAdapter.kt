@@ -6,6 +6,8 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.bumptech.glide.Glide
 
@@ -25,5 +27,16 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
 @RequiresApi(Build.VERSION_CODES.O)
 @BindingAdapter("bindChatroomFormattedTime")
 fun bindChatroomFormattedTime(textView: TextView, time: Long) {
-    textView.text = StringUtils.formatTime(time)
+    textView.text = StringUtils.formatTime(time, true)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@BindingAdapter("bindMessageFormattedTime")
+fun bindMessageFormattedTime(textView: TextView, time: Long) {
+    textView.text = StringUtils.formatTime(time, false)
+}
+
+@BindingAdapter("bindLastMessageOfChatroom")
+fun bindLastMessageOfChatroom(textView: TextView, chatRoom: ChatRoom) {
+    textView.text = chatRoom.showLastMessageToChatRoomView(textView.context)
 }

@@ -64,6 +64,8 @@ object Constant {
     // The name of the image manipulation work
     const val IMAGE_MANIPULATION_WORK_NAME = "image_manipulation_work"
     const val TAG_OUTPUT = "OUTPUT"
+
+    const val MAX_PINNED_MESSAGE = "MAX_PINNED_MESSAGE"
 }
 
 
