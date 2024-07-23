@@ -11,6 +11,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,12 +21,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
+import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.TimeUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
@@ -186,6 +191,21 @@ class HomeFragment : Fragment() {
         activity?.let { KeyBoardUtils.setupHideKeyboard(binding.searchView, it) }
 //        storyAdapter?.submitList(fakeStories)
 
+        // Khi nhấn nút back trên thiết bị nếu đang show Image Detail thì đóng Image Detail View
+        // chứ không back về fragment trước
+        activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
+            if (searchView?.isShowing == true)
+                searchView?.hide()
+            else {
+                if (findNavController().previousBackStackEntry == null) {
+                    activity?.let {
+                        (it as MainActivity).handleDoubleBackPress()
+                    }
+                }
+                else findNavController().navigateUp()
+            }
+        }
+
         viewModel.authenticated.observe(this.viewLifecycleOwner) { authenticated ->
             if (!authenticated) {
                 findNavController().popBackStack()
@@ -239,7 +259,7 @@ class HomeFragment : Fragment() {
             it?.let { user ->
                 if (!viewModel.isFragmentCreatedFirstTime) {
                     searchBar?.hint = getString(R.string.hi_user, user.username)
-                    startCountdown {
+                    TimeUtils.startCountdown(countDownTime = 3) {
                         searchBar?.hint = getString(R.string.search)
                     }
                 }
@@ -291,19 +311,6 @@ class HomeFragment : Fragment() {
                 }
                 viewModel.searchKeyword(searchViewEditText?.text.toString().trim())
             }
-        }
-    }
-
-    private fun startCountdown(onFinish: () -> Unit) {
-        var timeRemaining = 3
-        val scope = CoroutineScope(Job() + Dispatchers.Main)
-
-        scope.launch {
-            while (timeRemaining > 0) {
-                delay(1000L) // Wait for 1 second
-                timeRemaining--
-            }
-            onFinish() // Callback when countdown finishes
         }
     }
 

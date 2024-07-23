@@ -1,4 +1,4 @@
-package com.android.kotlin.familymessagingapp.screen.chatroom
+package com.android.kotlin.familymessagingapp.data.local
 
 
 val defaultEmoji = listOf("👍", "❤️", "😂", "😲", "😭", "😡")

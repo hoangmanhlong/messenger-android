@@ -9,6 +9,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -25,6 +26,7 @@ import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
+import com.android.kotlin.familymessagingapp.utils.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -36,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager
 
     private var _loadingDialog: Dialog? = null
+
+    private var backPressedOnce = false
 
     private val networkRequest = NetworkRequest.Builder()
         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -71,7 +75,8 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
-        networkNotificationDialog = DialogUtils.showNotificationDialog(this, R.string.network_not_available_message)
+        networkNotificationDialog =
+            DialogUtils.showNotificationDialog(this, R.string.network_not_available_message)
         if (!NetworkChecker.isNetworkAvailable(this)) {
             networkNotificationDialog?.show()
         }
@@ -94,6 +99,20 @@ class MainActivity : AppCompatActivity() {
         _loadingDialog?.let {
             if (isShow && !it.isShowing) it.show()
             else it.dismiss()
+        }
+    }
+
+    fun handleDoubleBackPress() {
+        if (backPressedOnce) {
+            finish()
+        } else {
+            backPressedOnce = true
+            Toast.makeText(this, getString(R.string.press_to_exit), Toast.LENGTH_SHORT)
+                .show()
+
+            TimeUtils.startCountdown(countDownTime = 2) {
+                backPressedOnce = false
+            }
         }
     }
 

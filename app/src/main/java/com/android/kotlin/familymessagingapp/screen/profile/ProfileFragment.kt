@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
@@ -19,13 +19,12 @@ import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
-import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
-    private val _viewModel: ProfileViewModel by viewModels()
+    private val _viewModel: ProfileViewModel by activityViewModels()
 
     private var _binding: FragmentProfileBinding? = null
 
@@ -33,9 +32,8 @@ class ProfileFragment : Fragment() {
 
     private var isDialogShowing: Boolean? = false
 
-    private var confirmDeleteAccountFragment: ConfirmDeleteAccountFragment? = null
-
-    private var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment? = null
+    private var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment? =
+        null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -55,9 +53,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding.deleteAccountView.setOnClickListener {
-            if (confirmDeleteAccountFragment == null)
-                confirmDeleteAccountFragment = ConfirmDeleteAccountFragment(this)
-            confirmDeleteAccountFragment?.show(
+            ConfirmDeleteAccountFragment().show(
                 this.parentFragmentManager,
                 ConfirmDeleteAccountFragment.TAG
             )
@@ -129,15 +125,10 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    fun deleteAccount() {
-        _viewModel.deleteAccount()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
         (activity as MainActivity).isShowLoadingDialog(false)
-        confirmDeleteAccountFragment = null
         selectLanguageBottomSheetDialogFragment = null
     }
 

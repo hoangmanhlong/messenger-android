@@ -100,5 +100,6 @@
     <string name="pinned_successfully">Ghim thành công</string>
     <string name="pinned_by">Ghim bởi %s</string>
     <string name="hide_less">Ẩn bớt</string>
+    <string name="press_to_exit">Nhấn lại lần nữa để thoát</string>
 
 </resources>

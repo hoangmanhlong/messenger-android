@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.app.Activity
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -20,6 +21,7 @@ import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
+import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -37,6 +39,12 @@ class ChatRoomViewModel @Inject constructor(
     private val localDatabaseRepository: LocalDatabaseRepository,
     private val workManager: AppWorkManager
 ) : ViewModel() {
+
+    var selectedMessageIsPinnedMessage: Boolean? = null
+        private set
+
+    var selectedMessageIsMessageOfMe: Boolean? = null
+        private set
 
     private val _isExpandPinnedMessage: MutableLiveData<Boolean> = MutableLiveData(false)
     val isExpandPinnedMessage: LiveData<Boolean> = _isExpandPinnedMessage
@@ -95,6 +103,10 @@ class ChatRoomViewModel @Inject constructor(
         _isExpandPinnedMessage.value = !_isExpandPinnedMessage.value!!
     }
 
+    fun hideLessPinnedMessage() {
+        if (_isExpandPinnedMessage.value == true) _isExpandPinnedMessage.value = false
+    }
+
     fun setImageDetailShown(shown: Boolean, drawable: Drawable?) {
         imageMessageDrawable = drawable
         _imageDetailShown.value = shown
@@ -108,8 +120,14 @@ class ChatRoomViewModel @Inject constructor(
         _AIGeneratedText.value = text
     }
 
+    fun setPinMessageStatus(status: Result<Boolean>?) {
+        _pinMessageStatus.value = status
+    }
+
     fun setSelectedMessage(message: Message) {
         selectedMessage = message
+        selectedMessageIsPinnedMessage = checkMessageIsPinnedMessage(message.messageId)
+        selectedMessageIsMessageOfMe = message.senderId == Firebase.auth.uid
     }
 
     fun hideEmojiPicker() {
@@ -155,9 +173,26 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
+    fun deleteMessage() {
+        viewModelScope.launch {
+            if (selectedMessage?.senderId == Firebase.auth.uid && _chatRoom.value?.chatRoomId != null) {
+                firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteMessage(
+                    _chatRoom.value!!.chatRoomId!!,
+                    selectedMessage!!.messageId!!
+                )
+            }
+        }
+    }
+
     fun pinMessage() {
         viewModelScope.launch {
-            if (_chatRoom.value?.chatRoomId != null && selectedMessage != null && selectedMessage?.messageId != null) {
+            if (_chatRoom.value?.chatRoomId == null
+                || selectedMessage == null
+                || selectedMessage?.messageId == null
+                || selectedMessageIsPinnedMessage == null) {
+                return@launch
+            }
+            if (selectedMessageIsPinnedMessage == false) {
                 val pinnedMessage = _chatRoom.value!!.pinnedMessages ?: emptyMap()
                 if (pinnedMessage.keys.size < 3) {
                     if (pinnedMessage.keys.contains(selectedMessage!!.messageId)) {
@@ -176,6 +211,9 @@ class ChatRoomViewModel @Inject constructor(
                 } else {
                     _pinMessageStatus.value = Result.Error(CountExceededException())
                 }
+            } else {
+                firebaseServiceRepository.firebaseRealtimeDatabaseService
+                    .deletePinnedMessage(_chatRoom.value!!, selectedMessage!!.messageId!!)
             }
         }
     }
@@ -233,7 +271,7 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
-    fun isPinnedMessage(messageId: String?): Boolean {
+    private fun checkMessageIsPinnedMessage(messageId: String?): Boolean {
         return if (_chatRoom.value != null && !messageId.isNullOrEmpty()) {
             val pinnedMessages = _chatRoom.value!!.pinnedMessages
             pinnedMessages != null && pinnedMessages.containsKey(messageId)
@@ -311,6 +349,15 @@ class ChatRoomViewModel @Inject constructor(
     private fun clearInput() {
         clearEditText(true)
         setImageUri(null)
+    }
+
+    fun copyMessage(activity: Activity) {
+        if (!selectedMessage?.text.isNullOrEmpty()) {
+            KeyBoardUtils.copyTextToClipBoard(
+                activity,
+                selectedMessage!!.text!!
+            )
+        }
     }
 
     companion object {

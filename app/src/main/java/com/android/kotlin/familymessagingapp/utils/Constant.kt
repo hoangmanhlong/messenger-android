@@ -68,6 +68,8 @@ object Constant {
     const val MAX_PINNED_MESSAGE = "MAX_PINNED_MESSAGE"
 
     const val ONE_SECOND = 1000
+
+    const val BACK_PRESS_INTERVAL = 2000L
 }
 
 

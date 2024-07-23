@@ -477,13 +477,13 @@ class FirebaseRealtimeDatabaseService(
 
     suspend fun deletePinnedMessage(
         chatRoom: ChatRoom,
-        pinnedMessage: PinnedMessage
+        pinnedMessageId: String
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             chatRoomsRef
                 .child(chatRoom.chatRoomId!!)
                 .child(ChatRoom.PINNED_MESSAGES)
-                .child(pinnedMessage.messageId!!)
+                .child(pinnedMessageId)
                 .removeValue()
                 .await()
             Result.Success(true)
@@ -503,6 +503,19 @@ class FirebaseRealtimeDatabaseService(
                 .child(messageId)
                 .child(Message.EMOTICON)
                 .setValue(emoji)
+                .await()
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    suspend fun deleteMessage(chatroomId: String, messageId: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            chatRoomsRef.child(chatroomId)
+                .child(ChatRoom.MESSAGES)
+                .child(messageId)
+                .removeValue()
                 .await()
             Result.Success(true)
         } catch (e: Exception) {

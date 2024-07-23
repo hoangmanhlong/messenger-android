@@ -4,17 +4,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.data.local.defaultEmoji
 import com.android.kotlin.familymessagingapp.databinding.FragmentMessageOptionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dagger.hilt.android.AndroidEntryPoint
 
 
-class MessageOptionsFragment(
-    private var parentFragment: ChatRoomFragment? = null,
-    private var isMessageOfMe: Boolean? = null,
-    private var isPinned: Boolean? = null
-) : BottomSheetDialogFragment() {
+@AndroidEntryPoint
+class MessageOptionsFragment : BottomSheetDialogFragment() {
+
+    // Use the 'by activityViewModels()' Kotlin property delegate from the fragment-ktx artifact
+    private val viewmodel: ChatRoomViewModel by activityViewModels()
 
     companion object {
         val TAG: String = MessageOptionsFragment::class.java.simpleName
@@ -36,19 +39,26 @@ class MessageOptionsFragment(
         _binding = FragmentMessageOptionsBinding.inflate(inflater, container, false)
         emojiRecyclerView = binding.emojiRecyclerView
         emojiAdapter = EmojiAdapter { emoji ->
-            parentFragment?.updateMessageEmoji(emoji)
+            viewmodel.updateMessageEmoji(emoji)
             dismiss()
         }
         emojiRecyclerView?.adapter = emojiAdapter
         emojiAdapter?.submitList(defaultEmoji)
 
         binding.copyMessageView.setOnClickListener {
-            parentFragment?.copyMessage()
+            activity?.let {
+                viewmodel.copyMessage(requireActivity())
+            }
             dismiss()
         }
 
         binding.pinMessageView.setOnClickListener {
-            parentFragment?.pinMessage()
+            viewmodel.pinMessage()
+            dismiss()
+        }
+
+        binding.deleteMessageView.setOnClickListener {
+            viewmodel.deleteMessage()
             dismiss()
         }
         return binding.root
@@ -56,14 +66,18 @@ class MessageOptionsFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.isMessageOfMe = isMessageOfMe
-
-        binding.ivPin.setImageResource(if (isPinned == true) R.drawable.ic_duo else R.drawable.ic_push_pin)
-        binding.tvPin.text = if (isPinned == true) getString(R.string.unpin) else getString(R.string.pin)
+        binding.isMessageOfMe = viewmodel.selectedMessageIsMessageOfMe
+        binding.ivPin.setImageResource(if (viewmodel.selectedMessageIsPinnedMessage == true) R.drawable.ic_duo else R.drawable.ic_push_pin)
+        binding.tvPin.text =
+            if (viewmodel.selectedMessageIsPinnedMessage == true)
+                getString(R.string.unpin)
+            else getString(R.string.pin)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        parentFragment = null
+        _binding = null
+        emojiRecyclerView = null
+        emojiAdapter = null
     }
 }

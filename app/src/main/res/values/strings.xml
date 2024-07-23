@@ -109,4 +109,5 @@
     <string name="pinned_successfully">Pinned successfully</string>
     <string name="pinned_by">Pinned by %s</string>
     <string name="hide_less">Hide less</string>
+    <string name="press_to_exit">Press back again to exit</string>
 </resources>

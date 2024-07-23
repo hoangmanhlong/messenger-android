@@ -13,7 +13,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -58,7 +58,8 @@ class ChatRoomFragment : Fragment() {
         val TAG: String = ChatRoomFragment::class.java.simpleName
     }
 
-    private val _viewModel: ChatRoomViewModel by viewModels()
+    // Use the 'by activityViewModels()' Kotlin property delegate from the fragment-ktx artifact
+    private val _viewModel: ChatRoomViewModel by activityViewModels()
 
     private var _binding: FragmentChatRoomBinding? = null
 
@@ -112,7 +113,7 @@ class ChatRoomFragment : Fragment() {
             },
             onMessageLongClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
-                openMessageOptions(isSender, message)
+                openMessageOptions()
             },
             onImageMessageClick = { drawable, message ->
                 hideKeyboard()
@@ -122,7 +123,7 @@ class ChatRoomFragment : Fragment() {
 
         pinnedMessageRecyclerview = binding.pinnedMessageRecyclerview
         pinnedMessageAdapter = PinnedMessageAdapter {
-            if (messageRecyclerview!= null && messageAdapter != null && it.messageId != null) {
+            if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
                 messageRecyclerview!!.smoothScrollToPosition(messageAdapter!!.getPositionById(it.messageId))
             }
         }
@@ -248,11 +249,17 @@ class ChatRoomFragment : Fragment() {
         _viewModel.pinnedMessages.observe(this.viewLifecycleOwner) {
 
             // Show pinned message view nếu có có tin nhắn
-            binding.pinnedMessageMaterialCardView.visibility = if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
+            binding.pinnedMessageMaterialCardView.visibility =
+                if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
             // Nếu có nhiều hơn 1 tin nhắn thì show view xem thêm tin nhắn
-            binding.ivExpandMorePinnedMessage.visibility = if(it.size > 1) View.VISIBLE else View.GONE
+            binding.ivExpandMorePinnedMessage.visibility =
+                if (it.size > 1) View.VISIBLE else View.GONE
             // Nếu đang ở chế độ mở rộng thì show toàn bộ tin nhắn ngược lại chỉ show 1 tin nhắn
-            pinnedMessageAdapter?.submitList(if (_viewModel.isExpandPinnedMessage.value == true) it else it.take(1))
+            pinnedMessageAdapter?.submitList(
+                if (_viewModel.isExpandPinnedMessage.value == true) it else it.take(
+                    1
+                )
+            )
         }
 
         _viewModel.isExpandPinnedMessage.observe(this.viewLifecycleOwner) {
@@ -330,7 +337,9 @@ class ChatRoomFragment : Fragment() {
                         }
                     }
 
-                    is Result.Success -> message = R.string.pinned_successfully
+                    is Result.Success -> {
+                        message = R.string.pinned_successfully
+                    }
                 }
                 Snackbar.make(
                     binding.inputView,
@@ -364,10 +373,6 @@ class ChatRoomFragment : Fragment() {
         userdata?.let { _viewModel.setUserData(userdata) }
     }
 
-    fun updateMessageEmoji(emoji: String) {
-        _viewModel.updateMessageEmoji(emoji)
-    }
-
     /**
      * Update message list to RecyclerView
      *
@@ -387,16 +392,18 @@ class ChatRoomFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         _viewModel.removeMessageListener()
+        _viewModel.setPinMessageStatus(null)
 //        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }
 
-    private fun openMessageOptions(isMessageOfMe: Boolean, message: Message) {
-        messageOptionsFragment = MessageOptionsFragment(
-            this,
-            isMessageOfMe,
-            _viewModel.isPinnedMessage(message.messageId)
-        )
+    override fun onDestroy() {
+        super.onDestroy()
+        _viewModel.hideLessPinnedMessage()
+    }
+
+    private fun openMessageOptions() {
+        messageOptionsFragment = MessageOptionsFragment()
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
@@ -405,18 +412,5 @@ class ChatRoomFragment : Fragment() {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
-    }
-
-    fun copyMessage() {
-        if (activity != null && _viewModel.selectedMessage?.text != null) {
-            KeyBoardUtils.copyTextToClipBoard(
-                requireActivity(),
-                _viewModel.selectedMessage!!.text!!
-            )
-        }
-    }
-
-    fun pinMessage() {
-        _viewModel.pinMessage()
     }
 }
