@@ -27,6 +27,10 @@
             type="Boolean" />
 
         <variable
+            name="isExpandMore"
+            type="Boolean" />
+
+        <variable
             name="chatroom"
             type="com.android.kotlin.familymessagingapp.model.ChatRoom" />
 
@@ -47,10 +51,10 @@
         android:layout_height="match_parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:visibility="@{imageDetailShown ? View.GONE : View.VISIBLE}"
             android:id="@+id/chatRoomView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="@{imageDetailShown ? View.GONE : View.VISIBLE}">
 
             <LinearLayout
                 android:id="@+id/chatroomActionBarView"
@@ -140,7 +144,7 @@
 
                 <com.google.android.material.divider.MaterialDivider
                     android:layout_width="match_parent"
-                    android:layout_height="0.5dp" />
+                    android:layout_height="1dp" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
                     android:id="@+id/linearProgressIndicator"
@@ -177,6 +181,62 @@
                     android:padding="10dp"
                     android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}"
                     tools:listitem="@layout/layout_sender_message" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:orientation="vertical"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/pinnedMessageMaterialCardView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="8dp">
+
+                            <androidx.constraintlayout.widget.ConstraintLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/pinnedMessageRecyclerview"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:overScrollMode="never"
+                                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                    app:layout_constraintEnd_toEndOf="parent"
+                                    app:layout_constraintStart_toStartOf="parent"
+                                    app:layout_constraintTop_toTopOf="parent"
+                                    tools:itemCount="1"
+                                    tools:listitem="@layout/layout_pinned_message" />
+
+                            </androidx.constraintlayout.widget.ConstraintLayout>
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                    <ImageView
+                        android:id="@+id/ivExpandMorePinnedMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_outline_expand_more"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -262,55 +322,66 @@
                     android:padding="8dp">
 
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:background="@drawable/bg_message_input"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
+                        app:cardCornerRadius="25dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/btSendMessage"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
 
-                        <EditText
-                            android:id="@+id/etMessage"
-                            android:layout_width="0dp"
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:background="@android:color/transparent"
-                            android:hint="@string/message"
-                            android:maxLines="4"
-                            android:padding="10dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="8dp"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@id/btSelectPhoto"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/btSendMessage"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintTop_toTopOf="parent">
 
-                        <ImageView
-                            android:id="@+id/btSelectPhoto"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_outline_insert_photo"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker" />
+                            <EditText
+                                android:id="@+id/etMessage"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:background="@android:color/transparent"
+                                android:hint="@string/message"
+                                android:maxLines="4"
+                                android:padding="10dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toStartOf="@id/btSelectPhoto"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
 
-                        <ImageView
-                            android:id="@+id/ivOpenEmojiPicker"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_mood"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent" />
+                            <ImageView
+                                android:id="@+id/btSelectPhoto"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:padding="10dp"
+                                android:src="@drawable/ic_outline_insert_photo"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker" />
 
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+                            <ImageView
+                                android:id="@+id/ivOpenEmojiPicker"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:padding="10dp"
+                                android:src="@drawable/ic_mood"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <Button
                         android:id="@+id/btSendMessage"
@@ -323,101 +394,6 @@
                         app:layout_constraintEnd_toEndOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!--            <EditText-->
-                <!--                android:id="@+id/etMessage"-->
-                <!--                android:layout_width="match_parent"-->
-                <!--                android:layout_height="wrap_content"-->
-                <!--                android:background="@android:color/transparent"-->
-                <!--                android:hint="@string/message"-->
-                <!--                android:maxLines="3"-->
-                <!--                android:padding="10dp" />-->
-
-                <!--            <LinearLayout-->
-                <!--                android:layout_width="match_parent"-->
-                <!--                android:layout_height="?attr/actionBarSize"-->
-                <!--                android:clipToPadding="false"-->
-                <!--                android:gravity="center_vertical"-->
-                <!--                android:orientation="horizontal"-->
-                <!--                android:padding="8dp">-->
-
-                <!--                <ImageView-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
-                <!--                    android:padding="10dp"-->
-                <!--                    android:src="@drawable/ic_attach_file"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
-                <!--                <ImageView-->
-                <!--                    android:id="@+id/ivOpenEmojiPicker"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
-                <!--                    android:padding="10dp"-->
-                <!--                    android:src="@drawable/ic_mood"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
-                <!--                <ImageView-->
-                <!--                    android:id="@+id/btSelectPhoto"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
-                <!--                    android:padding="10dp"-->
-                <!--                    android:src="@drawable/ic_outline_insert_photo"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
-                <!--                <ImageView-->
-                <!--                    android:id="@+id/ivLocation"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
-                <!--                    android:padding="10dp"-->
-                <!--                    android:src="@drawable/ic_place"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
-                <!--                <ImageView-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
-                <!--                    android:padding="10dp"-->
-                <!--                    android:src="@drawable/ic_alternate_email"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
-                <!--                <ImageView-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:background="?attr/selectableItemBackgroundBorderless"-->
-                <!--                    android:padding="10dp"-->
-                <!--                    android:src="@drawable/ai_animation"-->
-                <!--                    android:visibility="@{aiCreating ? View.VISIBLE : View.GONE}"-->
-                <!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-                <!--                    app:layout_constraintStart_toStartOf="parent"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent" />-->
-
-                <!--                <View-->
-                <!--                    android:layout_width="0dp"-->
-                <!--                    android:layout_height="match_parent"-->
-                <!--                    android:layout_weight="1" />-->
-
-                <!--                <Button-->
-                <!--                    android:id="@+id/btSendMessage"-->
-                <!--                    style="@style/Widget.Material3.Button.OutlinedButton"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:text="@string/send" />-->
-
-                <!--            </LinearLayout>-->
 
                 <androidx.emoji2.emojipicker.EmojiPickerView
                     android:id="@+id/emoji_picker"

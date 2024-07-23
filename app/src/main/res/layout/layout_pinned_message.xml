@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="pinnedMessage"
+            type="com.android.kotlin.familymessagingapp.model.PinnedMessage" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:padding="4dp">
+
+        <ImageView
+            android:id="@+id/ivMessage"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_message"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvPinnedMessageText"
+            bindLastMessageOfChatroom="@{pinnedMessage.pinnedMessageData}"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivMessage"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="All of your data will be permanently deleted and cannot be recovered.Are you sure you want to delete?. Are you sure you want to delete?" />
+
+        <TextView
+            bindPinnedBy="@{pinnedMessage.senderName}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivMessage"
+            app:layout_constraintTop_toBottomOf="@id/tvPinnedMessageText"
+            tools:text="Pinned by Long" />
+
+
+        <TextView
+            bindMessageFormattedTime="@{pinnedMessage.pinTime}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="12:12" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

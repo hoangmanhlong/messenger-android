@@ -37,6 +37,11 @@ fun bindMessageFormattedTime(textView: TextView, time: Long) {
 }
 
 @BindingAdapter("bindLastMessageOfChatroom")
-fun bindLastMessageOfChatroom(textView: TextView, chatRoom: ChatRoom) {
-    textView.text = chatRoom.showLastMessageToChatRoomView(textView.context)
+fun bindLastMessageOfChatroom(textView: TextView, message: Message) {
+    textView.text = StringUtils.showLastMessageToChatRoomView(textView.context, message)
+}
+
+@BindingAdapter("bindPinnedBy")
+fun bindPinnedBy(textView: TextView, username: String?) {
+    textView.text = textView.context.getString(R.string.pinned_by, username ?: "Hehe")
 }

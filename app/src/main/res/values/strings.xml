@@ -105,4 +105,8 @@
     <string name="connected">Connected</string>
     <string name="photo_last_message">[Image]</string>
     <string name="max_pin_message_warning">A maximum of 3 messages can only be pinned</string>
+    <string name="message_has_been_pinned">The message has been pinned</string>
+    <string name="pinned_successfully">Pinned successfully</string>
+    <string name="pinned_by">Pinned by %s</string>
+    <string name="hide_less">Hide less</string>
 </resources>

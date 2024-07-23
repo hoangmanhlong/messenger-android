@@ -132,6 +132,10 @@ class MessageAdapter(
         expandedMessagePosition?.let { notifyItemChanged(it) }
     }
 
+    fun getPositionById(messageId: String): Int {
+        return currentList.indexOfFirst { it.messageId == messageId }
+    }
+
 //    @SuppressLint("RestrictedApi")
 //    private fun showMenu(context: Context?, v: View, @MenuRes menuRes: Int) {
 //        context?.let { context ->

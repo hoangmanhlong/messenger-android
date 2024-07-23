@@ -96,5 +96,9 @@
     <string name="connected">Đã kết nối</string>
     <string name="photo_last_message">[Hình ảnh]</string>
     <string name="max_pin_message_warning">Chỉ có thể ghim tối đa 3 tin nhắn</string>
+    <string name="message_has_been_pinned">Tin nhắn đã được ghim</string>
+    <string name="pinned_successfully">Ghim thành công</string>
+    <string name="pinned_by">Ghim bởi %s</string>
+    <string name="hide_less">Ẩn bớt</string>
 
 </resources>

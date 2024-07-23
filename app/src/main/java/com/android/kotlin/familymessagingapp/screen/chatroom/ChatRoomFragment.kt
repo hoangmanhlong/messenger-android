@@ -22,7 +22,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
+import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
@@ -85,6 +87,10 @@ class ChatRoomFragment : Fragment() {
 
     private var selectedItemsRecyclerview: RecyclerView? = null
 
+    private var pinnedMessageAdapter: PinnedMessageAdapter? = null
+
+    private var pinnedMessageRecyclerview: RecyclerView? = null
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -113,6 +119,14 @@ class ChatRoomFragment : Fragment() {
                 _viewModel.setImageDetailShown(true, drawable)
             }
         )
+
+        pinnedMessageRecyclerview = binding.pinnedMessageRecyclerview
+        pinnedMessageAdapter = PinnedMessageAdapter {
+            if (messageRecyclerview!= null && messageAdapter != null && it.messageId != null) {
+                messageRecyclerview!!.smoothScrollToPosition(messageAdapter!!.getPositionById(it.messageId))
+            }
+        }
+        pinnedMessageRecyclerview?.adapter = pinnedMessageAdapter
 
         binding.btDownloadImage.setOnClickListener {
             _viewModel.saveImageToDeviceStorage()
@@ -201,6 +215,10 @@ class ChatRoomFragment : Fragment() {
                 DeviceUtils.shareImage(requireActivity(), "".toUri())
             }
         }
+
+        binding.ivExpandMorePinnedMessage.setOnClickListener {
+            _viewModel.setExpandPinnedMessage()
+        }
         return binding.root
     }
 
@@ -225,6 +243,28 @@ class ChatRoomFragment : Fragment() {
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
             binding.imageDetailShown = it
             if (it) binding.imageDetailImageView.setImageDrawable(_viewModel.imageMessageDrawable)
+        }
+
+        _viewModel.pinnedMessages.observe(this.viewLifecycleOwner) {
+
+            // Show pinned message view nếu có có tin nhắn
+            binding.pinnedMessageMaterialCardView.visibility = if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
+            // Nếu có nhiều hơn 1 tin nhắn thì show view xem thêm tin nhắn
+            binding.ivExpandMorePinnedMessage.visibility = if(it.size > 1) View.VISIBLE else View.GONE
+            // Nếu đang ở chế độ mở rộng thì show toàn bộ tin nhắn ngược lại chỉ show 1 tin nhắn
+            pinnedMessageAdapter?.submitList(if (_viewModel.isExpandPinnedMessage.value == true) it else it.take(1))
+        }
+
+        _viewModel.isExpandPinnedMessage.observe(this.viewLifecycleOwner) {
+            // Cập nhật trạng thái icon mợ rộng hoặc ẩn bớt
+            binding.ivExpandMorePinnedMessage.setImageResource(if (it) R.drawable.ic_expand_less else R.drawable.ic_outline_expand_more)
+            binding.isExpandMore = it
+
+            // Nếu đang ở chế độ mở rộng thì show toàn bộ tin nhắn ngược lại chỉ show 1 tin nhắn
+            val pinnedMessages = _viewModel.pinnedMessages.value
+            if (!pinnedMessages.isNullOrEmpty()) {
+                pinnedMessageAdapter?.submitList(if (it) pinnedMessages else pinnedMessages.take(1))
+            }
         }
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
@@ -279,19 +319,24 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.pinMessageStatus.observe(this.viewLifecycleOwner) { status ->
             status?.let {
+                var message = R.string.error_occurred
                 when (status) {
                     is Result.Error -> {
                         if (status.exception is CountExceededException) {
-                            Snackbar.make(
-                                binding.inputView,
-                                R.string.max_pin_message_warning,
-                                Constant.ONE_SECOND
-                            ).show()
+                            message = R.string.max_pin_message_warning
+                        }
+                        if (status.exception is ObjectAlreadyExistException) {
+                            message = R.string.message_has_been_pinned
                         }
                     }
 
-                    is Result.Success -> {}
+                    is Result.Success -> message = R.string.pinned_successfully
                 }
+                Snackbar.make(
+                    binding.inputView,
+                    message,
+                    Constant.ONE_SECOND
+                ).show()
             }
         }
     }

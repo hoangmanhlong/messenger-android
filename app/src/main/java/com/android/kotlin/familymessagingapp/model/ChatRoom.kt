@@ -27,7 +27,7 @@ data class ChatRoom(
     val latestTime: Long? = null,
     val isActive: Boolean? = null,
     val lastMessage: Message? = null,
-    val pinnedMessages: List<String>? = null,
+    val pinnedMessages: Map<String, PinnedMessage>? = null,
     @Exclude var chatRoomImage: String? = null,
     @Exclude var chatroomName: String? = null,
     @Exclude val membersData: List<UserData>? = null
@@ -42,32 +42,26 @@ data class ChatRoom(
     }
 
     @Exclude
-    fun showLastMessageToChatRoomView(context: Context): String {
-        var result = context.getString(R.string.connected)
-        if (this.lastMessage != null) {
-            if (!lastMessage.text.isNullOrEmpty() || !lastMessage.photo.isNullOrEmpty()) {
-                if ((!lastMessage.text.isNullOrEmpty() && lastMessage.photo.isNullOrEmpty())
-                    || (!lastMessage.text.isNullOrEmpty() && !lastMessage.photo.isNullOrEmpty())
-                ) {
-                    result = lastMessage.text
-                }
-                if (!lastMessage.photo.isNullOrEmpty() && lastMessage.text.isNullOrEmpty()) {
-                    result = context.getString(R.string.photo_last_message)
-                }
+    fun getChatRoomNameAndImage() {
+        if (membersData?.size == 2) {
+            val otherUserUid = members?.firstOrNull { it != Firebase.auth.uid }
+            val userdata = membersData.firstOrNull { it.uid == otherUserUid }
+            userdata?.let {
+                this.chatroomName = it.username
+                this.chatRoomImage = it.userAvatar
             }
         }
-        return result
     }
 
     @Exclude
-    fun getChatRoomNameAndImage() {
-        membersData?.let {
-            if (membersData.size == 2) {
-                val otherUserUid = members?.first { it != Firebase.auth.uid }
-                val userdata = membersData.first { userData ->  userData.uid == otherUserUid }
-                this.chatroomName = userdata.username
-                this.chatRoomImage = userdata.userAvatar
+    fun getPinnedMessagesData(): List<PinnedMessage> {
+        return pinnedMessages?.mapNotNull { (messageId, pinnedMessage) ->
+            messages?.get(messageId)?.let { message ->
+                pinnedMessage.apply {
+                    pinnedMessageData = message
+                    senderName = membersData?.firstOrNull { it.uid == senderId }?.username
+                }
             }
-        }
+        }?.sortedByDescending { it.pinTime } ?: emptyList()
     }
 }

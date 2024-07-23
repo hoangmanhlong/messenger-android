@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.model.UserSettings
@@ -459,16 +460,15 @@ class FirebaseRealtimeDatabaseService(
 
     suspend fun addNewPinnedMessage(
         chatRoom: ChatRoom,
-        messageId: String
+        pinnedMessage: PinnedMessage
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val pinnedMessage = mutableListOf<String>()
-            pinnedMessage.addAll(chatRoom.pinnedMessages ?: emptyList())
-            pinnedMessage.add(messageId)
             chatRoomsRef
                 .child(chatRoom.chatRoomId!!)
                 .child(ChatRoom.PINNED_MESSAGES)
+                .child(pinnedMessage.messageId!!)
                 .setValue(pinnedMessage)
+                .await()
             Result.Success(true)
         } catch (e: Exception) {
             Result.Error(e)
@@ -477,16 +477,15 @@ class FirebaseRealtimeDatabaseService(
 
     suspend fun deletePinnedMessage(
         chatRoom: ChatRoom,
-        messageId: String
+        pinnedMessage: PinnedMessage
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val pinnedMessage = mutableListOf<String>()
-            pinnedMessage.addAll(chatRoom.pinnedMessages ?: emptyList())
-            pinnedMessage.remove(messageId)
             chatRoomsRef
                 .child(chatRoom.chatRoomId!!)
                 .child(ChatRoom.PINNED_MESSAGES)
-                .setValue(pinnedMessage)
+                .child(pinnedMessage.messageId!!)
+                .removeValue()
+                .await()
             Result.Success(true)
         } catch (e: Exception) {
             Result.Error(e)

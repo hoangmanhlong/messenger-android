@@ -11,12 +11,16 @@ import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
+import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +37,9 @@ class ChatRoomViewModel @Inject constructor(
     private val localDatabaseRepository: LocalDatabaseRepository,
     private val workManager: AppWorkManager
 ) : ViewModel() {
+
+    private val _isExpandPinnedMessage: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isExpandPinnedMessage: LiveData<Boolean> = _isExpandPinnedMessage
 
     private val _imageDetailShown = MutableLiveData(false)
     val imageDetailShown: LiveData<Boolean> = _imageDetailShown
@@ -51,6 +58,9 @@ class ChatRoomViewModel @Inject constructor(
 
     var selectedMessage: Message? = null
         private set
+
+    private val _pinnedMessages: MutableLiveData<List<PinnedMessage>> = MutableLiveData(emptyList())
+    val pinnedMessages: LiveData<List<PinnedMessage>> = _pinnedMessages
 
     var imageMessageDrawable: Drawable? = null
         private set
@@ -79,6 +89,10 @@ class ChatRoomViewModel @Inject constructor(
 
     fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!
+    }
+
+    fun setExpandPinnedMessage() {
+        _isExpandPinnedMessage.value = !_isExpandPinnedMessage.value!!
     }
 
     fun setImageDetailShown(shown: Boolean, drawable: Drawable?) {
@@ -143,14 +157,21 @@ class ChatRoomViewModel @Inject constructor(
 
     fun pinMessage() {
         viewModelScope.launch {
-            if (_chatRoom.value != null && selectedMessage?.messageId != null) {
-                val pinnedMessage = _chatRoom.value!!.pinnedMessages ?: emptyList()
-                if (pinnedMessage.size < 3) {
-                    val result =
-                        firebaseServiceRepository.firebaseRealtimeDatabaseService.addNewPinnedMessage(
-                            _chatRoom.value!!,
-                            selectedMessage!!.messageId!!
-                        )
+            if (_chatRoom.value?.chatRoomId != null && selectedMessage != null && selectedMessage?.messageId != null) {
+                val pinnedMessage = _chatRoom.value!!.pinnedMessages ?: emptyMap()
+                if (pinnedMessage.keys.size < 3) {
+                    if (pinnedMessage.keys.contains(selectedMessage!!.messageId)) {
+                        _pinMessageStatus.value = Result.Error(ObjectAlreadyExistException())
+                        return@launch
+                    }
+                    val newPinnedMessage = PinnedMessage(
+                        messageId = selectedMessage!!.messageId,
+                        senderId = selectedMessage!!.senderId,
+                        pinTime = StringUtils.getCurrentTime()
+                    )
+                    val result = firebaseServiceRepository
+                        .firebaseRealtimeDatabaseService
+                        .addNewPinnedMessage(_chatRoom.value!!, newPinnedMessage)
                     _pinMessageStatus.value = result
                 } else {
                     _pinMessageStatus.value = Result.Error(CountExceededException())
@@ -169,7 +190,8 @@ class ChatRoomViewModel @Inject constructor(
             isActive = chatRoom.isActive,
             chatRoomImage = chatRoom.chatRoomImage,
             members = chatRoom.members,
-            pinnedMessages = chatRoom.pinnedMessages
+            pinnedMessages = chatRoom.pinnedMessages,
+            membersData = chatRoom.membersData
         )
         initChatRoomListener()
     }
@@ -185,8 +207,10 @@ class ChatRoomViewModel @Inject constructor(
             chatroomLiveData.observeForever { chatRoom ->
                 _chatRoom.value = _chatRoom.value?.copy(
                     pinnedMessages = chatRoom?.pinnedMessages,
-                    messages = chatRoom?.messages
+                    messages = chatRoom?.messages,
+                    membersData = _chatRoom.value?.membersData
                 )
+                _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
                 if (chatRoom != null) {
                     viewModelScope.launch {
                         val lastMessage = chatRoom.messages?.values?.lastOrNull()
@@ -212,7 +236,7 @@ class ChatRoomViewModel @Inject constructor(
     fun isPinnedMessage(messageId: String?): Boolean {
         return if (_chatRoom.value != null && !messageId.isNullOrEmpty()) {
             val pinnedMessages = _chatRoom.value!!.pinnedMessages
-            pinnedMessages != null && pinnedMessages.contains(messageId)
+            pinnedMessages != null && pinnedMessages.containsKey(messageId)
         } else {
             false
         }

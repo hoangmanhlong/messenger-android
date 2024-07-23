@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.model.Message
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -64,5 +66,17 @@ object StringUtils {
         val urlPattern = "^(http|https|ftp)://[a-zA-Z0-9\\-._~:/?#[\\]@!$&'()*+,;=%]+$"
         val regex = Regex(urlPattern)
         return regex.matches(url)
+    }
+
+    fun showLastMessageToChatRoomView(context: Context, message: Message?): String {
+        var result = context.getString(R.string.connected)
+        message?.let {
+            result = if (!it.text.isNullOrEmpty() || !it.photo.isNullOrEmpty()) {
+                if (!it.text.isNullOrEmpty()) it.text else context.getString(R.string.photo_last_message)
+            } else {
+                result
+            }
+        }
+        return result
     }
 }
