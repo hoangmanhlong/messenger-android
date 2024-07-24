@@ -1,0 +1,3 @@
+package com.android.kotlin.familymessagingapp.screen.confirm_delete_account
+
+class DeleteAccountEventBus

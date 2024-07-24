@@ -4,18 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
 import com.android.kotlin.familymessagingapp.databinding.FragmentConfirmDeleteAccountBinding
-import com.android.kotlin.familymessagingapp.screen.profile.ProfileViewModel
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
+import org.greenrobot.eventbus.EventBus
 
 
 @AndroidEntryPoint
 class ConfirmDeleteAccountFragment : BottomSheetDialogFragment() {
-
-    private val viewmodel: ProfileViewModel by activityViewModels()
 
     companion object {
         val TAG: String = ConfirmDeleteAccountFragment::class.java.simpleName
@@ -38,7 +35,7 @@ class ConfirmDeleteAccountFragment : BottomSheetDialogFragment() {
         binding.btConfirmDeleteAccount.setOnClickListener {
             activity?.let {
                 NetworkChecker.checkNetwork(it) {
-                    viewmodel.deleteAccount()
+                    EventBus.getDefault().post(DeleteAccountEventBus())
                     dismiss()
                 }
             }
@@ -46,10 +43,6 @@ class ConfirmDeleteAccountFragment : BottomSheetDialogFragment() {
         return binding.root
     }
 
-    /**
-     * This fragment lifecycle method is called when the view hierarchy associated with the fragment
-     * is being removed. As a result, clear out the binding object.
-     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

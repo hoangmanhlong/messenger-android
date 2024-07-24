@@ -13,7 +13,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -52,14 +52,14 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 // TODO: block screen capture
 @AndroidEntryPoint
-class ChatRoomFragment : Fragment() {
+class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
     companion object {
         val TAG: String = ChatRoomFragment::class.java.simpleName
     }
 
     // Use the 'by activityViewModels()' Kotlin property delegate from the fragment-ktx artifact
-    private val _viewModel: ChatRoomViewModel by activityViewModels()
+    private val _viewModel: ChatRoomViewModel by viewModels()
 
     private var _binding: FragmentChatRoomBinding? = null
 
@@ -113,7 +113,7 @@ class ChatRoomFragment : Fragment() {
             },
             onMessageLongClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
-                openMessageOptions()
+                openMessageOptions(isSender, _viewModel.selectedMessageIsPinnedMessage!!)
             },
             onImageMessageClick = { drawable, message ->
                 hideKeyboard()
@@ -402,8 +402,12 @@ class ChatRoomFragment : Fragment() {
         _viewModel.hideLessPinnedMessage()
     }
 
-    private fun openMessageOptions() {
-        messageOptionsFragment = MessageOptionsFragment()
+    private fun openMessageOptions(isMessageOfMe: Boolean, isPinnedMessage: Boolean) {
+        messageOptionsFragment = MessageOptionsFragment(
+            this,
+            isMessageOfMe,
+            isPinnedMessage
+        )
         messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
@@ -412,5 +416,21 @@ class ChatRoomFragment : Fragment() {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
+    }
+
+    override fun onPinMessage() {
+        _viewModel.pinMessage()
+    }
+
+    override fun onDeleteMessage() {
+        _viewModel.deleteMessage()
+    }
+
+    override fun onCopyMessage() {
+        _viewModel.copyMessage(requireActivity())
+    }
+
+    override fun updateMessageEmoji(emoji: String) {
+        _viewModel.updateMessageEmoji(emoji)
     }
 }

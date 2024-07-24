@@ -1,18 +1,14 @@
 package com.android.kotlin.familymessagingapp.utils
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.Message
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.regex.Pattern
 
 private const val emailRegex =

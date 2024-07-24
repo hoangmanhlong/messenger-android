@@ -271,7 +271,7 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
-    private fun checkMessageIsPinnedMessage(messageId: String?): Boolean {
+    fun checkMessageIsPinnedMessage(messageId: String?): Boolean {
         return if (_chatRoom.value != null && !messageId.isNullOrEmpty()) {
             val pinnedMessages = _chatRoom.value!!.pinnedMessages
             pinnedMessages != null && pinnedMessages.containsKey(messageId)

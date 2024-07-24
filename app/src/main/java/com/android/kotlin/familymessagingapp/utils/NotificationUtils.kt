@@ -1,6 +1,5 @@
 package com.android.kotlin.familymessagingapp.utils
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context

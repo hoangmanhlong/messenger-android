@@ -5,35 +5,38 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
+import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.DeleteAccountEventBus
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+import kotlin.math.E
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
-    private val _viewModel: ProfileViewModel by activityViewModels()
+    private val _viewModel: ProfileViewModel by viewModels()
 
     private var _binding: FragmentProfileBinding? = null
 
     private val binding get() = _binding!!
 
     private var isDialogShowing: Boolean? = false
-
-    private var selectLanguageBottomSheetDialogFragment: SelectLanguageBottomSheetDialogFragment? =
-        null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -123,13 +126,17 @@ class ProfileFragment : Fragment() {
                 PermissionUtils.areNotificationsEnabled(it)
             )
         }
+        EventBus.getDefault().register(this)
+    }
+
+    fun deleteAccount() {
+        _viewModel.deleteAccount()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
         (activity as MainActivity).isShowLoadingDialog(false)
-        selectLanguageBottomSheetDialogFragment = null
     }
 
     private fun onLogoutViewClick() {
@@ -154,9 +161,19 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = false)
+    fun onDeleteAccountEventBus(deleteAccountEventBus: DeleteAccountEventBus) {
+        _viewModel.deleteAccount()
+        EventBus.getDefault().removeStickyEvent(deleteAccountEventBus)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        EventBus.getDefault().unregister(this)
+    }
+
     fun onSelectLanguageViewClick() {
-        selectLanguageBottomSheetDialogFragment = SelectLanguageBottomSheetDialogFragment()
-        selectLanguageBottomSheetDialogFragment?.show(
+        SelectLanguageBottomSheetDialogFragment().show(
             this.parentFragmentManager,
             SelectLanguageBottomSheetDialogFragment.TAG
         )

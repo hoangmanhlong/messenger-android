@@ -18,16 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-//    firebaseAuthenticationRepository: FirebaseAuthenticationRepository,
-    private val localDatabaseRepository: LocalDatabaseRepository,
-//    private val appRepository: AppRepository
+    private val localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
-
-//    private val _isKeepSplashScreen: MutableLiveData<Boolean> = MutableLiveData(true)
-//    val isKeepSplashScreen: LiveData<Boolean> = _isKeepSplashScreen
-
-//    val authenticated: LiveData<Boolean> =
-//        firebaseAuthenticationRepository.authenticated.asLiveData()
 
     // Save Notification Status to local
     fun saveNotificationStatus(enabled: Boolean) {

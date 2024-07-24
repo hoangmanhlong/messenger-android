@@ -165,6 +165,7 @@ dependencies {
     implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
 
 //    implementation("com.github.AgoraIO-Community:VideoUIKit-Android:v4.0.1")
+    implementation("org.greenrobot:eventbus:3.3.1")
 }
 
 kapt {
