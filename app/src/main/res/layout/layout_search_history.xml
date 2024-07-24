@@ -5,7 +5,7 @@
 
         <variable
             name="searchHistory"
-            type="com.android.kotlin.familymessagingapp.data.local.room.SearchHistory" />
+            type="com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

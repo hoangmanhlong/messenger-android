@@ -70,6 +70,10 @@ object Constant {
     const val ONE_SECOND = 1000
 
     const val BACK_PRESS_INTERVAL = 2000L
+
+    const val FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME = "user_private_info"
+
+    const val FIREBASE_REALTIME_DATABASE_SEARCH_HISTORY_REF_NAME = "search_history"
 }
 
 

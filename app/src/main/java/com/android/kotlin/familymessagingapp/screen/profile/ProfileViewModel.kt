@@ -26,8 +26,7 @@ class ProfileViewModel @Inject constructor(
 
     val currentUserLiveData = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
-        .currentUserDataFlow
-        .asLiveData()
+        .currentUserData
 
     val isTheEnglishLanguageDisplayed = localDatabaseRepository
         .appDataStore

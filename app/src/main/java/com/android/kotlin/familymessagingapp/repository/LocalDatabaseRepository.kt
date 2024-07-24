@@ -2,7 +2,7 @@ package com.android.kotlin.familymessagingapp.repository
 
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
-import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
+import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -15,23 +15,23 @@ class LocalDatabaseRepository(
     val isTheEnglishLanguageDisplayedFlow: Flow<Boolean?> = appDataStore
         .getBooleanPreferenceFlow(AppDataStore.IS_THE_ENGLISH_LANGUAGE_DISPLAYED, true)
 
-    fun getSearchHistories(): Flow<List<SearchHistory>> =
+    fun getSearchHistories(): Flow<List<SearchHistoryEntity>> =
         appDatabase.searchHistoryDao.getSearchHistories()
 
     suspend fun saveSearchHistory(text: String) =
         withContext(Dispatchers.IO) {
             try {
-                val searchHistory = SearchHistory(text, System.currentTimeMillis())
-                appDatabase.searchHistoryDao.saveSearchHistory(searchHistory)
+                val searchHistoryEntity = SearchHistoryEntity(text, System.currentTimeMillis())
+                appDatabase.searchHistoryDao.saveSearchHistory(searchHistoryEntity)
             } catch (e: Exception) {
                 throw e
             }
         }
 
-    suspend fun deleteSearchHistory(searchHistory: SearchHistory) =
+    suspend fun deleteSearchHistory(searchHistoryEntity: SearchHistoryEntity) =
         withContext(Dispatchers.IO) {
             try {
-                appDatabase.searchHistoryDao.deleteSearchHistory(searchHistory)
+                appDatabase.searchHistoryDao.deleteSearchHistory(searchHistoryEntity)
             } catch (e: Exception) {
                 throw e
             }

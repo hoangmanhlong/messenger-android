@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val firebaseServiceRepository: FirebaseServiceRepository,
     private val localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
 
@@ -101,7 +103,13 @@ class MainViewModel @Inject constructor(
 //        }
 //    }
     init {
+        firebaseServiceRepository.addAuthStateListener()
         executeTheJobOnFirstRun()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        firebaseServiceRepository.removeAuthStateListener()
     }
 
     //Save data when the user runs the app for the first time

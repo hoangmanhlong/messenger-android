@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -94,6 +95,14 @@ class ChatRoomViewModel @Inject constructor(
 
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
+
+    private val currentUserData = firebaseServiceRepository.firebaseRealtimeDatabaseService.currentUserData
+
+    init {
+        currentUserData.observeForever {
+            Log.d(TAG, "currentuseradata: $currentUserData")
+        }
+    }
 
     fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!

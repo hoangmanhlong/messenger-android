@@ -65,8 +65,6 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
     private var selectedItemAdapter: SelectedItemAdapter? = null
 
-    private lateinit var messageOptionsFragment: MessageOptionsFragment
-
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -403,12 +401,8 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
     }
 
     private fun openMessageOptions(isMessageOfMe: Boolean, isPinnedMessage: Boolean) {
-        messageOptionsFragment = MessageOptionsFragment(
-            this,
-            isMessageOfMe,
-            isPinnedMessage
-        )
-        messageOptionsFragment.show(this.parentFragmentManager, MessageOptionsFragment.TAG)
+        MessageOptionsFragment(this, isMessageOfMe, isPinnedMessage)
+            .show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
     private fun blockScreenCapture() {

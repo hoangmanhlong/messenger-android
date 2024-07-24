@@ -1,7 +1,11 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
@@ -64,49 +68,42 @@ class FirebaseRealtimeDatabaseService(
 
     private val chatRoomsRef = databaseReference.child(Constant.REALTIME_DATABASE_CHAT_ROOM_REF)
 
+    private val userPrivateInformationRef = databaseReference
+        .child(Constant.FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME)
+
+    private val searchHistoryRef = databaseReference
+        .child(Constant.FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME)
+        .child(Constant.FIREBASE_REALTIME_DATABASE_SEARCH_HISTORY_REF_NAME)
+
     private val userAvatarImageRef = firebaseStorageService.userAvatarRef
 
-    /**
-     * Event Listener Flow of current User Data
-     */
-    val currentUserDataFlow: Flow<UserData?>
-        get() = callbackFlow {
-            val currentUser = auth.currentUser
-            if (currentUser == null) {
-                close()
-                return@callbackFlow
-            }
-            val currentUserRef: DatabaseReference = userDataRef.child(currentUser.uid)
-            val listener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    this@callbackFlow.trySend(snapshot.getValue(UserData::class.java)).isSuccess
-                }
+    private val _currentUserData: MutableLiveData<UserData?> = MutableLiveData(null)
+    val currentUserData: LiveData<UserData?> = _currentUserData
 
-                override fun onCancelled(error: DatabaseError) {
-                    this@callbackFlow.trySend(null).isSuccess
-                    close()
-                }
-            }
-            currentUserRef.addValueEventListener(listener)
-            registerUserDataListener[currentUserRef] = listener
-            awaitClose {
-                currentUserRef.removeEventListener(listener)
-                registerUserDataListener.remove(currentUserRef)
-            }
+    private val _chatRooms: MutableLiveData<List<ChatRoom>> = MutableLiveData(emptyList())
+    val chatRooms: LiveData<List<ChatRoom>> = _chatRooms
+
+    private val userdataListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            _currentUserData.value = snapshot.getValue(UserData::class.java)
         }
 
-    /**
-     * Nghe user data mới nhất từ [currentUserDataFlow]
-     * Nếu là null thì hủy toàn bộ trình nghe và kết thúc
-     * Nếu khác null thì lấy toàn bộ chatroom snapshot theo chatroomID trong userData
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val chatRoomsFlow: Flow<List<ChatRoom>>
-        get() = currentUserDataFlow.flatMapLatest { userData ->
-            if (userData != null) {
+        override fun onCancelled(error: DatabaseError) {
+            _currentUserData.value = null
+        }
+    }
+
+    fun initUserDataListener(uid: String) {
+        clearUserDataListener()
+        val currentUserRef = userDataRef.child(uid)
+        currentUserRef.addValueEventListener(userdataListener)
+        registerUserDataListener[currentUserRef] = userdataListener
+
+        _currentUserData.observeForever { userData ->
+            _chatRooms.value = if (userData != null) {
                 val chatRooms = userData.chatrooms
                 if (chatRooms.isNullOrEmpty()) {
-                    flowOf(emptyList()) // Emit empty list for empty chatrooms
+                    emptyList()
                 } else {
                     val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
                         getChatRoomFlow(it, userData)
@@ -115,15 +112,46 @@ class FirebaseRealtimeDatabaseService(
                         // Sort chat room list by latestTime
                         it.filterNotNull().toList()
                             .sortedByDescending { chatroom -> chatroom.latestTime }
-                    }
+                    }.asLiveData().value
                 }
             } else {
                 registeredChatRoomsListeners.forEach {
                     chatRoomsRef.removeEventListener(it.value)
                 }
-                flowOf(emptyList())
+                emptyList()
             }
         }
+    }
+
+    /**
+     * Event Listener Flow of current User Data
+     */
+//    val currentUserDataFlow: Flow<UserData?>
+//        get() = callbackFlow {
+//
+//            if (currentUser == null) {
+//                close()
+//                return@callbackFlow
+//            }
+//
+//            val listener =
+//
+//            awaitClose {
+//                currentUserRef.removeEventListener(listener)
+//                registerUserDataListener.remove(currentUserRef)
+//            }
+//        }
+
+    /**
+     * Nghe user data mới nhất từ [currentUserDataFlow]
+     * Nếu là null thì hủy toàn bộ trình nghe và kết thúc
+     * Nếu khác null thì lấy toàn bộ chatroom snapshot theo chatroomID trong userData
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+//    val chatRoomsFlow: Flow<List<ChatRoom>>
+//        get() = currentUserDataFlow.flatMapLatest { userData ->
+//
+//        }
 
     /**
      * Đăng ký trình nghe tại phòng có id của user hiện tại

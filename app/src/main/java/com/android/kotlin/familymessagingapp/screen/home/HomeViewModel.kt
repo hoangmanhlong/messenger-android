@@ -6,14 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
+import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,19 +32,19 @@ class HomeViewModel @Inject constructor(
         val TAG: String = HomeViewModel::class.java.simpleName
     }
 
-    val authenticated: LiveData<Boolean> = firebaseServiceRepository.authenticated.asLiveData()
+    val authenticateState: LiveData<Boolean?> = firebaseServiceRepository.authenticateState
 
     val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
-        .currentUserDataFlow
-        .asLiveData()
+        .currentUserData
 
     val chatRoomsLiveData: LiveData<List<ChatRoom>> = firebaseServiceRepository
-        .firebaseRealtimeDatabaseService.chatRoomsFlow
-        .distinctUntilChanged() // Only update when data changes
-        .asLiveData()
+        .firebaseRealtimeDatabaseService
+        .chatRooms
+//        .distinctUntilChanged() // Only update when data changes
+//        .asLiveData()
 
-    val searchHistories: LiveData<List<SearchHistory>> = localDatabaseRepository
+    val searchHistories: LiveData<List<SearchHistoryEntity>> = localDatabaseRepository
         .getSearchHistories()
         .asLiveData()
 
@@ -60,16 +59,21 @@ class HomeViewModel @Inject constructor(
     val searchResultList: LiveData<List<UserData>> = _searchResultList
 
     init {
-        currentUserLiveData.observeForever { userdata ->
-            if (userdata != null) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    localDatabaseRepository.appDataStore.saveBoolean(
-                        AppDataStore.ENABLED_AI,
-                        userdata.settings?.enabledAI ?: false
-                    )
+        authenticateState.observeForever {
+            if (it == true) {
+                currentUserLiveData.observeForever { userdata ->
+                    if (userdata != null) {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            localDatabaseRepository.appDataStore.saveBoolean(
+                                AppDataStore.ENABLED_AI,
+                                userdata.settings?.enabledAI ?: false
+                            )
+                        }
+                    }
+//                    else {
+//                        firebaseServiceRepository.signOut()
+//                    }
                 }
-            } else {
-                firebaseServiceRepository.signOut()
             }
         }
     }
@@ -102,9 +106,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteSearchHistory(searchHistory: SearchHistory) {
+    fun deleteSearchHistory(searchHistoryEntity: SearchHistoryEntity) {
         viewModelScope.launch(Dispatchers.IO) {
-            localDatabaseRepository.deleteSearchHistory(searchHistory)
+            localDatabaseRepository.deleteSearchHistory(searchHistoryEntity)
         }
     }
 

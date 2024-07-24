@@ -5,20 +5,20 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
+import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.databinding.LayoutSearchHistoryBinding
 
 class SearchHistoryAdapter(
-    private val onItemClicked: (SearchHistory) -> Unit,
-    private val onDeleteItem: (SearchHistory) -> Unit,
-    private val onPushItem: (SearchHistory) -> Unit
-) : ListAdapter<SearchHistory, SearchHistoryAdapter.SearchHistoryViewHolder>(DiffCallback) {
+    private val onItemClicked: (SearchHistoryEntity) -> Unit,
+    private val onDeleteItem: (SearchHistoryEntity) -> Unit,
+    private val onPushItem: (SearchHistoryEntity) -> Unit
+) : ListAdapter<SearchHistoryEntity, SearchHistoryAdapter.SearchHistoryViewHolder>(DiffCallback) {
 
     inner class SearchHistoryViewHolder(
         val binding: LayoutSearchHistoryBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(searchHistory: SearchHistory) {
-            binding.searchHistory = searchHistory
+        fun bind(searchHistoryEntity: SearchHistoryEntity) {
+            binding.searchHistory = searchHistoryEntity
         }
     }
 
@@ -51,12 +51,12 @@ class SearchHistoryAdapter(
         holder.bind(item)
     }
 
-    companion object DiffCallback : DiffUtil.ItemCallback<SearchHistory>() {
-        override fun areItemsTheSame(oldItem: SearchHistory, newItem: SearchHistory): Boolean {
+    companion object DiffCallback : DiffUtil.ItemCallback<SearchHistoryEntity>() {
+        override fun areItemsTheSame(oldItem: SearchHistoryEntity, newItem: SearchHistoryEntity): Boolean {
             return oldItem == newItem
         }
 
-        override fun areContentsTheSame(oldItem: SearchHistory, newItem: SearchHistory): Boolean {
+        override fun areContentsTheSame(oldItem: SearchHistoryEntity, newItem: SearchHistoryEntity): Boolean {
             return oldItem == newItem
         }
     }

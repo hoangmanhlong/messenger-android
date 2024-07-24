@@ -1,5 +1,7 @@
 package com.android.kotlin.familymessagingapp.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.services.firebase_services.facebook.FacebookService
@@ -30,7 +32,29 @@ class FirebaseServiceRepository(
 ) {
 
     companion object {
-        const val TAG = "FirebaseServiceRepository"
+        val TAG: String = FirebaseServiceRepository::class.java.simpleName
+    }
+
+    private var initializedUserDataListener = false
+
+    private val _authenticateState: MutableLiveData<Boolean?> = MutableLiveData(null)
+    val authenticateState: LiveData<Boolean?> = _authenticateState
+
+    private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+        val authStatus = auth.currentUser != null
+        if (authStatus && !initializedUserDataListener) {
+            initializedUserDataListener = true
+            firebaseRealtimeDatabaseService.initUserDataListener(auth.uid!!)
+        }
+       _authenticateState.value = authStatus
+    }
+
+    fun addAuthStateListener() {
+        auth.addAuthStateListener(authStateListener)
+    }
+
+    fun removeAuthStateListener() {
+        auth.removeAuthStateListener(authStateListener)
     }
 
     val authenticated: Flow<Boolean>
@@ -69,6 +93,7 @@ class FirebaseServiceRepository(
      */
     fun signOut() {
         try {
+            initializedUserDataListener = false
             firebaseRealtimeDatabaseService.removeAllListener()
             auth.signOut()
         } catch (e: Exception) {

@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
@@ -22,10 +21,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
-import com.android.kotlin.familymessagingapp.data.local.room.SearchHistory
+import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
-import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
@@ -34,10 +32,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -206,98 +201,100 @@ class HomeFragment : Fragment() {
             }
         }
 
-        viewModel.authenticated.observe(this.viewLifecycleOwner) { authenticated ->
-            if (!authenticated) {
-                findNavController().popBackStack()
-                findNavController().navigate(Screen.LoginScreen.screenId)
-            }
-        }
-
-        viewModel.searchHistories.observe(this.viewLifecycleOwner) {
-            searchHistoryAdapter?.submitList(it)
-            if (it.isNullOrEmpty()) recentSearchHistory?.visibility = View.GONE
-        }
-
-        viewModel.searchResultList.observe(this.viewLifecycleOwner) {
-            userAdapter?.submitList(it)
-        }
-
-        viewModel.searchViewStatus.observe(this.viewLifecycleOwner) {
-            when (it) {
-                is SearchViewStatus.ShowSearchResult -> {
-                    // ẩn searchHistories và hiện search result
-                    recentSearchHistory?.visibility = View.GONE
-                    binding.isSearchedUserEmpty = viewModel.searchResultList.value.isNullOrEmpty()
-                }
-
-                is SearchViewStatus.ShowSearchHistory -> {
-                    // Ẩn search result và hiện search hístories nếu có
-                    usersRecyclerView?.visibility = View.GONE
-                    binding.tvSearchedUserEmpty.visibility = View.GONE
-                    recentSearchHistory?.visibility =
-                        if (viewModel.searchHistories.value.isNullOrEmpty())
-                            View.GONE
-                        else
-                            View.VISIBLE
-                }
-
-                is SearchViewStatus.Other -> {
-                    // Hiện Search Histories nếu text trong ô tìm kiếm rỗng
-                    if (searchViewEditText?.text.isNullOrEmpty()) {
-                        viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchHistory)
+        viewModel.authenticateState.observe(this.viewLifecycleOwner) { authenticated ->
+            authenticated?.let {
+                if (!authenticated) {
+                    findNavController().popBackStack()
+                    findNavController().navigate(Screen.LoginScreen.screenId)
+                } else {
+                    viewModel.searchHistories.observe(this.viewLifecycleOwner) {
+                        searchHistoryAdapter?.submitList(it)
+                        if (it.isNullOrEmpty()) recentSearchHistory?.visibility = View.GONE
                     }
-                }
-            }
-        }
 
-        viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
-            binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
-            chatroomAdapter?.submitList(chatRoomsList)
-        }
+                    viewModel.searchResultList.observe(this.viewLifecycleOwner) {
+                        userAdapter?.submitList(it)
+                    }
 
-        viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
-            it?.let { user ->
-                if (!viewModel.isFragmentCreatedFirstTime) {
-                    searchBar?.hint = getString(R.string.hi_user, user.username)
-                    TimeUtils.startCountdown(countDownTime = 3) {
-                        searchBar?.hint = getString(R.string.search)
-                    }
-                }
-                context?.let { context ->
-                    _binding?.let {
-                        loadingProgressBarMenu?.isVisible = !viewModel.isFragmentCreatedFirstTime
-                    }
-                    MediaUtils.loadImageWithListener(
-                        context = context,
-                        photo = user.userAvatar ?: R.drawable.ic_broken_image,
-                        actionOnResourceReady = { draw ->
-                            viewModel.isFragmentCreatedFirstTime = true
-                            lifecycleScope.launch(Dispatchers.Main) {
-                                _binding?.let {
-                                    loadingProgressBarMenu?.isVisible = false
-                                    avatarMenu?.apply {
-                                        isVisible = true
-                                        icon = draw
-                                    }
-                                }
+                    viewModel.searchViewStatus.observe(this.viewLifecycleOwner) {
+                        when (it) {
+                            is SearchViewStatus.ShowSearchResult -> {
+                                // ẩn searchHistories và hiện search result
+                                recentSearchHistory?.visibility = View.GONE
+                                binding.isSearchedUserEmpty = viewModel.searchResultList.value.isNullOrEmpty()
                             }
-                        },
-                        actionOnLoadFailed = {
-                            viewModel.isFragmentCreatedFirstTime = true
-                            lifecycleScope.launch(Dispatchers.Main) {
-                                _binding?.let {
-                                    loadingProgressBarMenu?.isVisible = false
-                                    avatarMenu?.apply {
-                                        isVisible = true
-                                        icon = AppCompatResources.getDrawable(
-                                            context,
-                                            R.drawable.ic_broken_image
-                                        )
-                                    }
+
+                            is SearchViewStatus.ShowSearchHistory -> {
+                                // Ẩn search result và hiện search hístories nếu có
+                                usersRecyclerView?.visibility = View.GONE
+                                binding.tvSearchedUserEmpty.visibility = View.GONE
+                                recentSearchHistory?.visibility =
+                                    if (viewModel.searchHistories.value.isNullOrEmpty())
+                                        View.GONE
+                                    else
+                                        View.VISIBLE
+                            }
+
+                            is SearchViewStatus.Other -> {
+                                // Hiện Search Histories nếu text trong ô tìm kiếm rỗng
+                                if (searchViewEditText?.text.isNullOrEmpty()) {
+                                    viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchHistory)
                                 }
                             }
                         }
-                    )
+                    }
+
+                    viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
+                        binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
+                        chatroomAdapter?.submitList(chatRoomsList)
+                    }
+
+                    viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
+                        it?.let { user ->
+                            if (!viewModel.isFragmentCreatedFirstTime) {
+                                searchBar?.hint = getString(R.string.hi_user, user.username)
+                                TimeUtils.startCountdown(countDownTime = 3) {
+                                    searchBar?.hint = getString(R.string.search)
+                                }
+                            }
+                            context?.let { context ->
+                                _binding?.let {
+                                    loadingProgressBarMenu?.isVisible = !viewModel.isFragmentCreatedFirstTime
+                                }
+                                MediaUtils.loadImageWithListener(
+                                    context = context,
+                                    photo = user.userAvatar ?: R.drawable.ic_broken_image,
+                                    actionOnResourceReady = { draw ->
+                                        viewModel.isFragmentCreatedFirstTime = true
+                                        lifecycleScope.launch(Dispatchers.Main) {
+                                            _binding?.let {
+                                                loadingProgressBarMenu?.isVisible = false
+                                                avatarMenu?.apply {
+                                                    isVisible = true
+                                                    icon = draw
+                                                }
+                                            }
+                                        }
+                                    },
+                                    actionOnLoadFailed = {
+                                        viewModel.isFragmentCreatedFirstTime = true
+                                        lifecycleScope.launch(Dispatchers.Main) {
+                                            _binding?.let {
+                                                loadingProgressBarMenu?.isVisible = false
+                                                avatarMenu?.apply {
+                                                    isVisible = true
+                                                    icon = AppCompatResources.getDrawable(
+                                                        context,
+                                                        R.drawable.ic_broken_image
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -335,7 +332,7 @@ class HomeFragment : Fragment() {
         viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchResult)
     }
 
-    private fun removeSearchHistory(searchHistory: SearchHistory?, clearAll: Boolean) {
+    private fun removeSearchHistory(searchHistoryEntity: SearchHistoryEntity?, clearAll: Boolean) {
         context?.let {
             MaterialAlertDialogBuilder(it)
                 .setTitle(
@@ -346,13 +343,13 @@ class HomeFragment : Fragment() {
                     if (clearAll) getString(R.string.clear_all_search_history_message)
                     else getString(
                         R.string.remove_search_history_message,
-                        searchHistory?.text
+                        searchHistoryEntity?.text
                     )
                 )
                 .setCancelable(true)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     if (clearAll) viewModel.clearAllSearchHistory()
-                    else viewModel.deleteSearchHistory(searchHistory!!)
+                    else viewModel.deleteSearchHistory(searchHistoryEntity!!)
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
