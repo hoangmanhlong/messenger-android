@@ -38,11 +38,9 @@ class HomeViewModel @Inject constructor(
         .firebaseRealtimeDatabaseService
         .currentUserData
 
-    val chatRoomsLiveData: LiveData<List<ChatRoom>> = firebaseServiceRepository
+    val chatRoomsLiveData: LiveData<List<ChatRoom>?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
         .chatRooms
-//        .distinctUntilChanged() // Only update when data changes
-//        .asLiveData()
 
     val searchHistories: LiveData<List<SearchHistoryEntity>> = localDatabaseRepository
         .getSearchHistories()
@@ -69,10 +67,9 @@ class HomeViewModel @Inject constructor(
                                 userdata.settings?.enabledAI ?: false
                             )
                         }
+                    } else {
+                        firebaseServiceRepository.signOut()
                     }
-//                    else {
-//                        firebaseServiceRepository.signOut()
-//                    }
                 }
             }
         }

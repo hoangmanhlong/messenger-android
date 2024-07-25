@@ -38,8 +38,7 @@ class ProfileViewModel @Inject constructor(
         .getBooleanPreferenceFlow(AppDataStore.ARE_NOTIFICATION_ENABLED, true)
         .asLiveData()
 
-    val authenticationStatus: LiveData<Boolean> =
-        firebaseServiceRepository.authenticated.asLiveData()
+    val authenticationStatus: LiveData<Boolean?> = firebaseServiceRepository.authenticateState
 
     init {
         currentUserLiveData.observeForever { userdata ->

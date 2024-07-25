@@ -2,15 +2,15 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#F1F1F1" /> <!-- Màu khi nhấn -->
+            <solid android:color="?attr/colorSecondaryContainer" />
             <corners android:radius="20dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/splash_background" /> <!-- Màu nền mặc định -->
+            <solid android:color="@color/splash_background" />
             <corners android:radius="20dp" />
-            <stroke android:width="1dp" android:color="#747775" />
+            <stroke android:width="1dp" android:color="?attr/colorOnSurface" />
         </shape>
     </item>
 </selector>

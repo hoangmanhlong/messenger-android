@@ -59,13 +59,7 @@ class FirebaseGoogleService(
                 val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
                 val firebaseUser = auth.signInWithCredential(googleCredentials).await().user
                 firebaseUser?.let {
-                    val userDataRef = firebaseRealtimeDatabaseService.userDataRef
-                    val userInfoSnapshot = userDataRef.child(it.uid).get().await()
-                    if (userInfoSnapshot.value == null) {
-                        firebaseRealtimeDatabaseService.updateNewUserDataInRealtime(
-                            firebaseUser.toUserData()
-                        )
-                    }
+                    firebaseRealtimeDatabaseService.updateNewUserDataInRealtime(firebaseUser.toUserData())
                 }
                 appDataStore.saveBoolean(AppDataStore.IS_AUTHENTICATE_BY_EMAIL, false)
                 Result.Success(true)

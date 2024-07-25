@@ -1,8 +1,10 @@
 package com.android.kotlin.familymessagingapp.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.model.ValueInvalidException
 import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.services.firebase_services.facebook.FacebookService
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleService
@@ -10,12 +12,7 @@ import com.android.kotlin.familymessagingapp.services.firebase_services.realtime
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CancellationException
@@ -27,7 +24,6 @@ class FirebaseServiceRepository(
     val firebaseEmailService: FirebaseEmailService,
     val firebaseStorageService: FirebaseStorageService,
     val firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-    private val localDatabaseRepository: LocalDatabaseRepository,
     val facebookService: FacebookService
 ) {
 
@@ -35,36 +31,23 @@ class FirebaseServiceRepository(
         val TAG: String = FirebaseServiceRepository::class.java.simpleName
     }
 
-    private var initializedUserDataListener = false
+    private var gotAuthenticationStateWhenStartingTheApp = false
 
     private val _authenticateState: MutableLiveData<Boolean?> = MutableLiveData(null)
     val authenticateState: LiveData<Boolean?> = _authenticateState
 
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-        val authStatus = auth.currentUser != null
-        if (authStatus && !initializedUserDataListener) {
-            initializedUserDataListener = true
-            firebaseRealtimeDatabaseService.initUserDataListener(auth.uid!!)
+        val authState = auth.currentUser != null
+        _authenticateState.value = authState
+        if (!gotAuthenticationStateWhenStartingTheApp)  {
+            if (authState) firebaseRealtimeDatabaseService.addUserDataListener()
+            gotAuthenticationStateWhenStartingTheApp = true
         }
-       _authenticateState.value = authStatus
     }
 
-    fun addAuthStateListener() {
+    init {
         auth.addAuthStateListener(authStateListener)
     }
-
-    fun removeAuthStateListener() {
-        auth.removeAuthStateListener(authStateListener)
-    }
-
-    val authenticated: Flow<Boolean>
-        get() = callbackFlow {
-            val listener = FirebaseAuth.AuthStateListener { auth ->
-                trySend(auth.currentUser != null)
-            }
-            Firebase.auth.addAuthStateListener(listener)
-            awaitClose { Firebase.auth.removeAuthStateListener(listener) }
-        }
 
     suspend fun deleteAccount(): Result<Boolean> {
         return withContext(Dispatchers.IO) {
@@ -77,9 +60,10 @@ class FirebaseServiceRepository(
                     auth.currentUser?.run { delete().await() }
                     Result.Success(true)
                 } else {
-                    Result.Error(Exception("Uid Invalid"))
+                    Result.Error(ValueInvalidException())
                 }
             } catch (e: Exception) {
+                Log.d(TAG, "deleteAccount: $e")
                 // TODO: Delete Account Error with FirebaseAuthRecentLoginRequiredException
                 // Current solution: sign out but the account still exists in the backend
                 if (e is FirebaseAuthRecentLoginRequiredException) signOut()
@@ -93,7 +77,6 @@ class FirebaseServiceRepository(
      */
     fun signOut() {
         try {
-            initializedUserDataListener = false
             firebaseRealtimeDatabaseService.removeAllListener()
             auth.signOut()
         } catch (e: Exception) {

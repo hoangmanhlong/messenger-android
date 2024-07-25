@@ -84,6 +84,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        binding.tvConversationEmpty.visibility = View.GONE
 
         searchBar = binding.searchBar
         searchView = binding.searchView
@@ -196,8 +197,7 @@ class HomeFragment : Fragment() {
                     activity?.let {
                         (it as MainActivity).handleDoubleBackPress()
                     }
-                }
-                else findNavController().navigateUp()
+                } else findNavController().navigateUp()
             }
         }
 
@@ -221,7 +221,8 @@ class HomeFragment : Fragment() {
                             is SearchViewStatus.ShowSearchResult -> {
                                 // ẩn searchHistories và hiện search result
                                 recentSearchHistory?.visibility = View.GONE
-                                binding.isSearchedUserEmpty = viewModel.searchResultList.value.isNullOrEmpty()
+                                binding.isSearchedUserEmpty =
+                                    viewModel.searchResultList.value.isNullOrEmpty()
                             }
 
                             is SearchViewStatus.ShowSearchHistory -> {
@@ -245,25 +246,28 @@ class HomeFragment : Fragment() {
                     }
 
                     viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
-                        binding.isConversationEmpty = chatRoomsList.isNullOrEmpty()
-                        chatroomAdapter?.submitList(chatRoomsList)
+                        if (chatRoomsList != null) {
+                            binding.isConversationEmpty = chatRoomsList.isEmpty()
+                            chatroomAdapter?.submitList(chatRoomsList)
+                        }
                     }
 
-                    viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
-                        it?.let { user ->
+                    viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) { userdata ->
+                        if (userdata != null && !userdata.uid.isNullOrEmpty()) {
                             if (!viewModel.isFragmentCreatedFirstTime) {
-                                searchBar?.hint = getString(R.string.hi_user, user.username)
+                                searchBar?.hint = getString(R.string.hi_user, userdata.username)
                                 TimeUtils.startCountdown(countDownTime = 3) {
                                     searchBar?.hint = getString(R.string.search)
                                 }
                             }
                             context?.let { context ->
                                 _binding?.let {
-                                    loadingProgressBarMenu?.isVisible = !viewModel.isFragmentCreatedFirstTime
+                                    loadingProgressBarMenu?.isVisible =
+                                        !viewModel.isFragmentCreatedFirstTime
                                 }
                                 MediaUtils.loadImageWithListener(
                                     context = context,
-                                    photo = user.userAvatar ?: R.drawable.ic_broken_image,
+                                    photo = userdata.userAvatar ?: R.drawable.ic_broken_image,
                                     actionOnResourceReady = { draw ->
                                         viewModel.isFragmentCreatedFirstTime = true
                                         lifecycleScope.launch(Dispatchers.Main) {

@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.activity
 
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.LiveData
@@ -8,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
@@ -32,6 +34,10 @@ class MainViewModel @Inject constructor(
             )
         }
     }
+
+    private val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
+        .firebaseRealtimeDatabaseService
+        .currentUserData
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -71,45 +77,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    //    init {
-//        firstCheck()
-//    }
-//
-//    private fun firstCheck() {
-//        viewModelScope.launch {
-//            try {
-//                val fcmToken = FirebaseMessaging.getInstance().token.await()
-//                dataMemoryRepository.appDataStore.saveString(AppDataStore.FCM_TOKEN, fcmToken)
-//                val userToken = dataMemoryRepository.appDataStore.getStringPreferenceFlow(
-//                    AppDataStore.TOKEN,
-//                    null
-//                ).first()
-//                if (userToken != null) {
-//                    val result =
-//                        appRepository.sendFCMToken(userToken = userToken, fcmToken = fcmToken)
-//                    when (result) {
-//                        is Result.Success<ObjectResponse> -> {
-//                            _isKeepSplashScreen.value = false
-//                        }
-//
-//                        else -> _isKeepSplashScreen.value = false
-//                    }
-//                } else {
-//                    _isKeepSplashScreen.value = false
-//                }
-//            } catch (e: Exception) {
-//                _isKeepSplashScreen.value = false
-//            }
-//        }
-//    }
     init {
-        firebaseServiceRepository.addAuthStateListener()
         executeTheJobOnFirstRun()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        firebaseServiceRepository.removeAuthStateListener()
+        currentUserLiveData.observeForever {
+            Log.d(TAG, "jho;hoho;j: ")
+            viewModelScope.launch {
+                firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it)
+            }
+        }
     }
 
     //Save data when the user runs the app for the first time
@@ -127,5 +102,9 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        const val TAG = "MainViewModel"
     }
 }

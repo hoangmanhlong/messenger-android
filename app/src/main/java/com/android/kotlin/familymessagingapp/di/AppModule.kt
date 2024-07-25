@@ -63,7 +63,6 @@ object AppModule {
         firebaseEmailService: FirebaseEmailService,
         firebaseStorageService: FirebaseStorageService,
         firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-        appLocalDatabaseRepository: LocalDatabaseRepository,
         facebookService: FacebookService
     ): FirebaseServiceRepository =
         FirebaseServiceRepository(
@@ -72,7 +71,6 @@ object AppModule {
             firebaseEmailService,
             firebaseStorageService,
             firebaseRealtimeDatabaseService,
-            appLocalDatabaseRepository,
             facebookService
         )
 

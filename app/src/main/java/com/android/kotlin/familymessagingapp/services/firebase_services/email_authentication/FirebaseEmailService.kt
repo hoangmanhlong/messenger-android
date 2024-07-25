@@ -34,13 +34,7 @@ class FirebaseEmailService @Inject constructor(
             try {
                 val firebaseUser = auth.createUserWithEmailAndPassword(email, password).await().user
                 firebaseUser?.let {
-                    val userDataRef = firebaseRealtimeDatabaseService.userDataRef
-                    val userInfoSnapshot = userDataRef.child(it.uid).get().await()
-                    if (userInfoSnapshot.value == null) {
-                        firebaseRealtimeDatabaseService.updateNewUserDataInRealtime(
-                            firebaseUser.toUserData()
-                        )
-                    }
+                    firebaseRealtimeDatabaseService.updateNewUserDataInRealtime(firebaseUser.toUserData())
                 }
                 appDataStore.saveBoolean(AppDataStore.IS_AUTHENTICATE_BY_EMAIL, false)
                 Result.Success(true)

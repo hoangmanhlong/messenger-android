@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
@@ -24,15 +23,12 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -52,6 +48,10 @@ class FirebaseRealtimeDatabaseService(
     private val firebaseStorageService: FirebaseStorageService
 ) {
 
+    companion object {
+        val TAG: String = FirebaseRealtimeDatabaseService::class.java.simpleName
+    }
+
     private val registeredChatRoomsListeners = mutableMapOf<DatabaseReference, ValueEventListener>()
 
     private val registerUserDataListener = mutableMapOf<DatabaseReference, ValueEventListener>()
@@ -60,11 +60,7 @@ class FirebaseRealtimeDatabaseService(
 
     private val databaseReference = Firebase.database.reference
 
-    companion object {
-        val TAG: String = FirebaseRealtimeDatabaseService::class.java.simpleName
-    }
-
-    val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
+    private val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
 
     private val chatRoomsRef = databaseReference.child(Constant.REALTIME_DATABASE_CHAT_ROOM_REF)
 
@@ -77,11 +73,11 @@ class FirebaseRealtimeDatabaseService(
 
     private val userAvatarImageRef = firebaseStorageService.userAvatarRef
 
-    private val _currentUserData: MutableLiveData<UserData?> = MutableLiveData(null)
+    private val _currentUserData: MutableLiveData<UserData?> = MutableLiveData(UserData())
     val currentUserData: LiveData<UserData?> = _currentUserData
 
-    private val _chatRooms: MutableLiveData<List<ChatRoom>> = MutableLiveData(emptyList())
-    val chatRooms: LiveData<List<ChatRoom>> = _chatRooms
+    private val _chatRooms: MutableLiveData<List<ChatRoom>?> = MutableLiveData(null)
+    val chatRooms: LiveData<List<ChatRoom>?> = _chatRooms
 
     private val userdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -93,65 +89,36 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    fun initUserDataListener(uid: String) {
-        clearUserDataListener()
-        val currentUserRef = userDataRef.child(uid)
-        currentUserRef.addValueEventListener(userdataListener)
-        registerUserDataListener[currentUserRef] = userdataListener
-
-        _currentUserData.observeForever { userData ->
-            _chatRooms.value = if (userData != null) {
-                val chatRooms = userData.chatrooms
-                if (chatRooms.isNullOrEmpty()) {
-                    emptyList()
-                } else {
-                    val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
-                        getChatRoomFlow(it, userData)
-                    }
-                    combine(chatroomFlows) {
-                        // Sort chat room list by latestTime
-                        it.filterNotNull().toList()
-                            .sortedByDescending { chatroom -> chatroom.latestTime }
-                    }.asLiveData().value
-                }
+    suspend fun chatroomObserver(userData: UserData?) {
+        if (userData != null && !userData.uid.isNullOrEmpty()) {
+            val chatRooms = userData.chatrooms
+            if (chatRooms.isNullOrEmpty()) {
+                _chatRooms.value = emptyList()
             } else {
-                registeredChatRoomsListeners.forEach {
-                    chatRoomsRef.removeEventListener(it.value)
+                val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
+                    getChatRoomFlow(it, userData)
                 }
-                emptyList()
+                combine(chatroomFlows) {
+                    // Sort chat room list by latestTime
+                    it.filterNotNull().toList()
+                        .sortedByDescending { chatroom -> chatroom.latestTime }
+                }.collect {
+                    _chatRooms.value = it
+                }
             }
+        } else {
+            clearChatRoomsListener()
+            _chatRooms.value = emptyList()
         }
     }
 
-    /**
-     * Event Listener Flow of current User Data
-     */
-//    val currentUserDataFlow: Flow<UserData?>
-//        get() = callbackFlow {
-//
-//            if (currentUser == null) {
-//                close()
-//                return@callbackFlow
-//            }
-//
-//            val listener =
-//
-//            awaitClose {
-//                currentUserRef.removeEventListener(listener)
-//                registerUserDataListener.remove(currentUserRef)
-//            }
-//        }
-
-    /**
-     * Nghe user data mới nhất từ [currentUserDataFlow]
-     * Nếu là null thì hủy toàn bộ trình nghe và kết thúc
-     * Nếu khác null thì lấy toàn bộ chatroom snapshot theo chatroomID trong userData
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-//    val chatRoomsFlow: Flow<List<ChatRoom>>
-//        get() = currentUserDataFlow.flatMapLatest { userData ->
-//
-//        }
+    fun addUserDataListener() {
+        if (registerUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
+            val currentUserRef = userDataRef.child(auth.uid!!)
+            currentUserRef.addValueEventListener(userdataListener)
+            registerUserDataListener[currentUserRef] = userdataListener
+        }
+    }
 
     /**
      * Đăng ký trình nghe tại phòng có id của user hiện tại
@@ -469,21 +436,42 @@ class FirebaseRealtimeDatabaseService(
         clearChatRoomsListener()
     }
 
+    /**
+     * Update new user data in realtime database
+     * Check current UserData Node has exist or not
+     * Add UserData Listener
+     *
+     * This method is called when Login with Google Account [com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleService.signInWithIntent]
+     *
+     * Add UserData listener when userdata node exist or update new data in realtime database success
+     *
+     * @param userData Userdata from FirebaseUser
+     *
+     */
     suspend fun updateNewUserDataInRealtime(userData: UserData) {
-        val currentUid = userData.uid
-        if (!currentUid.isNullOrEmpty()) {
-            if (!userData.userAvatar.isNullOrEmpty()) {
-                val downloadUrl = firebaseStorageService.createDownloadUrlFromImageUrl(
-                    userData.userAvatar,
-                    userAvatarImageRef.child(userData.uid)
-                )
-                // Update user data with avatar URL
-                val updatedUserData = userData.copy(userAvatar = downloadUrl)
-                userDataRef.child(currentUid).setValue(updatedUserData).await()
-            } else {
-                userDataRef.child(currentUid).setValue(userData).await()
-            }
+        // This method is called when firebaseUser is not null, so uid will always be non-null
+        val currentUid = auth.uid!!
+        // Get the current user node reference
+        val userInfoSnapshot = userDataRef.child(currentUid).get().await()
+        // If the node is null, then return
+        if (userInfoSnapshot.exists()) {
+            addUserDataListener()
+            return
         }
+        var updatedUserData = userData
+        // Check google account if have avatar url then update it to firebase storage and
+        // get user update userdata
+        if (!userData.userAvatar.isNullOrEmpty()) {
+            val downloadUrl = firebaseStorageService.createDownloadUrlFromImageUrl(
+                userData.userAvatar,
+                userAvatarImageRef.child(currentUid)
+            )
+            // Update user data with avatar URL
+            updatedUserData = updatedUserData.copy(userAvatar = downloadUrl)
+        }
+        // Update the user data in the Realtime Database
+        userDataRef.child(currentUid).setValue(updatedUserData).await()
+        addUserDataListener()
     }
 
     suspend fun addNewPinnedMessage(
@@ -538,16 +526,17 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    suspend fun deleteMessage(chatroomId: String, messageId: String): Result<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            chatRoomsRef.child(chatroomId)
-                .child(ChatRoom.MESSAGES)
-                .child(messageId)
-                .removeValue()
-                .await()
-            Result.Success(true)
-        } catch (e: Exception) {
-            Result.Error(e)
+    suspend fun deleteMessage(chatroomId: String, messageId: String): Result<Boolean> =
+        withContext(Dispatchers.IO) {
+            try {
+                chatRoomsRef.child(chatroomId)
+                    .child(ChatRoom.MESSAGES)
+                    .child(messageId)
+                    .removeValue()
+                    .await()
+                Result.Success(true)
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
         }
-    }
 }
