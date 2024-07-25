@@ -1,6 +1,5 @@
 package com.android.kotlin.familymessagingapp.activity
 
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.LiveData
@@ -80,7 +79,6 @@ class MainViewModel @Inject constructor(
     init {
         executeTheJobOnFirstRun()
         currentUserLiveData.observeForever {
-            Log.d(TAG, "jho;hoho;j: ")
             viewModelScope.launch {
                 firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it)
             }

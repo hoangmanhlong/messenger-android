@@ -14,17 +14,16 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
-import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.databinding.FragmentLoginBinding
-import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.screen.Screen
+import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FindIntentSenderResult
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
+import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

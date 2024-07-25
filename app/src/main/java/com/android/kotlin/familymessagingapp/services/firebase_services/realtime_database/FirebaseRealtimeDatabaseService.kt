@@ -91,6 +91,7 @@ class FirebaseRealtimeDatabaseService(
 
     suspend fun chatroomObserver(userData: UserData?) {
         if (userData != null && !userData.uid.isNullOrEmpty()) {
+            clearChatRoomsListener()
             val chatRooms = userData.chatrooms
             if (chatRooms.isNullOrEmpty()) {
                 _chatRooms.value = emptyList()
@@ -168,11 +169,8 @@ class FirebaseRealtimeDatabaseService(
             }
         }
 
-        // Check if listener is already registered
-        if (!registeredChatRoomsListeners.containsKey(chatroomRef)) {
-            chatroomRef.addValueEventListener(listener)
-            registeredChatRoomsListeners[chatroomRef] = listener
-        }
+        chatroomRef.addValueEventListener(listener)
+        registeredChatRoomsListeners[chatroomRef] = listener
 
         awaitClose {
             chatroomRef.removeEventListener(listener)
@@ -434,6 +432,8 @@ class FirebaseRealtimeDatabaseService(
     fun removeAllListener() {
         clearUserDataListener()
         clearChatRoomsListener()
+        _currentUserData.value = UserData()
+        _chatRooms.value = null
     }
 
     /**
