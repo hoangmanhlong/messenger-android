@@ -7,6 +7,10 @@
     <data>
 
         <variable
+            name="replyingMessage"
+            type="Boolean" />
+
+        <variable
             name="imageDetailShown"
             type="Boolean" />
 
@@ -248,9 +252,84 @@
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent">
 
-                <!--            <com.google.android.material.divider.MaterialDivider-->
-                <!--                android:layout_width="match_parent"-->
-                <!--                android:layout_height="0.5dp" />-->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="@{replyingMessage ? View.VISIBLE : View.GONE}">
+
+                    <View
+                        android:id="@+id/replyMessageView"
+                        android:layout_width="4dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:background="@color/md_theme_primary"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="8dp">
+
+                        <ImageView
+                            android:id="@+id/replyMessageImageView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:adjustViewBounds="true"
+                            android:maxHeight="40dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:src="@drawable/baohong" />
+
+                        <LinearLayout
+                            android:id="@+id/replyMessageTextMessageView"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/ivCloseReplyMessage"
+                            app:layout_constraintStart_toEndOf="@id/replyMessageImageView"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <TextView
+                                android:id="@+id/tvSenderNameReplyMessage"
+                                style="@style/TextAppearance.AppCompat.Body1"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                android:textSize="16sp"
+                                tools:text="@string/author" />
+
+                            <TextView
+                                android:id="@+id/tvTextReplyMessage"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                tools:text="@string/logout_message" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/ivCloseReplyMessage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_clear"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+                </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/aiGenerateView"

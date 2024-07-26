@@ -4,7 +4,6 @@ import android.app.Activity
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -28,10 +27,15 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class SendMessageStatus { SUCCESS, ERROR, SENDING }
+sealed class SendMessageStatus {
+    data object Success : SendMessageStatus()
+    data class Error(val exception: Exception?) : SendMessageStatus()
+    data object Sending : SendMessageStatus()
+}
 
 @HiltViewModel
 class ChatRoomViewModel @Inject constructor(
@@ -44,8 +48,7 @@ class ChatRoomViewModel @Inject constructor(
     var selectedMessageIsPinnedMessage: Boolean? = null
         private set
 
-    var selectedMessageIsMessageOfMe: Boolean? = null
-        private set
+    private var selectedMessageIsMessageOfMe: Boolean? = null
 
     private val _isExpandPinnedMessage: MutableLiveData<Boolean> = MutableLiveData(false)
     val isExpandPinnedMessage: LiveData<Boolean> = _isExpandPinnedMessage
@@ -65,8 +68,8 @@ class ChatRoomViewModel @Inject constructor(
     private val _sendMessageStatus: MutableLiveData<SendMessageStatus?> = MutableLiveData(null)
     val sendMessageStatus: LiveData<SendMessageStatus?> = _sendMessageStatus
 
-    var selectedMessage: Message? = null
-        private set
+    private val _selectedMessage: MutableLiveData<Message?> = MutableLiveData(null)
+    val selectedMessage: LiveData<Message?> = _selectedMessage
 
     private val _pinnedMessages: MutableLiveData<List<PinnedMessage>> = MutableLiveData(emptyList())
     val pinnedMessages: LiveData<List<PinnedMessage>> = _pinnedMessages
@@ -96,16 +99,16 @@ class ChatRoomViewModel @Inject constructor(
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
 
-    private val currentUserData = firebaseServiceRepository.firebaseRealtimeDatabaseService.currentUserData
-
-    init {
-        currentUserData.observeForever {
-            Log.d(TAG, "currentuseradata: $currentUserData")
-        }
-    }
+    private val _replyingMessage = MutableLiveData(false)
+    val replyingMessage: LiveData<Boolean> = _replyingMessage
 
     fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!
+    }
+
+    fun setReplyingMessage(isReplying: Boolean) {
+        if (!isReplying) _selectedMessage.value = null
+        _replyingMessage.value = isReplying
     }
 
     fun setExpandPinnedMessage() {
@@ -134,7 +137,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun setSelectedMessage(message: Message) {
-        selectedMessage = message
+        _selectedMessage.value = message
         selectedMessageIsPinnedMessage = checkMessageIsPinnedMessage(message.messageId)
         selectedMessageIsMessageOfMe = message.senderId == Firebase.auth.uid
     }
@@ -184,10 +187,10 @@ class ChatRoomViewModel @Inject constructor(
 
     fun deleteMessage() {
         viewModelScope.launch {
-            if (selectedMessage?.senderId == Firebase.auth.uid && _chatRoom.value?.chatRoomId != null) {
+            if (_selectedMessage.value?.senderId == Firebase.auth.uid && _chatRoom.value?.chatRoomId != null) {
                 firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteMessage(
                     _chatRoom.value!!.chatRoomId!!,
-                    selectedMessage!!.messageId!!
+                    selectedMessage.value!!.messageId!!
                 )
             }
         }
@@ -195,22 +198,25 @@ class ChatRoomViewModel @Inject constructor(
 
     fun pinMessage() {
         viewModelScope.launch {
-            if (_chatRoom.value?.chatRoomId == null
-                || selectedMessage == null
-                || selectedMessage?.messageId == null
-                || selectedMessageIsPinnedMessage == null) {
+            if (_chatRoom.value == null
+                || _chatRoom.value?.chatRoomId == null
+                || selectedMessage.value == null
+                || _selectedMessage.value?.messageId == null
+                || selectedMessageIsPinnedMessage == null
+                || Firebase.auth.uid.isNullOrEmpty()
+            ) {
                 return@launch
             }
             if (selectedMessageIsPinnedMessage == false) {
                 val pinnedMessage = _chatRoom.value!!.pinnedMessages ?: emptyMap()
                 if (pinnedMessage.keys.size < 3) {
-                    if (pinnedMessage.keys.contains(selectedMessage!!.messageId)) {
+                    if (pinnedMessage.keys.contains(_selectedMessage.value!!.messageId)) {
                         _pinMessageStatus.value = Result.Error(ObjectAlreadyExistException())
                         return@launch
                     }
                     val newPinnedMessage = PinnedMessage(
-                        messageId = selectedMessage!!.messageId,
-                        senderId = selectedMessage!!.senderId,
+                        messageId = _selectedMessage.value!!.messageId,
+                        senderId = Firebase.auth.uid!!,
                         pinTime = StringUtils.getCurrentTime()
                     )
                     val result = firebaseServiceRepository
@@ -222,7 +228,7 @@ class ChatRoomViewModel @Inject constructor(
                 }
             } else {
                 firebaseServiceRepository.firebaseRealtimeDatabaseService
-                    .deletePinnedMessage(_chatRoom.value!!, selectedMessage!!.messageId!!)
+                    .deletePinnedMessage(_chatRoom.value!!, _selectedMessage.value!!.messageId!!)
             }
         }
     }
@@ -248,15 +254,25 @@ class ChatRoomViewModel @Inject constructor(
         if (!chatRoomId.isNullOrEmpty()) {
             chatroomLiveData = firebaseServiceRepository
                 .firebaseRealtimeDatabaseService
-                .addChatRoomListener(chatRoomId)
+                .chatRooms
+                .map { list -> list.firstOrNull { it.chatRoomId == chatRoomId } }
                 .asLiveData()
 
             chatroomLiveData.observeForever { chatRoom ->
                 _chatRoom.value = _chatRoom.value?.copy(
-                    pinnedMessages = chatRoom?.pinnedMessages,
+                    chatRoomId = chatRoom?.chatRoomId,
+//                    chatroomName = chatRoom?.chatroomName,
                     messages = chatRoom?.messages,
-                    membersData = _chatRoom.value?.membersData
+                    lastMessage = chatRoom?.lastMessage,
+                    latestTime = chatRoom?.latestTime,
+                    isActive = chatRoom?.isActive,
+//                    chatRoomImage = chatRoom?.chatRoomImage,
+                    members = chatRoom?.members,
+                    pinnedMessages = chatRoom?.pinnedMessages,
+                    membersData = chatRoom?.membersData
                 )
+                _chatRoom.value?.getReplyMessages()
+                _chatRoom.value?.getSenderNameOfMessage()
                 _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
                 if (chatRoom != null) {
                     viewModelScope.launch {
@@ -280,7 +296,7 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
-    fun checkMessageIsPinnedMessage(messageId: String?): Boolean {
+    private fun checkMessageIsPinnedMessage(messageId: String?): Boolean {
         return if (_chatRoom.value != null && !messageId.isNullOrEmpty()) {
             val pinnedMessages = _chatRoom.value!!.pinnedMessages
             pinnedMessages != null && pinnedMessages.containsKey(messageId)
@@ -289,14 +305,10 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
-    fun removeMessageListener() {
-        firebaseServiceRepository.firebaseRealtimeDatabaseService.removeChatRoomListener()
-    }
-
     fun updateMessageEmoji(emoji: String) {
         viewModelScope.launch {
             val chatRoomId = _chatRoom.value?.chatRoomId
-            val messageId = selectedMessage?.messageId
+            val messageId = _selectedMessage.value?.messageId
             if (!chatRoomId.isNullOrEmpty() && !messageId.isNullOrEmpty()) {
                 firebaseServiceRepository
                     .firebaseRealtimeDatabaseService
@@ -328,7 +340,7 @@ class ChatRoomViewModel @Inject constructor(
 
     fun sendMessage() {
         viewModelScope.launch {
-            _sendMessageStatus.value = SendMessageStatus.SENDING
+            _sendMessageStatus.value = SendMessageStatus.Sending
             val sendResult = firebaseServiceRepository
                 .firebaseRealtimeDatabaseService
                 .updateNewMessage(
@@ -340,7 +352,7 @@ class ChatRoomViewModel @Inject constructor(
 
             when (sendResult) {
                 is Result.Success -> {
-                    _sendMessageStatus.value = SendMessageStatus.SUCCESS
+                    _sendMessageStatus.value = SendMessageStatus.Success
                     val data = sendResult.data
                     if (data != null && _chatRoom.value!!.chatRoomId == null) {
                         _chatRoom.value = _chatRoom.value?.copy(chatRoomId = data.chatRoomId)
@@ -349,7 +361,7 @@ class ChatRoomViewModel @Inject constructor(
                 }
 
                 is Result.Error -> {
-                    _sendMessageStatus.value = SendMessageStatus.ERROR
+                    _sendMessageStatus.value = SendMessageStatus.Error(null)
                 }
             }
         }
@@ -361,10 +373,10 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun copyMessage(activity: Activity) {
-        if (!selectedMessage?.text.isNullOrEmpty()) {
+        if (!_selectedMessage.value?.text.isNullOrEmpty()) {
             KeyBoardUtils.copyTextToClipBoard(
                 activity,
-                selectedMessage!!.text!!
+                selectedMessage.value!!.text!!
             )
         }
     }

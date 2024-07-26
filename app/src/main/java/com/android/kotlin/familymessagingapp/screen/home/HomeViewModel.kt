@@ -41,6 +41,7 @@ class HomeViewModel @Inject constructor(
     val chatRoomsLiveData: LiveData<List<ChatRoom>?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
         .chatRooms
+        .asLiveData()
 
     val searchHistories: LiveData<List<SearchHistoryEntity>> = localDatabaseRepository
         .getSearchHistories()

@@ -19,7 +19,9 @@ data class Message(
     val type: Int? = null,
     val emoticon: String? = null,
     val replyMessageId: String? = null,
-    @Exclude var pinned: Boolean? = null
+    @Exclude var pinned: Boolean? = null,
+    @Exclude var replyMessage: Message? = null,
+    @Exclude var senderName: String? = null
 ) : Parcelable {
 
     @Exclude

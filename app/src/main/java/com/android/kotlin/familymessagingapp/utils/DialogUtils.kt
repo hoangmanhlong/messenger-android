@@ -2,6 +2,7 @@ package com.android.kotlin.familymessagingapp.utils
 
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.annotation.StringRes
@@ -79,10 +80,18 @@ object DialogUtils {
 
     fun showNotificationDialog(
         context: Context,
-        @StringRes message: Int
-    ): AlertDialog =
-        MaterialAlertDialogBuilder(context)
+        @StringRes title: Int? = null,
+        @StringRes message: Int,
+        cancelable: Boolean = true,
+        onOkButtonClick: ((DialogInterface, Int) -> Unit)? = null
+    ): AlertDialog {
+        val dialog = MaterialAlertDialogBuilder(context)
             .setMessage(context.getString(message))
-            .setPositiveButton(R.string.ok, null)
+            .setPositiveButton(R.string.ok, onOkButtonClick)
+            .setCancelable(cancelable)
             .create()
+        if (title != null) dialog.setTitle(title)
+        return dialog
+    }
+
 }

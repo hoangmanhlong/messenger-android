@@ -75,8 +75,11 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
-        networkNotificationDialog =
-            DialogUtils.showNotificationDialog(this, R.string.network_not_available_message)
+        networkNotificationDialog = DialogUtils.showNotificationDialog(
+            context = this,
+            title = R.string.network_not_available_title,
+            message = R.string.network_not_available_message
+        )
         if (!NetworkChecker.isNetworkAvailable(this)) {
             networkNotificationDialog?.show()
         }

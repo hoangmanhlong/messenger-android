@@ -59,6 +59,11 @@ class MessageOptionsFragment(
             listener?.onDeleteMessage()
             dismiss()
         }
+
+        binding.replyMessageView.setOnClickListener {
+            listener?.onReplyMessage()
+            dismiss()
+        }
         return binding.root
     }
 

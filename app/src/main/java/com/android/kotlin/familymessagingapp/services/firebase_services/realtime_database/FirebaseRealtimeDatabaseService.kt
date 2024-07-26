@@ -1,7 +1,6 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -27,6 +26,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -36,12 +37,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Bug crash
+ * ### Spec
+ * #### Bug crash
  * Description:
  * W  Listen at /users_information_data/ fp5VSXmPSyfIrjuWDT7Az1KfkZp2 failed: DatabaseError: This client does not have permission to perform this operation
  * W  Listen at /chatrooms/0 failed: DatabaseError: This client does not have permission to perform this operation
  *
  * Solution: remove all listener before logout
+ *
+ * #### Problem
+ * - [chatroomObserver] When chatroom list of chatroom is changed all chatroom listener cancelled. This is not really optimal. Chatrooms that still exist should not be deleted and re-added.
  */
 class FirebaseRealtimeDatabaseService(
     private val auth: FirebaseAuth,
@@ -76,8 +81,8 @@ class FirebaseRealtimeDatabaseService(
     private val _currentUserData: MutableLiveData<UserData?> = MutableLiveData(UserData())
     val currentUserData: LiveData<UserData?> = _currentUserData
 
-    private val _chatRooms: MutableLiveData<List<ChatRoom>?> = MutableLiveData(null)
-    val chatRooms: LiveData<List<ChatRoom>?> = _chatRooms
+    private val _chatRooms = MutableStateFlow<List<ChatRoom>>(emptyList())
+    val chatRooms: StateFlow<List<ChatRoom>> = _chatRooms
 
     private val userdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -89,13 +94,29 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    // Current chatroom list of current user
+    private val chatroomIDList: MutableList<String> = mutableListOf()
+
+    /**
+     * #### Listen to the changes of the current User's chat room list
+     * This method is called when userdata changed
+     *
+     * Add chatroom listener when chatroom id list from user not empty and chatroom id list is changed
+     *
+     * @param userData latest userdata from current user
+     */
     suspend fun chatroomObserver(userData: UserData?) {
         if (userData != null && !userData.uid.isNullOrEmpty()) {
-            clearChatRoomsListener()
             val chatRooms = userData.chatrooms
             if (chatRooms.isNullOrEmpty()) {
+                clearChatRoomsListener()
                 _chatRooms.value = emptyList()
+                chatroomIDList.clear()
             } else {
+                if (StringUtils.areListsEqual(chatRooms, chatroomIDList)) return
+                clearChatRoomsListener()
+                chatroomIDList.clear()
+                chatroomIDList.addAll(chatRooms)
                 val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
                     getChatRoomFlow(it, userData)
                 }
@@ -110,9 +131,15 @@ class FirebaseRealtimeDatabaseService(
         } else {
             clearChatRoomsListener()
             _chatRooms.value = emptyList()
+            chatroomIDList.clear()
         }
     }
 
+    /**
+     * Add UserData Listener
+     *
+     * Description: add listener to userdata if user is authenticated
+     */
     fun addUserDataListener() {
         if (registerUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
             val currentUserRef = userDataRef.child(auth.uid!!)
@@ -133,39 +160,44 @@ class FirebaseRealtimeDatabaseService(
         val chatroomRef = chatRoomsRef.child(chatroomId)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                var chatroom = snapshot.getValue(ChatRoom::class.java)
-                if (chatroom != null) {
-                    val listOfOtherMembers = chatroom.members?.filter { it != auth.uid }
-                    val membersData: MutableList<UserData> = mutableListOf()
-                    membersData.add(currentUserData)
-                    if (!listOfOtherMembers.isNullOrEmpty()) {
-                        val deferredList = listOfOtherMembers.map { memberId ->
-                            // async và awaitAll: Để lấy dữ liệu của các memberId khác song song,
-                            // bạn có thể sử dụng async để tạo các tác vụ không đồng bộ cho từng truy
-                            // vấn Firebase và sau đó sử dụng awaitAll để chờ tất cả các truy vấn hoàn thành.
-                            async {
-                                val userData = getUserData(memberId)
-                                userData?.let { membersData.add(it) }
+                if (snapshot.exists()) {
+                    var chatroom = snapshot.getValue(ChatRoom::class.java)
+                    if (chatroom != null) {
+                        val listOfOtherMembers = chatroom.members?.filter { it != auth.uid }
+                        val membersData: MutableList<UserData> = mutableListOf()
+                        membersData.add(currentUserData)
+                        if (!listOfOtherMembers.isNullOrEmpty()) {
+                            val deferredList = listOfOtherMembers.map { memberId ->
+                                // async và awaitAll: Để lấy dữ liệu của các memberId khác song song,
+                                // bạn có thể sử dụng async để tạo các tác vụ không đồng bộ cho từng truy
+                                // vấn Firebase và sau đó sử dụng awaitAll để chờ tất cả các truy vấn hoàn thành.
+                                async {
+                                    val userData = getUserData(memberId)
+                                    userData?.let { membersData.add(it) }
+                                }
                             }
-                        }
-                        // Wait for all data to be collected
-                        launch {
-                            deferredList.awaitAll()
-                            chatroom = chatroom?.copy(membersData = membersData)
-                            chatroom?.getChatRoomNameAndImage()
-                            trySend(chatroom).isSuccess
+                            // Wait for all data to be collected
+                            launch {
+                                deferredList.awaitAll()
+                                chatroom = chatroom?.copy(membersData = membersData)
+                                chatroom?.getChatRoomNameAndImage()
+                                trySend(chatroom).isSuccess
+                            }
+                        } else {
+                            trySend(null).isSuccess
                         }
                     } else {
                         trySend(null).isSuccess
                     }
                 } else {
                     trySend(null).isSuccess
+                    close()
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
                 trySend(null).isSuccess
+                close(error.toException())
             }
         }
 
@@ -234,6 +266,11 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    /**
+     * Check chatroom exist
+     *
+     * @param otherUserId user who click from search result
+     */
     suspend fun checkChatRoomExist(otherUserId: String): String? = withContext(Dispatchers.IO) {
         try {
             val currentUserUid = auth.uid
@@ -433,7 +470,8 @@ class FirebaseRealtimeDatabaseService(
         clearUserDataListener()
         clearChatRoomsListener()
         _currentUserData.value = UserData()
-        _chatRooms.value = null
+        _chatRooms.value = emptyList()
+        chatroomIDList.clear()
     }
 
     /**

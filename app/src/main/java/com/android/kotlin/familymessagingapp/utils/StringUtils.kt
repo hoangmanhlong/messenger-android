@@ -75,4 +75,8 @@ object StringUtils {
         }
         return result
     }
+
+    fun areListsEqual(list1: List<String>, list2: List<String>): Boolean {
+        return list1.toTypedArray().contentEquals(list2.toTypedArray())
+    }
 }

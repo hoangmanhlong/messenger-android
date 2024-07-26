@@ -5,4 +5,5 @@ interface MessageOptionsEventListener {
     fun onDeleteMessage()
     fun onCopyMessage()
     fun updateMessageEmoji(emoji: String)
+    fun onReplyMessage()
 }

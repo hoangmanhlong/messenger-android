@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -67,6 +68,14 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
+            if (findNavController().previousBackStackEntry == null) {
+                activity?.let {
+                    (it as MainActivity).handleDoubleBackPress()
+                }
+            } else findNavController().navigateUp()
+        }
 
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
             authenticated?.let {
@@ -161,8 +170,8 @@ class LoginFragment : Fragment() {
     private fun showErrorDialog(isNoGoogleAccountError: Boolean) {
         if (noGoogleAccountDialog == null && activity != null) {
             noGoogleAccountDialog = DialogUtils.showNotificationDialog(
-                requireActivity(),
-                if (isNoGoogleAccountError) R.string.no_google_account_warning else R.string.error_occurred
+                context = requireActivity(),
+                message = if (isNoGoogleAccountError) R.string.no_google_account_warning else R.string.error_occurred
             )
         }
         noGoogleAccountDialog?.show()

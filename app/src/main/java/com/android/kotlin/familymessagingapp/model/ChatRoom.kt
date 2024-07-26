@@ -1,8 +1,6 @@
 package com.android.kotlin.familymessagingapp.model
 
-import android.content.Context
 import android.os.Parcelable
-import com.android.kotlin.familymessagingapp.R
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
@@ -63,5 +61,23 @@ data class ChatRoom(
                 }
             }
         }?.sortedByDescending { it.pinTime } ?: emptyList()
+    }
+
+    @Exclude
+    fun getReplyMessages() {
+        messages?.values?.forEach { message ->
+            message.replyMessageId?.let { replyId ->
+                message.replyMessage = messages[replyId]
+            }
+        }
+    }
+
+    @Exclude
+    fun getSenderNameOfMessage() {
+        messages?.values?.forEach { message ->
+            message.senderId?.let { senderId ->
+                message.senderName = membersData?.firstOrNull { it.uid == senderId }?.username
+            }
+        }
     }
 }

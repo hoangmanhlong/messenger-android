@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.adapter.bindNormalImage
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.Message
@@ -28,8 +29,10 @@ import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -218,6 +221,10 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         binding.ivExpandMorePinnedMessage.setOnClickListener {
             _viewModel.setExpandPinnedMessage()
         }
+
+        binding.ivCloseReplyMessage.setOnClickListener {
+            _viewModel.setReplyingMessage(false)
+        }
         return binding.root
     }
 
@@ -242,6 +249,10 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
             binding.imageDetailShown = it
             if (it) binding.imageDetailImageView.setImageDrawable(_viewModel.imageMessageDrawable)
+        }
+
+        _viewModel.replyingMessage.observe(this.viewLifecycleOwner) {
+            binding.replyingMessage = it
         }
 
         _viewModel.pinnedMessages.observe(this.viewLifecycleOwner) {
@@ -280,7 +291,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
         _viewModel.isInputValid.observe(this.viewLifecycleOwner) {
             binding.btSendMessage.isEnabled = it
-            if (_viewModel.sendMessageStatus.value == SendMessageStatus.SENDING)
+            if (_viewModel.sendMessageStatus.value == SendMessageStatus.Sending)
                 binding.btSendMessage.isEnabled = false
         }
 
@@ -313,11 +324,14 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
             it?.let {
                 when (it) {
-                    SendMessageStatus.SENDING -> binding.btSendMessage.isEnabled = false
+                    is SendMessageStatus.Sending -> binding.btSendMessage.isEnabled = false
 
-                    SendMessageStatus.SUCCESS -> _viewModel.setSendMessageStatus(null)
+                    is SendMessageStatus.Success -> _viewModel.setSendMessageStatus(null)
 
-                    SendMessageStatus.ERROR -> _viewModel.setSendMessageStatus(null)
+                    is SendMessageStatus.Error -> {
+                        showErrorDialog()
+                        _viewModel.setSendMessageStatus(null)
+                    }
                 }
             }
         }
@@ -344,6 +358,24 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
                     message,
                     Constant.ONE_SECOND
                 ).show()
+            }
+        }
+
+        _viewModel.selectedMessage.observe(this.viewLifecycleOwner) { selectedMessage ->
+            if (selectedMessage != null) {
+                binding.tvSenderNameReplyMessage.text = selectedMessage.senderName
+                if (!selectedMessage.text.isNullOrEmpty()) {
+                    context?.let {
+                        binding.tvTextReplyMessage.text =
+                            StringUtils.showLastMessageToChatRoomView(it, selectedMessage)
+                    }
+                }
+                if (!selectedMessage.photo.isNullOrEmpty()) {
+                    binding.replyMessageImageView.visibility = View.VISIBLE
+                    bindNormalImage(binding.replyMessageImageView, selectedMessage.photo)
+                } else {
+                    binding.replyMessageImageView.visibility = View.GONE
+                }
             }
         }
     }
@@ -389,7 +421,6 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        _viewModel.removeMessageListener()
         _viewModel.setPinMessageStatus(null)
 //        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
@@ -426,5 +457,22 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
     override fun updateMessageEmoji(emoji: String) {
         _viewModel.updateMessageEmoji(emoji)
+    }
+
+    override fun onReplyMessage() {
+        _viewModel.setReplyingMessage(true)
+    }
+
+    private fun showErrorDialog() {
+        if (activity == null) {
+            findNavController().navigateUp()
+        } else {
+            DialogUtils.showNotificationDialog(
+                context = requireActivity(),
+                message = R.string.error_occurred,
+                cancelable = false,
+                onOkButtonClick = { _, _ -> findNavController().navigateUp() }
+            ).show()
+        }
     }
 }
