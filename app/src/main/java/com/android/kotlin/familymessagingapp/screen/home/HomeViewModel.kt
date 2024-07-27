@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
@@ -47,6 +46,9 @@ class HomeViewModel @Inject constructor(
         .getSearchHistories()
         .asLiveData()
 
+    private val _isLoading = MutableLiveData(true)
+    val isLoading: LiveData<Boolean> = _isLoading
+
     private val _searchViewStatus: MutableLiveData<SearchViewStatus> = MutableLiveData(SearchViewStatus.ShowSearchHistory)
     val searchViewStatus: LiveData<SearchViewStatus> = _searchViewStatus
 
@@ -61,19 +63,14 @@ class HomeViewModel @Inject constructor(
         authenticateState.observeForever {
             if (it == true) {
                 currentUserLiveData.observeForever { userdata ->
-                    if (userdata != null) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            localDatabaseRepository.appDataStore.saveBoolean(
-                                AppDataStore.ENABLED_AI,
-                                userdata.settings?.enabledAI ?: false
-                            )
-                        }
-                    } else {
-                        firebaseServiceRepository.signOut()
-                    }
+                    if (userdata == null) firebaseServiceRepository.signOut()
                 }
             }
         }
+    }
+
+    fun setIsLoadingStatus(value: Boolean) {
+        _isLoading.value = value
     }
 
     fun setSearchViewStatus(status: SearchViewStatus) {

@@ -21,7 +21,9 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
@@ -56,6 +58,9 @@ class FirebaseRealtimeDatabaseService(
     companion object {
         val TAG: String = FirebaseRealtimeDatabaseService::class.java.simpleName
     }
+
+    private val job = Job()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
 
     private val registeredChatRoomsListeners = mutableMapOf<DatabaseReference, ValueEventListener>()
 
@@ -96,6 +101,11 @@ class FirebaseRealtimeDatabaseService(
 
     // Current chatroom list of current user
     private val chatroomIDList: MutableList<String> = mutableListOf()
+
+    // Clean up the coroutine scope when the service is no longer needed
+    fun cleanup() {
+        job.cancel()
+    }
 
     /**
      * #### Listen to the changes of the current User's chat room list
@@ -141,10 +151,12 @@ class FirebaseRealtimeDatabaseService(
      * Description: add listener to userdata if user is authenticated
      */
     fun addUserDataListener() {
-        if (registerUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
-            val currentUserRef = userDataRef.child(auth.uid!!)
-            currentUserRef.addValueEventListener(userdataListener)
-            registerUserDataListener[currentUserRef] = userdataListener
+        coroutineScope.launch {
+            if (registerUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
+                val currentUserRef = userDataRef.child(auth.uid!!)
+                currentUserRef.addValueEventListener(userdataListener)
+                registerUserDataListener[currentUserRef] = userdataListener
+            }
         }
     }
 

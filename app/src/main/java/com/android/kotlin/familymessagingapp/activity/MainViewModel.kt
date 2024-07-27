@@ -24,6 +24,10 @@ class MainViewModel @Inject constructor(
     private val localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
 
+    companion object {
+        val TAG: String = MainViewModel::class.java.simpleName
+    }
+
     // Save Notification Status to local
     fun saveNotificationStatus(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -79,7 +83,13 @@ class MainViewModel @Inject constructor(
     init {
         executeTheJobOnFirstRun()
         currentUserLiveData.observeForever {
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
+                if (it != null && !it.uid.isNullOrEmpty()) {
+                    localDatabaseRepository.appDataStore.saveBoolean(
+                        AppDataStore.ENABLED_AI,
+                        it.settings?.enabledAI ?: false
+                    )
+                }
                 firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it)
             }
         }
@@ -100,9 +110,5 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    companion object {
-        const val TAG = "MainViewModel"
     }
 }

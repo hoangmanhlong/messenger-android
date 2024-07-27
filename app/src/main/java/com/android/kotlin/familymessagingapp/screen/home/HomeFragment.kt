@@ -84,7 +84,6 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        binding.tvConversationEmpty.visibility = View.GONE
 
         searchBar = binding.searchBar
         searchView = binding.searchView
@@ -207,6 +206,10 @@ class HomeFragment : Fragment() {
                     findNavController().popBackStack()
                     findNavController().navigate(Screen.LoginScreen.screenId)
                 } else {
+                    viewModel.isLoading.observe(this.viewLifecycleOwner) {
+                        binding.isLoading = it
+                    }
+
                     viewModel.searchHistories.observe(this.viewLifecycleOwner) {
                         searchHistoryAdapter?.submitList(it)
                         if (it.isNullOrEmpty()) recentSearchHistory?.visibility = View.GONE
@@ -246,7 +249,8 @@ class HomeFragment : Fragment() {
                     }
 
                     viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
-                        if (chatRoomsList != null) {
+                        if (chatRoomsList != null && viewModel.currentUserLiveData.value?.uid != null) {
+                            viewModel.setIsLoadingStatus(false)
                             binding.isConversationEmpty = chatRoomsList.isEmpty()
                             chatroomAdapter?.submitList(chatRoomsList)
                         }
