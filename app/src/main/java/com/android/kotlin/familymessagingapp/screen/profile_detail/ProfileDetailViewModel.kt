@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +28,10 @@ class ProfileDetailViewModel @Inject constructor(
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _isSaveSuccess: MutableLiveData<Boolean> = MutableLiveData()
-    val isSaveSuccess = _isSaveSuccess
+    val isSaveSuccess: LiveData<Boolean> = _isSaveSuccess
+
+    private val _saveButtonStatus: MutableLiveData<Boolean> = MutableLiveData(validInput())
+    val saveButtonStatus: LiveData<Boolean> = _saveButtonStatus
 
     fun setEditingStatus(isEditing: Boolean) {
         _isEditingStatus.value = isEditing
@@ -50,10 +54,18 @@ class ProfileDetailViewModel @Inject constructor(
 
     fun setDisplayName(displayName: String) {
         userData = userData.copy(username = displayName)
+        _saveButtonStatus.value = validInput()
     }
 
     fun setPhoneNumber(phoneNumber: String) {
         userData = userData.copy(phoneNumber = phoneNumber)
+        _saveButtonStatus.value = validInput()
+    }
+
+    private fun validInput(): Boolean {
+        return StringUtils.isNumber(userData.phoneNumber.toString())
+                && !userData.username.isNullOrEmpty()
+                && userData.phoneNumber.toString().length >= 10
     }
 
     fun saveUserData() {
@@ -62,7 +74,6 @@ class ProfileDetailViewModel @Inject constructor(
             val saveUserDataResult = firebaseRealtimeDatabaseService.saveUserData(userData, imageUri)
             _isSaveSuccess.value = saveUserDataResult
             _isEditingStatus.value = !saveUserDataResult
-
             _isLoading.value = false
         }
     }

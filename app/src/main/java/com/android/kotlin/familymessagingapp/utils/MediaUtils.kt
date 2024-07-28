@@ -1,12 +1,13 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
 import com.bumptech.glide.Glide
@@ -20,6 +21,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.util.UUID
 
 object MediaUtils {
@@ -143,6 +145,52 @@ object MediaUtils {
             mediaScanIntent.data = Uri.fromFile(f)
             context.sendBroadcast(mediaScanIntent)
         }
+    }
+
+    fun saveBitmapToGallery(context: Context, bitmap: Bitmap): String? {
+        val displayName = UUID.randomUUID().toString()
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+
+        val contentResolver = context.contentResolver
+        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            var outputStream: OutputStream? = null
+            try {
+                outputStream = contentResolver.openOutputStream(uri)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream!!)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return null
+            } finally {
+                outputStream?.close()
+            }
+
+            contentValues.clear()
+            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+            contentResolver.update(uri, contentValues, null, null)
+
+            return uri.toString()
+        }
+
+        return null
+    }
+
+    fun createImageUri(context: Context, displayName: String): Uri? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+
+        val contentResolver = context.contentResolver
+        return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     }
 
 }

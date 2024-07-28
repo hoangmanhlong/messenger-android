@@ -101,5 +101,7 @@
     <string name="pinned_by">Ghim bởi %s</string>
     <string name="hide_less">Ẩn bớt</string>
     <string name="press_to_exit">Nhấn lại lần nữa để thoát</string>
+    <string name="photo_saved">Ảnh đã được lưu</string>
+    <string name="save_photo_fail">Lưu ảnh thất bại</string>
 
 </resources>

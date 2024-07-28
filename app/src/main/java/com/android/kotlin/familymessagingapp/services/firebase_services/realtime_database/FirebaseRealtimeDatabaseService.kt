@@ -86,8 +86,8 @@ class FirebaseRealtimeDatabaseService(
     private val _currentUserData: MutableLiveData<UserData?> = MutableLiveData(UserData())
     val currentUserData: LiveData<UserData?> = _currentUserData
 
-    private val _chatRooms = MutableStateFlow<List<ChatRoom>>(emptyList())
-    val chatRooms: StateFlow<List<ChatRoom>> = _chatRooms
+    private val _chatRooms = MutableStateFlow<List<ChatRoom>?>(null)
+    val chatRooms: StateFlow<List<ChatRoom>?> = _chatRooms
 
     private val userdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -140,7 +140,7 @@ class FirebaseRealtimeDatabaseService(
             }
         } else {
             clearChatRoomsListener()
-            _chatRooms.value = emptyList()
+            _chatRooms.value = null
             chatroomIDList.clear()
         }
     }
@@ -482,7 +482,7 @@ class FirebaseRealtimeDatabaseService(
         clearUserDataListener()
         clearChatRoomsListener()
         _currentUserData.value = UserData()
-        _chatRooms.value = emptyList()
+        _chatRooms.value = null
         chatroomIDList.clear()
     }
 

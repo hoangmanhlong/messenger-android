@@ -13,8 +13,10 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
-import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -42,8 +44,9 @@ class ProfileDetailFragment : Fragment() {
 
     private val _viewModel: ProfileDetailViewModel by viewModels()
 
-    private val openDocument: ActivityResultLauncher<Array<String>> =
-        registerForActivityResult(MyOpenDocumentContract()) {
+    // Registers a photo picker activity launcher in single-select mode.
+    private val pickMultipleMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             it?.let {
                 binding.ivAvatar.setImageURI(it)
                 _viewModel.setImageUri(it)
@@ -81,8 +84,6 @@ class ProfileDetailFragment : Fragment() {
         _viewModel.isEditingStatus.observe(this.viewLifecycleOwner) {
             binding.isEditing = it
             if (it) {
-                binding.etPhoneNumber.setSelection(binding.etPhoneNumber.text.length)
-                binding.etDisplayName.setSelection(binding.etDisplayName.text.length)
                 binding.etPhoneNumber.inputType = InputType.TYPE_CLASS_PHONE
                 binding.etDisplayName.inputType = InputType.TYPE_CLASS_TEXT
             } else {
@@ -91,6 +92,10 @@ class ProfileDetailFragment : Fragment() {
                 binding.etPhoneNumber.inputType = InputType.TYPE_NULL
                 binding.etDisplayName.inputType = InputType.TYPE_NULL
             }
+        }
+
+        _viewModel.saveButtonStatus.observe(this.viewLifecycleOwner) {
+            binding.saveButton.isEnabled = it
         }
 
         binding.ivAvatar.setOnClickListener {
@@ -117,7 +122,9 @@ class ProfileDetailFragment : Fragment() {
     }
 
     fun onEditImageButtonClick() {
-        openDocument.launch(arrayOf("image/*"))
+        binding.etPhoneNumber.clearFocus()
+        binding.etDisplayName.clearFocus()
+        pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     fun onSaveButtonClick() {

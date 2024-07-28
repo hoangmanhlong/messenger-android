@@ -75,7 +75,7 @@ class MainViewModel @Inject constructor(
                     if (_isTheEnglishLanguageSelected) Constant.ENGLISH_COUNTRY_CODE
                     else Constant.VIETNAM_COUNTRY_CODE
                 )
-                AppCompatDelegate.setApplicationLocales(appLocale);
+                AppCompatDelegate.setApplicationLocales(appLocale)
             }
         }
     }

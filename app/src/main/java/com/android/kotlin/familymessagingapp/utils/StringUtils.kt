@@ -21,10 +21,7 @@ object StringUtils {
         return Pattern.compile(emailRegex).matcher(email).matches()
     }
 
-    fun isNumber(string: String): Boolean {
-        val pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
-        return pattern.matcher(string).matches();
-    }
+    fun isNumber(str: String): Boolean = str.all { it.isDigit() }
 
     fun isValidPasswordLength(password: String): Boolean = password.length >= 6
 

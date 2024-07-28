@@ -74,6 +74,9 @@ class ChatRoomViewModel @Inject constructor(
     private val _pinnedMessages: MutableLiveData<List<PinnedMessage>> = MutableLiveData(emptyList())
     val pinnedMessages: LiveData<List<PinnedMessage>> = _pinnedMessages
 
+    private val _saveImageState: MutableLiveData<Boolean?> = MutableLiveData(null)
+    val saveImageState: LiveData<Boolean?> = _saveImageState
+
     var imageMessageDrawable: Drawable? = null
         private set
 
@@ -136,6 +139,10 @@ class ChatRoomViewModel @Inject constructor(
         _pinMessageStatus.value = status
     }
 
+    fun setSavingImageState(state: Boolean?) {
+        _saveImageState.value = state
+    }
+
     fun setSelectedMessage(message: Message) {
         _selectedMessage.value = message
         selectedMessageIsPinnedMessage = checkMessageIsPinnedMessage(message.messageId)
@@ -154,7 +161,9 @@ class ChatRoomViewModel @Inject constructor(
     fun saveImageToDeviceStorage() {
         imageMessageDrawable?.let {
             viewModelScope.launch {
-                workManager.saveImageToDeviceStorage((imageMessageDrawable as BitmapDrawable).bitmap)
+                val result =
+                    workManager.saveImageToDeviceStorage((imageMessageDrawable as BitmapDrawable).bitmap)
+                _saveImageState.value = !result.isNullOrEmpty()
             }
         }
     }
@@ -179,6 +188,7 @@ class ChatRoomViewModel @Inject constructor(
                     _chatRoom.value = _chatRoom.value?.copy(chatRoomId = chatroomID)
                     initChatRoomListener()
                 } else {
+//                    _isLoading.value = false
                     //TODO: chatroom not exist
                 }
             }
@@ -255,7 +265,7 @@ class ChatRoomViewModel @Inject constructor(
             chatroomLiveData = firebaseServiceRepository
                 .firebaseRealtimeDatabaseService
                 .chatRooms
-                .map { list -> list.firstOrNull { it.chatRoomId == chatRoomId } }
+                .map { list -> list?.firstOrNull { it.chatRoomId == chatRoomId } }
                 .asLiveData()
 
             chatroomLiveData.observeForever { chatRoom ->
@@ -274,9 +284,12 @@ class ChatRoomViewModel @Inject constructor(
                 _chatRoom.value?.getReplyMessages()
                 _chatRoom.value?.getSenderNameOfMessage()
                 _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
+//                _isLoading.value = false
                 if (chatRoom != null) {
                     viewModelScope.launch {
-                        val lastMessage = chatRoom.messages?.values?.lastOrNull()
+                        val lastMessage =
+                            chatRoom.messages?.values?.sortedByDescending { it.timestamp }
+                                ?.firstOrNull()
                         if (lastMessage != null
                             && lastMessage.senderId != Firebase.auth.uid
                             && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(

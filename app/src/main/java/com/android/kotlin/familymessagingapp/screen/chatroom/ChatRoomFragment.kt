@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -376,6 +377,18 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
                 } else {
                     binding.replyMessageImageView.visibility = View.GONE
                 }
+            }
+        }
+
+        _viewModel.saveImageState.observe(this.viewLifecycleOwner) {
+            if (it != null && activity != null) {
+                Toast.makeText(
+                    requireActivity(),
+                    if (it) R.string.photo_saved else R.string.save_photo_fail,
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+                _viewModel.setSavingImageState(null)
             }
         }
     }

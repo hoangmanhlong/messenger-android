@@ -208,6 +208,7 @@ class HomeFragment : Fragment() {
                 } else {
                     viewModel.isLoading.observe(this.viewLifecycleOwner) {
                         binding.isLoading = it
+                        binding.progressBar.isIndeterminate = it
                     }
 
                     viewModel.searchHistories.observe(this.viewLifecycleOwner) {
