@@ -8,6 +8,7 @@ import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
 import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
 import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
+import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.services.firebase_services.facebook.FacebookService
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleService
@@ -27,6 +28,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.socket.client.Socket
 import javax.inject.Singleton
 
 @Module
@@ -35,8 +37,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideBackendServiceRepository(appService: BackendApiService): BackendServiceRepository =
-        BackendServiceRepository(appService)
+    fun provideBackendServiceRepository(socketClient: SocketClient, appService: BackendApiService): BackendServiceRepository =
+        BackendServiceRepository(appService, socketClient)
 
     @Provides
     @Singleton
@@ -144,4 +146,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppWorkManager(application: Application) = AppWorkManager(application)
+
+    @Provides
+    @Singleton
+    fun provideSocketIO(): SocketClient = SocketClient()
 }

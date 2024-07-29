@@ -32,6 +32,10 @@ object Constant {
 
     const val FIREBASE_STORAGE_USER_DATA_REF_NAME = "user_data"
 
+    const val FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA = "private_user_data"
+
+    const val FCM_TOKEN = "fcmToken"
+
     const val FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME = "${FIREBASE_STORAGE_USER_DATA_REF_NAME}/user_avatar_images"
 
     const val FIREBASE_STORAGE_CHAT_ROOM_REF_NAME = "chat_room"

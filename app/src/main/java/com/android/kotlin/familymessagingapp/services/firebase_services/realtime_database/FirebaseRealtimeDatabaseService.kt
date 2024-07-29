@@ -21,6 +21,7 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -67,6 +68,8 @@ class FirebaseRealtimeDatabaseService(
     private val registerUserDataListener = mutableMapOf<DatabaseReference, ValueEventListener>()
 
     private val registerChatroomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
+
+    private val privateUserDataRef = Firebase.database.reference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA)
 
     private val databaseReference = Firebase.database.reference
 
@@ -156,7 +159,16 @@ class FirebaseRealtimeDatabaseService(
                 val currentUserRef = userDataRef.child(auth.uid!!)
                 currentUserRef.addValueEventListener(userdataListener)
                 registerUserDataListener[currentUserRef] = userdataListener
+                sendFCMTokenToServer()
             }
+        }
+    }
+
+    private fun sendFCMTokenToServer() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful && auth.uid == null) return@addOnCompleteListener
+            val token = task.result
+            privateUserDataRef.child(auth.uid!!).child(Constant.FCM_TOKEN).setValue(token)
         }
     }
 

@@ -9,6 +9,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.utils.Constant
@@ -20,6 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val backendServiceRepository: BackendServiceRepository,
     private val firebaseServiceRepository: FirebaseServiceRepository,
     private val localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
@@ -81,6 +83,7 @@ class MainViewModel @Inject constructor(
     }
 
     init {
+        backendServiceRepository.socket?.connect()
         executeTheJobOnFirstRun()
         currentUserLiveData.observeForever {
             viewModelScope.launch(Dispatchers.IO) {
@@ -93,6 +96,11 @@ class MainViewModel @Inject constructor(
                 firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        backendServiceRepository.socket?.disconnect()
     }
 
     //Save data when the user runs the app for the first time
