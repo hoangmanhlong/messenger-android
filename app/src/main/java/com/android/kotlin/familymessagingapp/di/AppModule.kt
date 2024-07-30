@@ -17,6 +17,7 @@ import com.android.kotlin.familymessagingapp.services.firebase_services.storage.
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.Identity
@@ -117,9 +118,11 @@ object AppModule {
     @Provides
     fun provinceAppRealtimeDatabaseReference(
         auth: FirebaseAuth,
-        firebaseStorageService: FirebaseStorageService
+        firebaseStorageService: FirebaseStorageService,
+        fcmService: FCMService,
+        socketClient: SocketClient
     ): FirebaseRealtimeDatabaseService =
-        FirebaseRealtimeDatabaseService(auth, firebaseStorageService)
+        FirebaseRealtimeDatabaseService(auth, firebaseStorageService, fcmService, socketClient)
 
     @Singleton
     @Provides
@@ -150,4 +153,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSocketIO(): SocketClient = SocketClient()
+
+    @Provides
+    @Singleton
+    fun provideFCMService(): FCMService = FCMService()
 }

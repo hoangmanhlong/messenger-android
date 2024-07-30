@@ -83,7 +83,7 @@ class MainViewModel @Inject constructor(
     }
 
     init {
-        backendServiceRepository.socket?.connect()
+        backendServiceRepository.socketClient.connect()
         executeTheJobOnFirstRun()
         currentUserLiveData.observeForever {
             viewModelScope.launch(Dispatchers.IO) {
@@ -100,7 +100,7 @@ class MainViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        backendServiceRepository.socket?.disconnect()
+        backendServiceRepository.socketClient.disconnect()
     }
 
     //Save data when the user runs the app for the first time

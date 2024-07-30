@@ -4,12 +4,14 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.model.UserSettings
+import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.StringUtils
@@ -21,7 +23,6 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -53,7 +54,9 @@ import kotlin.coroutines.suspendCoroutine
  */
 class FirebaseRealtimeDatabaseService(
     private val auth: FirebaseAuth,
-    private val firebaseStorageService: FirebaseStorageService
+    private val firebaseStorageService: FirebaseStorageService,
+    private val fcmService: FCMService,
+    private val socketClient: SocketClient
 ) {
 
     companion object {
@@ -69,7 +72,8 @@ class FirebaseRealtimeDatabaseService(
 
     private val registerChatroomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
 
-    private val privateUserDataRef = Firebase.database.reference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA)
+    private val privateUserDataRef =
+        Firebase.database.reference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA)
 
     private val databaseReference = Firebase.database.reference
 
@@ -159,16 +163,22 @@ class FirebaseRealtimeDatabaseService(
                 val currentUserRef = userDataRef.child(auth.uid!!)
                 currentUserRef.addValueEventListener(userdataListener)
                 registerUserDataListener[currentUserRef] = userdataListener
-                sendFCMTokenToServer()
+                sendFCMTokenToServer(auth.uid!!)
+                socketClient.addOnlineStatusSocketListener(SocketClient.onlineStatusSocketEvent)
             }
         }
     }
 
-    private fun sendFCMTokenToServer() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful && auth.uid == null) return@addOnCompleteListener
-            val token = task.result
-            privateUserDataRef.child(auth.uid!!).child(Constant.FCM_TOKEN).setValue(token)
+    private suspend fun sendFCMTokenToServer(uid: String) {
+        val fcmToken = fcmService.getFCMToken()
+        if (!fcmToken.isNullOrEmpty()) {
+            privateUserDataRef.child(uid).child(Constant.FCM_TOKEN).setValue(fcmToken)
+        }
+    }
+
+    private suspend fun subscribeToTopicForChatRoomList(chatroomIDList: List<String>) {
+        chatroomIDList.forEach { chatroomId ->
+            fcmService.subscribeToTopic(chatroomId)
         }
     }
 

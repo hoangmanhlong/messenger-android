@@ -78,6 +78,8 @@ object Constant {
     const val FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME = "user_private_info"
 
     const val FIREBASE_REALTIME_DATABASE_SEARCH_HISTORY_REF_NAME = "search_history"
+
+    const val USER_ONLINE_STATUS_SOCKET_EVENT = "USER_ONLINE_STATUS_SOCKET_EVENT"
 }
 
 
