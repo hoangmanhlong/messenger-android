@@ -171,6 +171,8 @@ dependencies {
         // excluding org.json which is provided by Android
         exclude(group = "org.json", module = "json")
     }
+
+    implementation("com.google.mlkit:barcode-scanning:17.0.2")
 }
 
 kapt {
