@@ -24,8 +24,9 @@ import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
-import com.android.kotlin.familymessagingapp.utils.MediaUtils
+import com.android.kotlin.familymessagingapp.screen.scan_qr_code.QRScanResultEvenBus
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.TimeUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,6 +35,9 @@ import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -87,6 +91,7 @@ class HomeFragment : Fragment() {
 
         searchBar = binding.searchBar
         searchView = binding.searchView
+        searchView?.inflateMenu(R.menu.menu_search_view)
         searchViewEditText = searchView?.editText
         searchBarMenu = searchBar?.menu
         avatarMenu = searchBarMenu?.findItem(R.id.avatarMenu)
@@ -116,7 +121,7 @@ class HomeFragment : Fragment() {
             onDeleteItem = { removeSearchHistory(it, false) },
             onItemClicked = {
                 searchViewEditText?.text = Editable.Factory.getInstance().newEditable(it.text)
-                onActionSearch()
+                onActionSearch(it.text, false)
             },
             onPushItem = {
                 searchViewEditText?.text = Editable.Factory.getInstance().newEditable(it.text)
@@ -151,8 +156,21 @@ class HomeFragment : Fragment() {
             }
         }
 
+        searchView!!.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.QrCodeSearchViewMenu -> {
+                    findNavController().navigate(R.id.action_homeFragment_to_scanQRCodeFragment)
+                    true
+                }
+
+                else -> false
+            }
+        }
+
         searchViewEditText?.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch()
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch(
+                searchViewEditText?.text.toString().trim(), false
+            )
             false
         }
 
@@ -309,15 +327,32 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun onActionSearch() {
+    private fun onActionSearch(keyword: String, isQRString: Boolean) {
         activity?.let {
             NetworkChecker.checkNetwork(it) {
-                searchViewEditText?.text?.length?.let { length ->
-                    searchViewEditText?.setSelection(length)
-                }
-                viewModel.searchKeyword(searchViewEditText?.text.toString().trim())
+                searchViewEditText?.setSelection(keyword.length)
+                viewModel.searchKeyword(keyword, isQRString)
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        EventBus.getDefault().unregister(this)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    fun onQRScanResultEvenBus(qrScanResultEvenBus: QRScanResultEvenBus) {
+        if (searchView?.isShowing == false) searchView?.show()
+        searchViewEditText?.text =
+            Editable.Factory.getInstance().newEditable(qrScanResultEvenBus.qrString)
+        onActionSearch(qrScanResultEvenBus.qrString, true)
+        EventBus.getDefault().removeStickyEvent(qrScanResultEvenBus)
     }
 
     override fun onDestroyView() {

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,11 +19,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.databinding.FragmentScanQrCodeBinding
-import com.example.camerax_mlkit.QrCodeViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
+import org.greenrobot.eventbus.EventBus
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -33,11 +34,11 @@ class ScanQRCodeFragment : Fragment() {
 
     private val binding get() = _binding!!
 
-    private lateinit var barcodeScanner: BarcodeScanner
+    private var barcodeScanner: BarcodeScanner? = null
 
-    private lateinit var cameraExecutor: ExecutorService
+    private var cameraExecutor: ExecutorService? = null
 
-    private lateinit var previewView: PreviewView
+    private var previewView: PreviewView? = null
 
     private val activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -47,11 +48,7 @@ class ScanQRCodeFragment : Fragment() {
                 if (it.key in REQUIRED_PERMISSIONS && !it.value)
                     permissionGranted = false
             }
-            if (!permissionGranted) {
-
-            } else {
-                startCamera()
-            }
+            if (permissionGranted) startCamera()
         }
 
     override fun onCreateView(
@@ -94,27 +91,35 @@ class ScanQRCodeFragment : Fragment() {
                 COORDINATE_SYSTEM_VIEW_REFERENCED,
                 ContextCompat.getMainExecutor(requireContext())
             ) { result: MlKitAnalyzer.Result? ->
-                val barcodeResults = result?.getValue(barcodeScanner)
-                if ((barcodeResults == null) ||
-                    (barcodeResults.size == 0) ||
-                    (barcodeResults.first() == null)
-                ) {
-                    previewView.overlay.clear()
-                    previewView.setOnTouchListener { _, _ -> false } //no-op
-                    return@MlKitAnalyzer
+                barcodeScanner?.let {
+                    val barcodeResults = result?.getValue(barcodeScanner!!)
+                    if ((barcodeResults == null) ||
+                        (barcodeResults.size == 0) ||
+                        (barcodeResults.first() == null)
+                    ) {
+                        previewView?.overlay?.clear()
+                        previewView?.setOnTouchListener { _, _ -> false } //no-op
+                        return@MlKitAnalyzer
+                    }
+
+                    EventBus.getDefault().postSticky(QRScanResultEvenBus(barcodeResults[0].rawValue.toString()))
+                    Log.d(TAG, "Event posted")
+                    findNavController().popBackStack()
+
+//                    val qrCodeViewModel = QrCodeViewModel(barcodeResults[0])
+//                    val qrCodeDrawable = QrCodeDrawable(qrCodeViewModel)
+//
+//                    previewView?.setOnTouchListener(qrCodeViewModel.qrCodeTouchCallback)
+//                    previewView?.overlay?.apply {
+//                        clear()
+//                        add(qrCodeDrawable)
+//                    }
                 }
-
-                val qrCodeViewModel = QrCodeViewModel(barcodeResults[0])
-                val qrCodeDrawable = QrCodeDrawable(qrCodeViewModel)
-
-                previewView.setOnTouchListener(qrCodeViewModel.qrCodeTouchCallback)
-                previewView.overlay.clear()
-                previewView.overlay.add(qrCodeDrawable)
             }
         )
 
         cameraController.bindToLifecycle(this)
-        previewView.controller = cameraController
+        previewView?.controller = cameraController
     }
 
     private fun requestPermissions() {
@@ -132,9 +137,12 @@ class ScanQRCodeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        barcodeScanner?.close()
+        cameraExecutor?.shutdown()
+        barcodeScanner = null
+        cameraExecutor = null
+        previewView = null
         _binding = null
-        barcodeScanner.close()
-        cameraExecutor.shutdown()
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     }
 
@@ -142,10 +150,7 @@ class ScanQRCodeFragment : Fragment() {
         val TAG: String = ScanQRCodeFragment::class.java.simpleName
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private val REQUIRED_PERMISSIONS =
-            mutableListOf(
-                Manifest.permission.CAMERA,
-//                Manifest.permission.RECORD_AUDIO
-            ).apply {
+            mutableListOf(Manifest.permission.CAMERA).apply {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }

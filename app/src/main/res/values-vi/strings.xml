@@ -103,5 +103,7 @@
     <string name="press_to_exit">Nhấn lại lần nữa để thoát</string>
     <string name="photo_saved">Ảnh đã được lưu</string>
     <string name="save_photo_fail">Lưu ảnh thất bại</string>
+    <string name="my_qr">Mã QR của tôi</string>
+    <string name="qr_description">Mọi người có thể quét mã QR để gửi tin nhắn trực tiếp đến danh sách trò chuyện của bạn</string>
 
 </resources>

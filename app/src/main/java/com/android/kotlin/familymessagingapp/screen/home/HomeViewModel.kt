@@ -49,7 +49,8 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableLiveData(true)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _searchViewStatus: MutableLiveData<SearchViewStatus> = MutableLiveData(SearchViewStatus.ShowSearchHistory)
+    private val _searchViewStatus: MutableLiveData<SearchViewStatus> =
+        MutableLiveData(SearchViewStatus.ShowSearchHistory)
     val searchViewStatus: LiveData<SearchViewStatus> = _searchViewStatus
 
     private var currentKeyword = ""
@@ -77,13 +78,13 @@ class HomeViewModel @Inject constructor(
         _searchViewStatus.value = status
     }
 
-    fun searchKeyword(keyword: String) {
+    fun searchKeyword(keyword: String, searchByUid: Boolean) {
         viewModelScope.launch {
             if (keyword.isEmpty()) {
                 _searchResultList.value = emptyList()
             } else {
 
-                localDatabaseRepository.saveSearchHistory(keyword)
+                if (!searchByUid) localDatabaseRepository.saveSearchHistory(keyword)
 
                 // if new keyword and old keyword is same then skip
                 if (currentKeyword != keyword) {
@@ -91,7 +92,7 @@ class HomeViewModel @Inject constructor(
                     //            _searchedUser.value = emptyList() // clear old list when start query
 
                     _searchResultList.value =
-                        firebaseServiceRepository.firebaseRealtimeDatabaseService.search(keyword)
+                        firebaseServiceRepository.firebaseRealtimeDatabaseService.search(keyword, searchByUid)
 
                 } else {
                     _searchResultList.value = searchResultList.value

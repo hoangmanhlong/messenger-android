@@ -112,4 +112,6 @@
     <string name="press_to_exit">Press back again to exit</string>
     <string name="photo_saved">Photo saved</string>
     <string name="save_photo_fail">Save image failed</string>
+    <string name="my_qr">My QR code</string>
+    <string name="qr_description">People can scan QR code to send a message directly to your chats list</string>
 </resources>

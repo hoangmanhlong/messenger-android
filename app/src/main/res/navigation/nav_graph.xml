@@ -57,6 +57,9 @@
         <action
             android:id="@+id/action_profileFragment_to_profileDetailFragment"
             app:destination="@id/profileDetailFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_myQRFragment"
+            app:destination="@id/myQRFragment" />
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
@@ -96,4 +99,9 @@
             app:argType="com.android.kotlin.familymessagingapp.model.ChatRoom"
             app:nullable="true" />
     </fragment>
+    <fragment
+        android:id="@+id/myQRFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.my_qr.MyQRFragment"
+        android:label="fragment_my_qr"
+        tools:layout="@layout/fragment_my_qr" />
 </navigation>

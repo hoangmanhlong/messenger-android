@@ -366,25 +366,30 @@ class FirebaseRealtimeDatabaseService(
      * Solution: thêm trường usernameLowercase vào UserData
      * usernameLowercase = username.toLoweCase
      */
-    suspend fun search(keyword: String): List<UserData> {
+    suspend fun search(keyword: String, searchByUid: Boolean): List<UserData> {
         return try {
-            val query = when {
-                StringUtils.isValidEmail(keyword) -> userDataRef.orderByChild(UserData.EMAIL)
-                    .equalTo(keyword)
-
-                StringUtils.isNumber(keyword) -> userDataRef.orderByChild(UserData.PHONE_NUMBER)
-                    .equalTo(keyword)
-
-                else -> userDataRef.orderByChild(UserData.USERNAME).equalTo(keyword)
-            }
-
-            val dataSnapshot = query.get().await()
-            if (dataSnapshot.exists()) {
-                dataSnapshot.children.mapNotNull { snapshot ->
-                    snapshot.getValue(UserData::class.java)?.takeIf { it.uid != auth.uid }
-                }
+            if (searchByUid) {
+                val userData = userDataRef.child(keyword).get().await().getValue(UserData::class.java)
+                if (userData == null) emptyList() else listOf(userData)
             } else {
-                emptyList()
+                val query = when {
+                    StringUtils.isValidEmail(keyword) -> userDataRef.orderByChild(UserData.EMAIL)
+                        .equalTo(keyword)
+
+                    StringUtils.isNumber(keyword) -> userDataRef.orderByChild(UserData.PHONE_NUMBER)
+                        .equalTo(keyword)
+
+                    else -> userDataRef.orderByChild(UserData.USERNAME).equalTo(keyword)
+                }
+
+                val dataSnapshot = query.get().await()
+                if (dataSnapshot.exists()) {
+                    dataSnapshot.children.mapNotNull { snapshot ->
+                        snapshot.getValue(UserData::class.java)?.takeIf { it.uid != auth.uid }
+                    }
+                } else {
+                    emptyList()
+                }
             }
         } catch (e: Exception) {
             emptyList()

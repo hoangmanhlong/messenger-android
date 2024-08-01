@@ -15,6 +15,8 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.google.zxing.BarcodeFormat
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -192,5 +194,13 @@ object MediaUtils {
         val contentResolver = context.contentResolver
         return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     }
-
+    
+    fun getQRCodeBitmapFromString(string: String): Bitmap? {
+        return try {
+            val barcodeEncoder = BarcodeEncoder()
+            barcodeEncoder.encodeBitmap(string, BarcodeFormat.QR_CODE, 400, 400)
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

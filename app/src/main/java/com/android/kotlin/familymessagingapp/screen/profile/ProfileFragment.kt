@@ -75,6 +75,10 @@ class ProfileFragment : Fragment() {
             activity?.let { DeviceUtils.openNotificationPermissionSetting(it) }
         }
 
+        binding.myQRCodeView.setOnClickListener {
+            findNavController().navigate(R.id.action_profileFragment_to_myQRFragment)
+        }
+
         return binding.root
     }
 
