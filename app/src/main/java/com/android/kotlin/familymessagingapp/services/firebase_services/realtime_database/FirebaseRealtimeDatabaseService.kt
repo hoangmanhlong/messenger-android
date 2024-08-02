@@ -164,7 +164,8 @@ class FirebaseRealtimeDatabaseService(
                 currentUserRef.addValueEventListener(userdataListener)
                 registerUserDataListener[currentUserRef] = userdataListener
                 sendFCMTokenToServer(auth.uid!!)
-                socketClient.addOnlineStatusSocketListener(SocketClient.onlineStatusSocketEvent)
+                socketClient.addOnlineStatusSocketListener(auth.uid!!)
+                updateVerifiedStatus(true)
             }
         }
     }
@@ -396,6 +397,19 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    fun updateVerifiedStatus(isVerified: Boolean) {
+        coroutineScope.launch {
+            try {
+                val uid = auth.uid ?: return@launch
+                privateUserDataRef.child(uid)
+                    .child(Constant.FIREBASE_REALTIME_DATABASE_VERIFIED_STATUS_REF_NAME)
+                    .setValue(isVerified)
+                    .await()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
 
     /**
      * Lưu tin nhắn mới vào chatroom

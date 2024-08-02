@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/QrCodeSearchViewMenu"
-        android:icon="@drawable/ic_qr_code"
+        android:icon="@drawable/ic_scan_qr_code"
         app:showAsAction="ifRoom"
         android:title="@string/scan_qr_code" />
 </menu>

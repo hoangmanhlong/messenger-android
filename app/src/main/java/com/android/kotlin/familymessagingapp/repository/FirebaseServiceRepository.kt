@@ -78,6 +78,7 @@ class FirebaseServiceRepository(
     fun signOut() {
         try {
             firebaseRealtimeDatabaseService.removeAllListener()
+            firebaseRealtimeDatabaseService.updateVerifiedStatus(false)
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()
