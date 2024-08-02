@@ -27,7 +27,7 @@ android {
         buildConfigField("String", "geminiModelName", "\"gemini-1.5-flash\"")
         buildConfigField("String", "agoraAppId", "\"41853202c4364057b9da170ac81148c7\"")
         buildConfigField("String", "firebaseServerClientId", "\"767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com\"")
-        buildConfigField("String", "serverUrl", "\"http://52.65.236.218:8888\"")
+        buildConfigField("String", "serverUrl", "\"http://47.129.5.135:6688\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

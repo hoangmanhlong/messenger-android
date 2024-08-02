@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,7 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import io.socket.client.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -158,13 +160,15 @@ class FirebaseRealtimeDatabaseService(
      * Description: add listener to userdata if user is authenticated
      */
     fun addUserDataListener() {
+        socketClient.connect()
         coroutineScope.launch {
             if (registerUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
                 val currentUserRef = userDataRef.child(auth.uid!!)
                 currentUserRef.addValueEventListener(userdataListener)
                 registerUserDataListener[currentUserRef] = userdataListener
                 sendFCMTokenToServer(auth.uid!!)
-                socketClient.addOnlineStatusSocketListener(SocketClient.onlineStatusSocketEvent)
+                socketClient.addOnlineStatusSocketListener(auth.uid!!)
+                updateVerifiedStatus(true)
             }
         }
     }
@@ -396,6 +400,19 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    fun updateVerifiedStatus(isVerified: Boolean) {
+        coroutineScope.launch {
+            try {
+                val uid = auth.uid ?: return@launch
+                privateUserDataRef.child(uid)
+                    .child(Constant.FIREBASE_REALTIME_DATABASE_VERIFIED_STATUS_REF_NAME)
+                    .setValue(isVerified)
+                    .await()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
 
     /**
      * Lưu tin nhắn mới vào chatroom

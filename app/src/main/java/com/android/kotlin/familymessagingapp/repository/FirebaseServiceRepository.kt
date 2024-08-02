@@ -24,7 +24,8 @@ class FirebaseServiceRepository(
     val firebaseEmailService: FirebaseEmailService,
     val firebaseStorageService: FirebaseStorageService,
     val firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-    val facebookService: FacebookService
+    val facebookService: FacebookService,
+    private val backendServiceRepository: BackendServiceRepository
 ) {
 
     companion object {
@@ -77,6 +78,8 @@ class FirebaseServiceRepository(
      */
     fun signOut() {
         try {
+            firebaseRealtimeDatabaseService.updateVerifiedStatus(false)
+            backendServiceRepository.disconnectSocket()
             firebaseRealtimeDatabaseService.removeAllListener()
             auth.signOut()
         } catch (e: Exception) {

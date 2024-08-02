@@ -9,15 +9,15 @@ import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
 import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
+import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
+import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.firebase_services.email_authentication.FirebaseEmailService
 import com.android.kotlin.familymessagingapp.services.firebase_services.facebook.FacebookService
+import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FirebaseGoogleService
 import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
-import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
-import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
-import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
-import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.google.android.gms.auth.api.identity.Identity
@@ -29,7 +29,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.socket.client.Socket
 import javax.inject.Singleton
 
 @Module
@@ -66,7 +65,8 @@ object AppModule {
         firebaseEmailService: FirebaseEmailService,
         firebaseStorageService: FirebaseStorageService,
         firebaseRealtimeDatabaseService: FirebaseRealtimeDatabaseService,
-        facebookService: FacebookService
+        facebookService: FacebookService,
+        backendServiceRepository: BackendServiceRepository
     ): FirebaseServiceRepository =
         FirebaseServiceRepository(
             auth,
@@ -74,7 +74,8 @@ object AppModule {
             firebaseEmailService,
             firebaseStorageService,
             firebaseRealtimeDatabaseService,
-            facebookService
+            facebookService,
+            backendServiceRepository
         )
 
     @Provides

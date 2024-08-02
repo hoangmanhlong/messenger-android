@@ -12,8 +12,12 @@ import kotlinx.coroutines.withContext
 
 class BackendServiceRepository(
     private val backend: BackendApiService,
-    val socketClient: SocketClient
+    private val socketClient: SocketClient
 ) {
+
+    fun connectSocket() = socketClient.connect()
+
+    fun disconnectSocket() = socketClient.disconnect()
 
     suspend fun register(username: String, password: String): Result<ObjectResponse> {
         return withContext(Dispatchers.IO) {
