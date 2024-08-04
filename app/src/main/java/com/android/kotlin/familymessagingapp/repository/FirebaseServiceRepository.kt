@@ -81,7 +81,6 @@ class FirebaseServiceRepository(
             firebaseRealtimeDatabaseService.updateVerifiedStatus(false)
             backendServiceRepository.disconnectSocket()
             firebaseRealtimeDatabaseService.removeAllListener()
-            firebaseRealtimeDatabaseService.updateVerifiedStatus(false)
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()
