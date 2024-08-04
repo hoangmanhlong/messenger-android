@@ -39,4 +39,12 @@ class BackendServiceRepository(
             )
         }
     }
+
+    fun notifyVerifiedStatusToBackend(uid: String, isVerified: Boolean) {
+        try {
+            socketClient.emitVerifiedStatus(uid, isVerified)
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 }
