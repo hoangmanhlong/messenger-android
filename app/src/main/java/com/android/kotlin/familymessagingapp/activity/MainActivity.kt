@@ -9,6 +9,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -81,6 +82,7 @@ class MainActivity : AppCompatActivity() {
             message = R.string.network_not_available_message
         )
         if (!NetworkChecker.isNetworkAvailable(this)) {
+            this@MainActivity.window?.statusBarColor = getErrorColor()
             networkNotificationDialog?.show()
         }
         _loadingDialog = DialogUtils.loadingDialogInitialize(this)
@@ -163,19 +165,25 @@ class MainActivity : AppCompatActivity() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
-                if (networkNotificationDialog?.isShowing == true) {
-                    networkNotificationDialog?.dismiss()
+                lifecycleScope.launch {
+                    this@MainActivity.window?.statusBarColor = getBackgroundColor()
+                    if (networkNotificationDialog?.isShowing == true) {
+                        networkNotificationDialog?.dismiss()
+                    }
                 }
             }
 
             override fun onLost(network: Network) {
                 super.onLost(network)
                 lifecycleScope.launch {
+                    this@MainActivity.window?.statusBarColor = getErrorColor()
                     networkNotificationDialog?.show()
                 }
             }
         }
     }
+
+
 
 //    fun showNetworkErrorDialogDialog(show: Boolean) {
 //        lifecycleScope.launch(Dispatchers.Main) {
@@ -189,19 +197,16 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _loadingDialog = null
-        _binding = null
-        networkNotificationDialog = null
+    private fun getBackgroundColor(): Int {
+        val typedValue = TypedValue()
+        val theme = this.theme
+        theme.resolveAttribute(android.R.attr.background, typedValue, true)
+        return typedValue.data
     }
 
-//    fun getPrimaryColor(context: Context): Int {
-//        val typedValue = TypedValue()
-//        val theme = context.theme
-//        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
-//        return typedValue.data
-//    }
+    private fun getErrorColor(): Int {
+        return ContextCompat.getColor(this@MainActivity, R.color.md_theme_error)
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
