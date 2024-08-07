@@ -8,6 +8,7 @@ import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.bumptech.glide.Glide
 
@@ -41,7 +42,12 @@ fun bindLastMessageOfChatroom(textView: TextView, message: Message) {
     textView.text = StringUtils.showLastMessageToChatRoomView(textView.context, message)
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @BindingAdapter("bindPinnedBy")
-fun bindPinnedBy(textView: TextView, username: String?) {
-    textView.text = textView.context.getString(R.string.pinned_by, username ?: "Hehe")
+fun bindPinnedBy(textView: TextView, pinnedMessage: PinnedMessage) {
+    textView.text = textView.context.getString(
+        R.string.pinned_by,
+        pinnedMessage.senderName,
+        StringUtils.formatTime(pinnedMessage.pinTime!!, false)
+    )
 }

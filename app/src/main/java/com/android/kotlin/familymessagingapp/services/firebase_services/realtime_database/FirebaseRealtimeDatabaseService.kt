@@ -493,6 +493,10 @@ class FirebaseRealtimeDatabaseService(
                     chatRoomsRef.child(chatRoom.chatRoomId)
                         .updateChildren(chatRoomUpdates)
                         .await()
+                    socketClient.emitNewMessageToOtherUser(
+                        chatRoom,
+                        updatedMessage
+                    )
                 }
                 Result.Success(newChatRoom)
             } catch (e: Exception) {

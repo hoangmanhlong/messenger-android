@@ -1,6 +1,9 @@
 package com.android.kotlin.familymessagingapp.data.remote.socket
 
+import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
+import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.utils.Constant
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -19,11 +22,16 @@ sealed class BackendEventObject {
     data class Verified(val uid: String, val verified: Boolean) : BackendEventObject()
 
     @Serializable
-    data class NewMessage(
+    data class ChatRoom(
         val chatRoomId: String,
-        val messageId: String,
-        val senderId: String
-    ) : BackendEventObject()
+        val chatRoomName: String?,
+        val chatRoomImage: String?,
+        val members: List<String>,
+        val newMessage: Message,
+    )
+
+    @Serializable
+    data class NewMessageNotification(val chatRoom: ChatRoom) : BackendEventObject()
 }
 
 class SocketClient {
@@ -57,6 +65,18 @@ class SocketClient {
 
     fun addOnlineStatusSocketListener(uid: String) {
         emitStatus(USER_ONLINE_STATUS_SOCKET_EVENT, BackendEventObject.OnlineStatus(uid))
+    }
+
+    fun emitNewMessageToOtherUser(chatRoom: ChatRoom, message: Message) {
+        val chatroom: BackendEventObject.ChatRoom = BackendEventObject.ChatRoom(
+            chatRoomId = chatRoom.chatRoomId!!,
+            chatRoomName = chatRoom.chatRoomImage,
+            chatRoomImage = chatRoom.chatRoomImage,
+            members = chatRoom.members!!,
+            newMessage = message
+        )
+        Log.d(TAG, "emitNewMessageToOtherUser: $chatroom")
+        emitStatus(NEW_MESSAGE_SOCKET_EVENT, BackendEventObject.NewMessageNotification(chatroom))
     }
 
     /**

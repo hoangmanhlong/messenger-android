@@ -4,8 +4,10 @@ import android.os.Parcelable
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 @Parcelize
+@Serializable
 @IgnoreExtraProperties
 data class Message(
     val messageId: String? = null,

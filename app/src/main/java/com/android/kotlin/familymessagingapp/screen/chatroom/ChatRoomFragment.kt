@@ -259,7 +259,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         _viewModel.pinnedMessages.observe(this.viewLifecycleOwner) {
 
             // Show pinned message view nếu có có tin nhắn
-            binding.pinnedMessageMaterialCardView.visibility =
+            binding.pinnedMessageContainer.visibility =
                 if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
             // Nếu có nhiều hơn 1 tin nhắn thì show view xem thêm tin nhắn
             binding.ivExpandMorePinnedMessage.visibility =

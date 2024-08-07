@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         )
         if (!NetworkChecker.isNetworkAvailable(this)) {
             this@MainActivity.window?.statusBarColor = getErrorColor()
-            networkNotificationDialog?.show()
+//            networkNotificationDialog?.show()
         }
         _loadingDialog = DialogUtils.loadingDialogInitialize(this)
         networkListener()
@@ -167,9 +167,9 @@ class MainActivity : AppCompatActivity() {
                 super.onAvailable(network)
                 lifecycleScope.launch {
                     this@MainActivity.window?.statusBarColor = getBackgroundColor()
-                    if (networkNotificationDialog?.isShowing == true) {
-                        networkNotificationDialog?.dismiss()
-                    }
+//                    if (networkNotificationDialog?.isShowing == true) {
+//                        networkNotificationDialog?.dismiss()
+//                    }
                 }
             }
 
@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
                 super.onLost(network)
                 lifecycleScope.launch {
                     this@MainActivity.window?.statusBarColor = getErrorColor()
-                    networkNotificationDialog?.show()
+//                    networkNotificationDialog?.show()
                 }
             }
         }

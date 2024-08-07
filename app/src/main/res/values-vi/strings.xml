@@ -98,7 +98,7 @@
     <string name="max_pin_message_warning">Chỉ có thể ghim tối đa 3 tin nhắn</string>
     <string name="message_has_been_pinned">Tin nhắn đã được ghim</string>
     <string name="pinned_successfully">Ghim thành công</string>
-    <string name="pinned_by">Ghim bởi %s</string>
+    <string name="pinned_by">Ghim bởi %s lúc %s</string>
     <string name="hide_less">Ẩn bớt</string>
     <string name="press_to_exit">Nhấn lại lần nữa để thoát</string>
     <string name="photo_saved">Ảnh đã được lưu</string>

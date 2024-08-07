@@ -186,19 +186,16 @@
                     tools:listitem="@layout/layout_sender_message" />
 
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}"
+                    android:id="@+id/pinnedMessageContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
                     android:orientation="vertical"
+                    android:background="@color/md_theme_background"
                     app:layout_constraintTop_toTopOf="parent">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/pinnedMessageMaterialCardView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintTop_toTopOf="parent">
-
                         <LinearLayout
+                            app:layout_constraintTop_toTopOf="parent"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -225,7 +222,6 @@
 
                         </LinearLayout>
 
-                    </com.google.android.material.card.MaterialCardView>
 
 
                     <ImageView
@@ -237,6 +233,11 @@
                         android:src="@drawable/ic_outline_expand_more"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintBottom_toBottomOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
