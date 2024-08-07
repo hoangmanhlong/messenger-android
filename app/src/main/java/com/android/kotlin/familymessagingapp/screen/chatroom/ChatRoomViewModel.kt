@@ -354,14 +354,11 @@ class ChatRoomViewModel @Inject constructor(
     fun sendMessage() {
         viewModelScope.launch {
             _sendMessageStatus.value = SendMessageStatus.Sending
+            val sendMessage = Message().copy(text = message.text, photo = message.photo)
+            clearInput()
             val sendResult = firebaseServiceRepository
                 .firebaseRealtimeDatabaseService
-                .updateNewMessage(
-                    chatRoom = _chatRoom.value!!,
-                    message = message
-                )
-
-            clearInput()
+                .updateNewMessage(chatRoom = _chatRoom.value!!, message = sendMessage)
 
             when (sendResult) {
                 is Result.Success -> {
