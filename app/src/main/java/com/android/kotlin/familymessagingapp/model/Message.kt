@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.model
 
 import android.os.Parcelable
+import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEventObject
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
@@ -42,3 +43,13 @@ data class Message(
         const val EMOTICON = "emoticon"
     }
 }
+
+fun Message.toMessageSocketEvent(): BackendEventObject.Message = BackendEventObject.Message(
+    messageId = messageId,
+    senderId = senderId,
+    text = text,
+    photo = photo,
+    video = video,
+    audio = audio,
+    timestamp = timestamp.toString()
+)

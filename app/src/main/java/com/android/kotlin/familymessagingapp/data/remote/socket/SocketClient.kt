@@ -4,7 +4,9 @@ import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.google.firebase.database.Exclude
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
@@ -28,7 +30,18 @@ sealed class BackendEventObject {
         val chatRoomImage: String?,
         val members: List<String>,
         val newMessage: Message,
-    )
+    ) : BackendEventObject()
+
+    @Serializable
+    data class Message(
+        val messageId: String? = null,
+        val senderId: String? = null,
+        val text: String? = null,
+        val photo: String? = null,
+        val video: String? = null,
+        val audio: String? = null,
+        val timestamp: String? = null
+    ) : BackendEventObject()
 
     @Serializable
     data class NewMessageNotification(val chatRoom: ChatRoom) : BackendEventObject()
@@ -73,10 +86,9 @@ class SocketClient {
             chatRoomName = chatRoom.chatRoomImage,
             chatRoomImage = chatRoom.chatRoomImage,
             members = chatRoom.members!!,
-            newMessage = message
+            newMessage = message.toMessageSocketEvent()
         )
-        Log.d(TAG, "emitNewMessageToOtherUser: $chatroom")
-        emitStatus(NEW_MESSAGE_SOCKET_EVENT, BackendEventObject.NewMessageNotification(chatroom))
+        emitStatus(NEW_MESSAGE_SOCKET_EVENT, chatroom)
     }
 
     /**
