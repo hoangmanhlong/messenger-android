@@ -23,8 +23,11 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
+import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.scan_qr_code.QRScanResultEvenBus
+import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
@@ -103,11 +106,7 @@ class HomeFragment : Fragment() {
             onChatRoomClick = {
                 // Because information about the chat room other than messages
                 // usually does not change, all this information is transmitted to Chat Room Details
-                val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
-                    chatroom = it,
-                    userdata = null
-                )
-                findNavController().navigate(action)
+                navigateToChatRoom(it, null)
             },
             onChatRoomLongClick = {
 
@@ -132,11 +131,7 @@ class HomeFragment : Fragment() {
 
         usersRecyclerView = binding.searchResultRecyclerView
         userAdapter = UserAdapter {
-            val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
-                chatroom = null,
-                userdata = it
-            )
-            findNavController().navigate(action)
+            navigateToChatRoom(null, it)
         }
         usersRecyclerView?.adapter = userAdapter
 
@@ -203,6 +198,12 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { KeyBoardUtils.setupHideKeyboard(binding.searchView, it) }
 //        storyAdapter?.submitList(fakeStories)
+
+        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<UserData>(Constant.USER_DATA_KEY)
+            ?.observe(viewLifecycleOwner) {
+                findNavController().currentBackStackEntry?.savedStateHandle?.remove<UserData>(Constant.USER_DATA_KEY)
+                navigateToChatRoom(null, it)
+            }
 
         // Khi nhấn nút back trên thiết bị nếu đang show Image Detail thì đóng Image Detail View
         // chứ không back về fragment trước
@@ -325,6 +326,14 @@ class HomeFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun navigateToChatRoom(chatroom: ChatRoom?, userdata: UserData?) {
+        val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
+            chatroom = chatroom,
+            userdata = userdata
+        )
+        findNavController().navigate(action)
     }
 
     private fun onActionSearch(keyword: String, isQRString: Boolean) {

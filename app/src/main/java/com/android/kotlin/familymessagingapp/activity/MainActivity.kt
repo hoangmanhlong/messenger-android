@@ -81,10 +81,10 @@ class MainActivity : AppCompatActivity() {
             title = R.string.network_not_available_title,
             message = R.string.network_not_available_message
         )
-        if (!NetworkChecker.isNetworkAvailable(this)) {
-            this@MainActivity.window?.statusBarColor = getErrorColor()
-//            networkNotificationDialog?.show()
-        }
+//        if (!NetworkChecker.isNetworkAvailable(this)) {
+//            this@MainActivity.window?.statusBarColor = getErrorColor()
+////            networkNotificationDialog?.show()
+//        }
         _loadingDialog = DialogUtils.loadingDialogInitialize(this)
         networkListener()
         checkNotificationPermission()
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
                 lifecycleScope.launch {
-                    this@MainActivity.window?.statusBarColor = getBackgroundColor()
+//                    this@MainActivity.window?.statusBarColor = getBackgroundColor()
 //                    if (networkNotificationDialog?.isShowing == true) {
 //                        networkNotificationDialog?.dismiss()
 //                    }
@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
             override fun onLost(network: Network) {
                 super.onLost(network)
                 lifecycleScope.launch {
-                    this@MainActivity.window?.statusBarColor = getErrorColor()
+//                    this@MainActivity.window?.statusBarColor = getErrorColor()
 //                    networkNotificationDialog?.show()
                 }
             }

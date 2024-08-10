@@ -6,11 +6,11 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.Target
 
 // Rule : The first parameter in the binding function is always view
 // If using object class, add fields @JvmStatic before the method
@@ -21,6 +21,7 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
             .load(photo)
             .error(R.drawable.ic_broken_image)
             .placeholder(R.drawable.loading_animation)
+            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
             .into(imageView)
     } ?: imageView.setImageResource(R.drawable.ic_user_default)
 }

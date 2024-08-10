@@ -44,13 +44,14 @@ object DialogUtils {
         context: Context,
         onPositiveClick: () -> Unit?,
         onNegativeClick: () -> Unit?,
-        onCancelListener: () -> Unit?
+        onCancelListener: () -> Unit?,
+        cancelable: Boolean? = true
     ): MaterialAlertDialogBuilder {
         return createCommonDialog(
             context = context,
             title = R.string.network_not_available_title,
             message = R.string.network_not_available_message,
-            cancelable = true,
+            cancelable = cancelable ?: true,
             positiveButtonLabel = R.string.try_again,
             negativeButtonLabel = R.string.cancel,
             onPositiveClick = onPositiveClick,

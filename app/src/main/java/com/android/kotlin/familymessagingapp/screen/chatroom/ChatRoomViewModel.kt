@@ -56,6 +56,9 @@ class ChatRoomViewModel @Inject constructor(
     private val _imageDetailShown = MutableLiveData(false)
     val imageDetailShown: LiveData<Boolean> = _imageDetailShown
 
+    private val _selectPhotoVisibleStatus: MutableLiveData<Boolean> = MutableLiveData(true)
+    val selectPhotoVisibleStatus: LiveData<Boolean> = _selectPhotoVisibleStatus
+
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
@@ -104,6 +107,10 @@ class ChatRoomViewModel @Inject constructor(
 
     private val _replyingMessage = MutableLiveData(false)
     val replyingMessage: LiveData<Boolean> = _replyingMessage
+
+    fun setSelectPhotoVisibleStatus(visible: Boolean) {
+        _selectPhotoVisibleStatus.value = visible
+    }
 
     fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!

@@ -105,5 +105,6 @@
     <string name="save_photo_fail">Lưu ảnh thất bại</string>
     <string name="my_qr">Mã QR của tôi</string>
     <string name="qr_description">Mọi người có thể quét mã QR để gửi tin nhắn trực tiếp đến danh sách trò chuyện của bạn</string>
-
+    <string name="qr_invalid_message">Mã QR không hợp lệ, Vui lòng kiểm tra lại</string>
+    <string name="scan_qr_error">Quét mã QR thất bại</string>
 </resources>

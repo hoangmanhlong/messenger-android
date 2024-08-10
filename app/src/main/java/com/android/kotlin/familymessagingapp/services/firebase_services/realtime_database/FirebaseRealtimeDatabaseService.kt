@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -627,11 +628,25 @@ class FirebaseRealtimeDatabaseService(
     suspend fun deleteMessage(chatroomId: String, messageId: String): Result<Boolean> =
         withContext(Dispatchers.IO) {
             try {
-                chatRoomsRef.child(chatroomId)
-                    .child(ChatRoom.MESSAGES)
-                    .child(messageId)
-                    .removeValue()
-                    .await()
+                coroutineScope {
+                    val deleteMessageTask = async {
+                        chatRoomsRef.child(chatroomId)
+                            .child(ChatRoom.MESSAGES)
+                            .child(messageId)
+                            .removeValue()
+                            .await()
+                    }
+                    val deletePinnedMessageTask = async {
+                        chatRoomsRef.child(chatroomId)
+                            .child(ChatRoom.PINNED_MESSAGES)
+                            .child(messageId)
+                            .removeValue()
+                            .await()
+                    }
+                    // Await both tasks
+                    deleteMessageTask.await()
+                    deletePinnedMessageTask.await()
+                }
                 Result.Success(true)
             } catch (e: Exception) {
                 Result.Error(e)

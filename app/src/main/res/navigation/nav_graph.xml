@@ -88,7 +88,11 @@
         android:id="@+id/scanQRCodeFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.scan_qr_code.ScanQRCodeFragment"
         android:label="fragment_scan_qr_code"
-        tools:layout="@layout/fragment_scan_qr_code" />
+        tools:layout="@layout/fragment_scan_qr_code" >
+        <action
+            android:id="@+id/action_scanQRCodeFragment_to_chatRoomFragment"
+            app:destination="@id/chatRoomFragment" />
+    </fragment>
     <fragment
         android:id="@+id/callFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.video_call.CallFragment"

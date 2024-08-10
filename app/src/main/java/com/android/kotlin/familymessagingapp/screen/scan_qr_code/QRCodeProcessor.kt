@@ -19,7 +19,6 @@ package com.example.camerax_mlkit
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -31,7 +30,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
  * As is, this class only handles displaying the QR Code data if it's a URL. Other data types
  * can be handled by adding more cases of Barcode.TYPE_URL in the init block.
  */
-class QrCodeViewModel(barcode: Barcode) {
+class QRCodeProcessor(barcode: Barcode) {
     var boundingRect: Rect = barcode.boundingBox!!
     var qrContent: String = ""
     var qrCodeTouchCallback = { v: View, e: MotionEvent -> false} //no-op

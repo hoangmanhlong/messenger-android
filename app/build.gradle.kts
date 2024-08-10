@@ -26,7 +26,11 @@ android {
         buildConfigField("String", "geminiApiKey", "\"AIzaSyCGETdkV_4RyNV4mZDZGAauqBf-W6zVQlM\"")
         buildConfigField("String", "geminiModelName", "\"gemini-1.5-flash\"")
         buildConfigField("String", "agoraAppId", "\"41853202c4364057b9da170ac81148c7\"")
-        buildConfigField("String", "firebaseServerClientId", "\"767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com\"")
+        buildConfigField(
+            "String",
+            "firebaseServerClientId",
+            "\"767365318867-9rp0qde0tlfemb139fqe4gfa3ta09b76.apps.googleusercontent.com\""
+        )
         buildConfigField("String", "serverUrl", "\"http://47.129.5.135:6688\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -108,7 +112,8 @@ dependencies {
     // Google Sign In SDK
     implementation(libs.play.services.auth.v2050)
 
-    debugImplementation(libs.leakcanary.android)
+    // Check memory leak
+//    debugImplementation(libs.leakcanary.android)
 
     implementation(libs.glide)
 
@@ -167,7 +172,7 @@ dependencies {
 //    implementation("com.github.AgoraIO-Community:VideoUIKit-Android:v4.0.1")
     implementation("org.greenrobot:eventbus:3.3.1")
 
-    implementation("io.socket:socket.io-client:2.1.1")  {
+    implementation("io.socket:socket.io-client:2.1.1") {
         // excluding org.json which is provided by Android
         exclude(group = "org.json", module = "json")
     }

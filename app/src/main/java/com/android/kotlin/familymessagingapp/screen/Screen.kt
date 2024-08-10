@@ -23,5 +23,9 @@ sealed class Screen(val screenId: Int) {
         fun toProfileDetail(): Int = R.id.action_profileFragment_to_profileDetailFragment
     }
 
+    data object ScanScreen : Screen(R.id.scanQRCodeFragment) {
+        fun toChatRoom(): Int = R.id.action_scanQRCodeFragment_to_chatRoomFragment
+    }
+
     data object ChatRoom: Screen(R.id.chatRoomFragment)
 }

@@ -114,4 +114,6 @@
     <string name="save_photo_fail">Save image failed</string>
     <string name="my_qr">My QR code</string>
     <string name="qr_description">People can scan QR code to send a message directly to your chats list</string>
+    <string name="qr_invalid_message">Invalid QR Code, Please check again</string>
+    <string name="scan_qr_error">Scan QR code failed</string>
 </resources>

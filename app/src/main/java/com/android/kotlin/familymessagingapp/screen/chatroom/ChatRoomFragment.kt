@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -170,6 +171,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                _viewModel.setSelectPhotoVisibleStatus(s.isNullOrBlank())
                 _viewModel.setTextMessage(s.toString().trim())
                 _viewModel.clearEditText(false)
             }
@@ -215,7 +217,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
         binding.btShare.setOnClickListener {
             activity?.let {
-                DeviceUtils.shareImage(requireActivity(), "".toUri())
+                DeviceUtils.shareImage(requireActivity(), binding.imageDetailImageView.drawable)
             }
         }
 
@@ -226,6 +228,12 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         binding.ivCloseReplyMessage.setOnClickListener {
             _viewModel.setReplyingMessage(false)
         }
+
+        messageRecyclerview?.setOnTouchListener { _, _ ->
+            hideKeyboard()
+            false
+        }
+
         return binding.root
     }
 
@@ -245,6 +253,10 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             binding.isLoading = it
+        }
+
+        _viewModel.selectPhotoVisibleStatus.observe(this.viewLifecycleOwner) {
+            binding.btSelectPhoto.visibility = if (it) View.VISIBLE else View.GONE
         }
 
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {

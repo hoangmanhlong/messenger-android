@@ -18,12 +18,12 @@ package com.android.kotlin.familymessagingapp.screen.scan_qr_code
 
 import android.graphics.*
 import android.graphics.drawable.Drawable
-import com.example.camerax_mlkit.QrCodeViewModel
+import com.example.camerax_mlkit.QRCodeProcessor
 
 /**
  * A Drawable that handles displaying a QR Code's data and a bounding box around the QR code.
  */
-class QrCodeDrawable(private val qrCodeViewModel: QrCodeViewModel) : Drawable() {
+class QrCodeDrawable(private val QRCodeProcessor: QRCodeProcessor) : Drawable() {
     private val boundingRectPaint = Paint().apply {
         style = Paint.Style.STROKE
         color = Color.YELLOW
@@ -44,22 +44,22 @@ class QrCodeDrawable(private val qrCodeViewModel: QrCodeViewModel) : Drawable() 
     }
 
     private val contentPadding = 25
-    private var textWidth = contentTextPaint.measureText(qrCodeViewModel.qrContent).toInt()
+    private var textWidth = contentTextPaint.measureText(QRCodeProcessor.qrContent).toInt()
 
     override fun draw(canvas: Canvas) {
-        canvas.drawRect(qrCodeViewModel.boundingRect, boundingRectPaint)
+        canvas.drawRect(QRCodeProcessor.boundingRect, boundingRectPaint)
         canvas.drawRect(
             Rect(
-                qrCodeViewModel.boundingRect.left,
-                qrCodeViewModel.boundingRect.bottom + contentPadding/2,
-                qrCodeViewModel.boundingRect.left + textWidth + contentPadding*2,
-                qrCodeViewModel.boundingRect.bottom + contentTextPaint.textSize.toInt() + contentPadding),
+                QRCodeProcessor.boundingRect.left,
+                QRCodeProcessor.boundingRect.bottom + contentPadding/2,
+                QRCodeProcessor.boundingRect.left + textWidth + contentPadding*2,
+                QRCodeProcessor.boundingRect.bottom + contentTextPaint.textSize.toInt() + contentPadding),
             contentRectPaint
         )
         canvas.drawText(
-            qrCodeViewModel.qrContent,
-            (qrCodeViewModel.boundingRect.left + contentPadding).toFloat(),
-            (qrCodeViewModel.boundingRect.bottom + contentPadding*2).toFloat(),
+            QRCodeProcessor.qrContent,
+            (QRCodeProcessor.boundingRect.left + contentPadding).toFloat(),
+            (QRCodeProcessor.boundingRect.bottom + contentPadding*2).toFloat(),
             contentTextPaint
         )
     }

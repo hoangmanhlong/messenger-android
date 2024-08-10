@@ -2,11 +2,17 @@ package com.android.kotlin.familymessagingapp.utils
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
+import androidx.core.content.FileProvider
 import com.android.kotlin.familymessagingapp.BuildConfig
+import java.io.File
+import java.io.FileOutputStream
 import java.util.Locale
 
 object DeviceUtils {
@@ -34,12 +40,14 @@ object DeviceUtils {
         return currentLocale.language
     }
 
-    fun shareImage(context: Context, uriToImage: Uri) {
+    fun shareImage(context: Context, drawable: Drawable) {
+        val uriToImage = MediaUtils.createUrlFromImageDrawable(context, drawable) ?: return
         val shareIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             // Example: content://com.google.android.apps.photos.contentprovider/...
             putExtra(Intent.EXTRA_STREAM, uriToImage)
             type = "image/*"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // Cấp quyền đọc tạm thời
         }
         context.startActivity(Intent.createChooser(shareIntent, null))
     }

@@ -76,4 +76,17 @@ object StringUtils {
     fun areListsEqual(list1: List<String>, list2: List<String>): Boolean {
         return list1.toTypedArray().contentEquals(list2.toTypedArray())
     }
+
+    fun generateFormattedQrCode(text: String): String = "${text}___${text}___${text}"
+
+    fun isValidQrCode(text: String): Boolean {
+        val uids = text.split("___")
+        return if (uids.size == 3) {
+            return uids[0] == uids[1] && uids[1] == uids[2]
+        } else {
+            false
+        }
+    }
+
+    fun getUidFromFormattedQrCode(text: String): String =text.split("___")[0]
 }

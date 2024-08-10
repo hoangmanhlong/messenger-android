@@ -4,10 +4,14 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.View
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
 import com.bumptech.glide.Glide
@@ -197,8 +201,52 @@ object MediaUtils {
     
     fun getQRCodeBitmapFromString(string: String): Bitmap? {
         return try {
+            val formattedQRString = StringUtils.generateFormattedQrCode(string)
             val barcodeEncoder = BarcodeEncoder()
-            barcodeEncoder.encodeBitmap(string, BarcodeFormat.QR_CODE, 400, 400)
+            barcodeEncoder.encodeBitmap(formattedQRString, BarcodeFormat.QR_CODE, 400, 400)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun getScreenShotFromView(v: View): Bitmap? {
+        // create a bitmap object
+        var screenshot: Bitmap? = null
+        try {
+            // inflate screenshot object
+            // with Bitmap.createBitmap it
+            // requires three parameters
+            // width and height of the view and
+            // the background color
+            screenshot = Bitmap.createBitmap(v.measuredWidth, v.measuredHeight, Bitmap.Config.ARGB_8888)
+            // Now draw this bitmap on a canvas
+            val canvas = Canvas(screenshot)
+            v.draw(canvas)
+        } catch (e: Exception) {
+            e.stackTrace
+        }
+        // return the bitmap
+        return screenshot
+    }
+
+    fun createUrlFromImageDrawable(context: Context, drawable: Drawable): Uri? {
+        var file: File? = null
+        return try {
+            val bitmap = (drawable as BitmapDrawable).bitmap
+
+            // Lưu bitmap vào một tệp tạm thời
+            file = File(context.cacheDir, "shared_image.png")
+            val fileOutputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+            fileOutputStream.flush()
+            fileOutputStream.close()
+
+            // Lấy URI của tệp
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
         } catch (e: Exception) {
             null
         }
