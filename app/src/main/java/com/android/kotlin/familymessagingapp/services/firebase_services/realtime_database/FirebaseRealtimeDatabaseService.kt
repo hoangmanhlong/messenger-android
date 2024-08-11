@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.Result
@@ -15,6 +16,7 @@ import com.android.kotlin.familymessagingapp.model.UserSettings
 import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.NotificationHelper
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -59,7 +61,8 @@ class FirebaseRealtimeDatabaseService(
     private val auth: FirebaseAuth,
     private val firebaseStorageService: FirebaseStorageService,
     private val fcmService: FCMService,
-    private val socketClient: SocketClient
+    private val socketClient: SocketClient,
+    private val notificationHelper: NotificationHelper
 ) {
 
     companion object {
@@ -219,6 +222,7 @@ class FirebaseRealtimeDatabaseService(
                             launch {
                                 deferredList.awaitAll()
                                 chatroom = chatroom?.copy(membersData = membersData)
+                                notificationHelper.updateShortcuts(membersData)
                                 chatroom?.getChatRoomNameAndImage()
                                 trySend(chatroom).isSuccess
                             }
@@ -460,7 +464,8 @@ class FirebaseRealtimeDatabaseService(
                         members = members,
                         messages = hashMapOf(updatedMessage.messageId!! to updatedMessage),
                         latestTime = currentTimestamp,
-                        lastMessage = updatedMessage
+                        lastMessage = updatedMessage,
+                        chatRoomType = ChatRoomType.Private.type
                     )
                     val chatroomID = finalChatRoom.chatRoomId!!
                     chatRoomsRef.child(chatroomID)

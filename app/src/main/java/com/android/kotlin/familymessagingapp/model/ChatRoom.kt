@@ -27,6 +27,7 @@ data class ChatRoom(
     val isActive: Boolean? = null,
     val lastMessage: Message? = null,
     val pinnedMessages: Map<String, PinnedMessage>? = null,
+    val chatRoomType: String? = null,
     @Exclude var chatRoomImage: String? = null,
     @Exclude var chatroomName: String? = null,
     @Exclude val membersData: List<UserData>? = null
@@ -42,13 +43,20 @@ data class ChatRoom(
 
     @Exclude
     fun getChatRoomNameAndImage() {
-        if (membersData?.size == 2) {
-            val otherUserUid = members?.firstOrNull { it != Firebase.auth.uid }
-            val userdata = membersData.firstOrNull { it.uid == otherUserUid }
-            userdata?.let {
-                this.chatroomName = it.username
-                this.chatRoomImage = it.userAvatar
+        when (chatRoomType) {
+            ChatRoomType.Private.type -> {
+                val otherUserUid = members?.firstOrNull { it != Firebase.auth.uid }
+                val userdata = membersData?.firstOrNull { it.uid == otherUserUid }
+                userdata?.let {
+                    this.chatroomName = it.username
+                    this.chatRoomImage = it.userAvatar
+                }
             }
+
+            ChatRoomType.Group.type -> {
+
+            }
+            else -> {}
         }
     }
 

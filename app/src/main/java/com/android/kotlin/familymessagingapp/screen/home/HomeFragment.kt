@@ -151,6 +151,10 @@ class HomeFragment : Fragment() {
             }
         }
 
+        searchBar?.setNavigationOnClickListener {
+            (activity as MainActivity).openDrawer()
+        }
+
         searchView!!.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.QrCodeSearchViewMenu -> {

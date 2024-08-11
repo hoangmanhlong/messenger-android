@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="splash_screen_icon_size">240dp</dimen>
+    <dimen name="bubble_height">400dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="chatroom_size">50dp</dimen>
+    <dimen name="chatroom_corner_radius">25dp</dimen>
 </resources>

@@ -261,7 +261,8 @@ class ChatRoomViewModel @Inject constructor(
             chatRoomImage = chatRoom.chatRoomImage,
             members = chatRoom.members,
             pinnedMessages = chatRoom.pinnedMessages,
-            membersData = chatRoom.membersData
+            membersData = chatRoom.membersData,
+            chatRoomType = chatRoom.chatRoomType
         )
         initChatRoomListener()
     }
@@ -278,25 +279,21 @@ class ChatRoomViewModel @Inject constructor(
             chatroomLiveData.observeForever { chatRoom ->
                 _chatRoom.value = _chatRoom.value?.copy(
                     chatRoomId = chatRoom?.chatRoomId,
-//                    chatroomName = chatRoom?.chatroomName,
                     messages = chatRoom?.messages,
                     lastMessage = chatRoom?.lastMessage,
                     latestTime = chatRoom?.latestTime,
                     isActive = chatRoom?.isActive,
-//                    chatRoomImage = chatRoom?.chatRoomImage,
                     members = chatRoom?.members,
                     pinnedMessages = chatRoom?.pinnedMessages,
-                    membersData = chatRoom?.membersData
+                    membersData = chatRoom?.membersData,
+                    chatRoomType = chatRoom?.chatRoomType
                 )
                 _chatRoom.value?.getReplyMessages()
                 _chatRoom.value?.getSenderNameOfMessage()
                 _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
-//                _isLoading.value = false
                 if (chatRoom != null) {
                     viewModelScope.launch {
-                        val lastMessage =
-                            chatRoom.messages?.values?.sortedByDescending { it.timestamp }
-                                ?.firstOrNull()
+                        val lastMessage = chatRoom.messages?.values?.maxByOrNull { it.timestamp!! }
                         if (lastMessage != null
                             && lastMessage.senderId != Firebase.auth.uid
                             && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(

@@ -40,7 +40,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
+    val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
         .currentUserData
 

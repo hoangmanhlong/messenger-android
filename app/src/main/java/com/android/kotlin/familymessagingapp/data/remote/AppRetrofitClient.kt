@@ -20,7 +20,7 @@ class AppRetrofitClient(private val application: Application) {
         return@run Retrofit.Builder()
 //        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(Constant.BASE_URL)
+            .baseUrl(BuildConfig.serverUrl)
             .client(okHttpClient.build())
             .build()
             .create(BackendApiService::class.java)

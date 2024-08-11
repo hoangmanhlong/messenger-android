@@ -18,16 +18,16 @@
         android:baselineAligned="false"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="@dimen/spacing_small">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="50dp"
-            android:layout_height="50dp">
+            android:layout_width="@dimen/chatroom_size"
+            android:layout_height="@dimen/chatroom_size">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:cardCornerRadius="25dp"
+                app:cardCornerRadius="@dimen/chatroom_corner_radius"
                 app:strokeWidth="0dp">
 
                 <ImageView
@@ -43,7 +43,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="@dimen/spacing_medium"
             android:layout_weight="1">
 
             <TextView
@@ -59,12 +59,12 @@
             <ImageView
                 android:layout_width="15dp"
                 android:layout_height="15dp"
-                android:src="@drawable/ic_verified"
                 android:layout_marginStart="4dp"
+                android:src="@drawable/ic_verified"
                 android:visibility="@{userdata.verified == true ? View.VISIBLE : View.GONE}"
+                app:layout_constraintBottom_toBottomOf="@id/tvChatRoomName"
                 app:layout_constraintStart_toEndOf="@id/tvChatRoomName"
-                app:layout_constraintTop_toTopOf="@id/tvChatRoomName"
-                app:layout_constraintBottom_toBottomOf="@id/tvChatRoomName"/>
+                app:layout_constraintTop_toTopOf="@id/tvChatRoomName" />
 
             <TextView
                 android:id="@+id/tvLastMessage"

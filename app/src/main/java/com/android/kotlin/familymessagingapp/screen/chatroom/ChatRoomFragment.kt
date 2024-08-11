@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -13,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -23,7 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.adapter.bindNormalImage
+import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.Message
@@ -105,10 +103,26 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
         messageRecyclerview = binding.messageRecyclerview
         (messageRecyclerview?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
-        messageRecyclerview?.layoutManager = LinearLayoutManager(activity).apply {
+        val messageLayoutManager = LinearLayoutManager(activity).apply {
             stackFromEnd = true
-            reverseLayout = false
+//            reverseLayout = false
         }
+        messageRecyclerview?.layoutManager = messageLayoutManager
+
+//        messageRecyclerview?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+//                super.onScrolled(recyclerView, dx, dy)
+//
+//                val visibleItemCount = messageLayoutManager.childCount
+//                val totalItemCount = messageLayoutManager.itemCount
+//                val firstVisibleItemPosition = messageLayoutManager.findFirstVisibleItemPosition()
+//
+//                if (!isLoading && visibleItemCount + firstVisibleItemPosition >= totalItemCount && firstVisibleItemPosition >= 0) {
+//                    loadMoreItems()
+//                }
+//            }
+//        })
+
         messageAdapter = MessageAdapter(
             onMessageContentViewClick = {
                 hideKeyboard()
@@ -404,6 +418,29 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             }
         }
     }
+
+//    private fun loadMoreItems() {
+//        isLoading = true
+//
+//        // Giả lập việc load thêm dữ liệu
+//        Handler(Looper.getMainLooper()).postDelayed({
+//            val currentList = messageAdapter?.currentList?.toMutableList() ?: return@postDelayed
+//            val nextData = getData(currentList.size, 20)
+//            currentList.addAll(nextData)
+//            messageAdapter?.submitList(currentList)
+//            isLoading = false
+//        }, 2000)
+//    }
+//
+//    private fun getData(startIndex: Int, count: Int): List<Message> {
+//        // Giả lập việc lấy dữ liệu từ startIndex, với số lượng count
+//        // Thay thế bằng việc lấy dữ liệu thật từ server hoặc database
+//        val items = mutableListOf<Message>()
+//        for (i in startIndex until startIndex + count) {
+//            items.add(_viewModel.chatRoom.value?.messages?.values?.elementAt(i)!!)
+//        }
+//        return items
+//    }
 
     private fun hideKeyboard() {
         activity?.let { KeyBoardUtils.hideSoftKeyboard(requireActivity()) }

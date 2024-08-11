@@ -2,9 +2,11 @@ package com.android.kotlin.familymessagingapp.model
 
 import android.os.Parcelable
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 // Bug:
@@ -44,6 +46,10 @@ data class UserData(
             && !this.username.isNullOrEmpty()
             && !this.uid.isNullOrEmpty()
             && !this.chatrooms.isNullOrEmpty()
+
+    @IgnoredOnParcel
+    @Exclude
+    val shortcutId = "shortcut_$uid"
 }
 
 fun FirebaseUser.toUserData(): UserData = UserData(

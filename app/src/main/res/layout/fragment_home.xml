@@ -19,93 +19,99 @@
             type="Boolean" />
 
         <import type="android.view.View" />
+
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            android:orientation="vertical">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/storyRecyclerView"
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/searchTopBarLayout"
                 android:layout_width="match_parent"
-                android:layout_height="196dp"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:orientation="horizontal"
-                android:visibility="gone"
-                app:carousel_alignment="center"
-                app:layoutManager="com.google.android.material.carousel.CarouselLayoutManager"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvConversationEmpty"
-                style="@style/TextAppearance.Material3.TitleMedium"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="?attr/actionBarSize"
-                android:text="@string/conversation_empty"
-                android:visibility="@{isConversationEmpty ? View.VISIBLE : View.GONE}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:background="@android:color/transparent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_scrollFlags="noScroll">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/chatroomRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:clipToPadding="false"
-                android:padding="8dp"
-                android:visibility="@{isConversationEmpty ? View.GONE : View.VISIBLE}"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintTop_toBottomOf="@id/storyRecyclerView"
-                tools:itemCount="10"
-                tools:listitem="@layout/layout_chatroom" />
+                <com.google.android.material.search.SearchBar
+                    android:id="@+id/search_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="@string/search"
+                    app:navigationIcon="@drawable/ic_menu"
+                    app:menu="@menu/menu_search_bar" />
+                <!--                app:navigationIcon="@drawable/ic_menu" -->
+
+            </com.google.android.material.appbar.AppBarLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/md_theme_background"
-                android:visibility="@{isLoading ? View.VISIBLE : View.GONE}">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
-                <com.google.android.material.progressindicator.CircularProgressIndicator
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/storyRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="196dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    app:carousel_alignment="center"
+                    app:layoutManager="com.google.android.material.carousel.CarouselLayoutManager"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvConversationEmpty"
+                    style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="wrap_content"
-                    android:id="@+id/progressBar"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="?attr/actionBarSize"
+                    android:text="@string/conversation_empty"
+                    android:visibility="@{isConversationEmpty ? View.VISIBLE : View.GONE}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/chatroomRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:padding="8dp"
+                    android:visibility="@{isConversationEmpty ? View.GONE : View.VISIBLE}"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintTop_toBottomOf="@id/storyRecyclerView"
+                    tools:itemCount="10"
+                    tools:listitem="@layout/layout_chatroom" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/md_theme_background"
+                    android:visibility="@{isLoading ? View.VISIBLE : View.GONE}">
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/progressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/searchTopBarLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <com.google.android.material.search.SearchBar
-                android:id="@+id/search_bar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:hint="@string/search"
-                app:menu="@menu/menu_search_bar" />
-            <!--                app:navigationIcon="@drawable/ic_menu" -->
-
-        </com.google.android.material.appbar.AppBarLayout>
+        </LinearLayout>
 
         <com.google.android.material.search.SearchView
             android:id="@+id/search_view"

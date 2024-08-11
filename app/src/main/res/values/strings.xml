@@ -3,6 +3,7 @@
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="fcm_message" translatable="false">FCM Message</string>
     <string name="app_name" translatable="false">ZChat</string>
+    <string name="bubble_host" translatable="false">hoang.manh.long.com</string>
 
 
     <string name="facebook_app_id" translatable="false">1508563699738609</string>
@@ -11,6 +12,8 @@
 
     <string name="feedback_mail" translatable="false">ziplong7le@gmail.com</string>
 
+    <string name="channel_new_messages" translatable="false">New messages</string>
+    <string name="channel_new_messages_description" translatable="false">All new incoming messages.</string>
     <!--    Login Screen-->
     <string name="or">Or</string>
     <string name="vietnam" translatable="false"> Việt Nam</string>
@@ -116,4 +119,7 @@
     <string name="qr_description">People can scan QR code to send a message directly to your chats list</string>
     <string name="qr_invalid_message">Invalid QR Code, Please check again</string>
     <string name="scan_qr_error">Scan QR code failed</string>
+    <string name="sender_you">You</string>
+    <string name="create_group">Create group chat</string>
+    <string name="communication">Communication</string>
 </resources>

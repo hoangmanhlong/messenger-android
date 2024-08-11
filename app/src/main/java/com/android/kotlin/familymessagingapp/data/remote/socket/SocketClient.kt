@@ -1,12 +1,10 @@
 package com.android.kotlin.familymessagingapp.data.remote.socket
 
-import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.google.firebase.database.Exclude
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter

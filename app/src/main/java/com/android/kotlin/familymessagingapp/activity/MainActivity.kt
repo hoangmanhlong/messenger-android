@@ -10,6 +10,9 @@ import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -21,13 +24,18 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
+import com.android.kotlin.familymessagingapp.screen.home.HomeFragmentDirections
 import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import com.android.kotlin.familymessagingapp.utils.TimeUtils
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.Target
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -51,6 +59,18 @@ class MainActivity : AppCompatActivity() {
     private var _binding: ActivityMainBinding? = null
 
     private var networkNotificationDialog: AlertDialog? = null
+
+    private lateinit var navigationView: NavigationView
+
+    private lateinit var navigationViewHeader: View
+
+    private lateinit var userImageView: ImageView
+
+    private lateinit var usernameTextView: TextView
+
+    private lateinit var userEmailTextView: TextView
+
+    private lateinit var verifiedMaterialCardView: MaterialCardView
 
     private val binding get() = _binding!!
 
@@ -76,6 +96,8 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { false }
 //        theme.applyStyle(R.style.AppTheme, false)
         setContentView(binding.root)
+        navigationViewMapper()
+        navigationView.itemIconTintList = null
         networkNotificationDialog = DialogUtils.showNotificationDialog(
             context = this,
             title = R.string.network_not_available_title,
@@ -93,6 +115,50 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
         _viewModel.isLoading.observe(this) {
             showLoadingDialog(it)
+        }
+
+        _viewModel.currentUserLiveData.observe(this) { userdata ->
+            if (userdata != null && !userdata.uid.isNullOrEmpty()) {
+                val userAvatar = userdata.userAvatar
+                if (userAvatar.isNullOrEmpty()) {
+                    userImageView.setImageResource(R.drawable.ic_user_default)
+                } else {
+                    Glide.with(this)
+                        .load(userAvatar)
+                        .error(R.drawable.ic_broken_image)
+                        .placeholder(R.drawable.loading_animation)
+                        .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                        .into(userImageView)
+                }
+                usernameTextView.text = userdata.username
+                userEmailTextView.text = userdata.email
+                verifiedMaterialCardView.visibility = if(userdata.verified()) View.VISIBLE else View.GONE
+            }
+        }
+
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            when(menuItem.itemId) {
+                R.id.createGroupChatMenu -> {
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun navigationViewMapper() {
+        navigationView = binding.navigationView
+        navigationViewHeader = navigationView.getHeaderView(0)
+        userImageView = navigationViewHeader.findViewById(R.id.userAvatar)
+        usernameTextView = navigationViewHeader.findViewById(R.id.tvUsername)
+        userEmailTextView = navigationViewHeader.findViewById(R.id.tvEmail)
+        verifiedMaterialCardView = navigationViewHeader.findViewById(R.id.verifiedMaterialCardView)
+        navigationViewHeader.setOnClickListener {
+            _viewModel.currentUserLiveData.value?.let {
+                val action = HomeFragmentDirections.actionHomeFragmentToProfileDetailFragment(it)
+                navController.navigate(action)
+                binding.drawerLayout.close()
+            }
         }
     }
 
@@ -227,6 +293,8 @@ class MainActivity : AppCompatActivity() {
     fun saveNotificationStatus(enabled: Boolean) {
         _viewModel.saveNotificationStatus(enabled)
     }
+
+    fun openDrawer() = binding.drawerLayout.open()
 
     companion object {
         val TAG: String = MainActivity::class.java.simpleName

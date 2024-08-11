@@ -163,7 +163,8 @@ object MediaUtils {
         }
 
         val contentResolver = context.contentResolver
-        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        val uri =
+            contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
         uri?.let {
             var outputStream: OutputStream? = null
@@ -198,7 +199,7 @@ object MediaUtils {
         val contentResolver = context.contentResolver
         return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     }
-    
+
     fun getQRCodeBitmapFromString(string: String): Bitmap? {
         return try {
             val formattedQRString = StringUtils.generateFormattedQrCode(string)
@@ -218,7 +219,8 @@ object MediaUtils {
             // requires three parameters
             // width and height of the view and
             // the background color
-            screenshot = Bitmap.createBitmap(v.measuredWidth, v.measuredHeight, Bitmap.Config.ARGB_8888)
+            screenshot =
+                Bitmap.createBitmap(v.measuredWidth, v.measuredHeight, Bitmap.Config.ARGB_8888)
             // Now draw this bitmap on a canvas
             val canvas = Canvas(screenshot)
             v.draw(canvas)

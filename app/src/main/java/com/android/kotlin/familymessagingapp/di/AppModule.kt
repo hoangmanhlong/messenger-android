@@ -20,6 +20,7 @@ import com.android.kotlin.familymessagingapp.services.firebase_services.realtime
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.NotificationHelper
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
@@ -59,7 +60,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseAuthenticationRepository(
+    fun provideFirebaseServiceRepository(
         auth: FirebaseAuth,
         firebaseGoogleService: FirebaseGoogleService,
         firebaseEmailService: FirebaseEmailService,
@@ -121,9 +122,10 @@ object AppModule {
         auth: FirebaseAuth,
         firebaseStorageService: FirebaseStorageService,
         fcmService: FCMService,
-        socketClient: SocketClient
+        socketClient: SocketClient,
+        notificationHelper: NotificationHelper
     ): FirebaseRealtimeDatabaseService =
-        FirebaseRealtimeDatabaseService(auth, firebaseStorageService, fcmService, socketClient)
+        FirebaseRealtimeDatabaseService(auth, firebaseStorageService, fcmService, socketClient, notificationHelper)
 
     @Singleton
     @Provides
@@ -158,4 +160,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFCMService(): FCMService = FCMService()
+
+    @Provides
+    @Singleton
+    fun provideNotificationHelper(application: Application): NotificationHelper = NotificationHelper(application)
+
 }

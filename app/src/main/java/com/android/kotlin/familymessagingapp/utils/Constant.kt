@@ -1,5 +1,9 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.net.Uri
+import androidx.core.net.toUri
+import com.android.kotlin.familymessagingapp.BuildConfig
+
 object Constant {
 
     const val USER_DATA_KEY = "USER_DATA_KEY"
@@ -86,6 +90,10 @@ object Constant {
     const val USER_VERIFIED_STATUS_SOCKET_EVENT = "USER_VERIFIED_STATUS_SOCKET_EVENT"
 
     const val NEW_MESSAGE_SOCKET_EVENT = "NEW_MESSAGE_SOCKET_EVENT"
+
+    const val APP_BASE_URI = "https://${BuildConfig.APPLICATION_ID}/"
+
+    fun getAppUrl(endpoint: String): String = "$APP_BASE_URI$endpoint"
 }
 
 

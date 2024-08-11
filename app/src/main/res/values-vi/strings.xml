@@ -107,4 +107,7 @@
     <string name="qr_description">Mọi người có thể quét mã QR để gửi tin nhắn trực tiếp đến danh sách trò chuyện của bạn</string>
     <string name="qr_invalid_message">Mã QR không hợp lệ, Vui lòng kiểm tra lại</string>
     <string name="scan_qr_error">Quét mã QR thất bại</string>
+    <string name="sender_you">Bạn</string>
+    <string name="create_group">Tạo nhóm chat</string>
+    <string name="communication">Cộng đồng</string>
 </resources>

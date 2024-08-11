@@ -2,13 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/recent_activity"
-        android:title="Recent Activity">
+        android:title="@string/communication">
         <menu>
-            <item android:id="@+id/search"
+            <item android:id="@+id/createGroupChatMenu"
                 android:checkable="true"
-                android:icon="@drawable/ic_search"
+                android:icon="@drawable/ic_group"
                 app:showAsAction="ifRoom"
-                android:title="Search" />
+                android:title="@string/create_group" />
         </menu>
     </item>
 </menu>
