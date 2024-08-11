@@ -6,7 +6,7 @@
         <menu>
             <item android:id="@+id/createGroupChatMenu"
                 android:checkable="true"
-                android:icon="@drawable/ic_group"
+                android:icon="@drawable/ic_group_add"
                 app:showAsAction="ifRoom"
                 android:title="@string/create_group" />
         </menu>

@@ -1,9 +1,7 @@
 package com.android.kotlin.familymessagingapp.utils
 
-import android.os.Build
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.ChatRoom
@@ -29,47 +27,31 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
 
 @BindingAdapter("bindChatRoomImage")
 fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
+    val defaultImageRes = when (chatRoom.chatRoomType) {
+        ChatRoomType.Private.type -> R.drawable.ic_user_default
+        ChatRoomType.Group.type -> R.drawable.group
+        else -> R.drawable.ic_user_default
+    }
+
     val chatRoomImageUrl = chatRoom.chatRoomImage
-   when(chatRoom.chatRoomType) {
-       ChatRoomType.Private.type -> {
-           if (chatRoomImageUrl.isNullOrEmpty()) {
-               imageView.setImageResource(R.drawable.ic_user_default)
-           } else {
-               Glide.with(imageView.context)
-                   .load(chatRoomImageUrl)
-                   .error(R.drawable.ic_broken_image)
-                   .placeholder(R.drawable.loading_animation)
-                   .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                   .into(imageView)
-           }
-       }
-
-       ChatRoomType.Group.type -> {
-           if(chatRoomImageUrl.isNullOrEmpty()) {
-               imageView.setImageResource(R.drawable.group)
-           } else {
-               Glide.with(imageView.context)
-                   .load(chatRoomImageUrl)
-                   .error(R.drawable.ic_broken_image)
-                   .placeholder(R.drawable.loading_animation)
-                   .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                   .into(imageView)
-           }
-       }
-
-       else -> {
-
-       }
-   }
+    if (chatRoomImageUrl.isNullOrEmpty()) {
+        imageView.setImageResource(defaultImageRes)
+    } else {
+        Glide.with(imageView.context)
+            .load(chatRoomImageUrl)
+            .error(R.drawable.ic_broken_image)
+            .placeholder(R.drawable.loading_animation)
+            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            .into(imageView)
+    }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @BindingAdapter("bindChatroomFormattedTime")
 fun bindChatroomFormattedTime(textView: TextView, time: Long) {
     textView.text = StringUtils.formatTime(time, true)
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @BindingAdapter("bindMessageFormattedTime")
 fun bindMessageFormattedTime(textView: TextView, time: Long) {
     textView.text = StringUtils.formatTime(time, false)
@@ -80,7 +62,6 @@ fun bindLastMessageOfChatroom(textView: TextView, message: Message) {
     textView.text = StringUtils.showLastMessageToChatRoomView(textView.context, message)
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @BindingAdapter("bindPinnedBy")
 fun bindPinnedBy(textView: TextView, pinnedMessage: PinnedMessage) {
     textView.text = textView.context.getString(
