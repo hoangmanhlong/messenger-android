@@ -27,6 +27,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.home.HomeFragmentDirections
 import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
@@ -38,6 +39,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import okhttp3.internal.notifyAll
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -132,15 +134,19 @@ class MainActivity : AppCompatActivity() {
                 }
                 usernameTextView.text = userdata.username
                 userEmailTextView.text = userdata.email
-                verifiedMaterialCardView.visibility = if(userdata.verified()) View.VISIBLE else View.GONE
+                verifiedMaterialCardView.visibility =
+                    if (userdata.verified()) View.VISIBLE else View.GONE
             }
         }
 
         navigationView.setNavigationItemSelectedListener { menuItem ->
-            when(menuItem.itemId) {
+            when (menuItem.itemId) {
                 R.id.createGroupChatMenu -> {
-                    true
+                    navController.navigate(Screen.CreateGroupChat.screenId)
+                    closeDrawer()
+                    false
                 }
+
                 else -> false
             }
         }
@@ -154,17 +160,16 @@ class MainActivity : AppCompatActivity() {
         userEmailTextView = navigationViewHeader.findViewById(R.id.tvEmail)
         verifiedMaterialCardView = navigationViewHeader.findViewById(R.id.verifiedMaterialCardView)
         navigationViewHeader.setOnClickListener {
-            _viewModel.currentUserLiveData.value?.let {
-                val action = HomeFragmentDirections.actionHomeFragmentToProfileDetailFragment(it)
-                navController.navigate(action)
-                binding.drawerLayout.close()
-            }
+            navController.navigate(Screen.ProfileScreen.screenId)
+            closeDrawer()
         }
     }
 
     fun isShowLoadingDialog(isLoading: Boolean) {
         _viewModel.setIsLoading(isLoading)
     }
+
+    private fun closeDrawer() = binding.drawerLayout.close()
 
     private fun showLoadingDialog(isShow: Boolean) {
         _loadingDialog?.let {
@@ -248,7 +253,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
 
 //    fun showNetworkErrorDialogDialog(show: Boolean) {

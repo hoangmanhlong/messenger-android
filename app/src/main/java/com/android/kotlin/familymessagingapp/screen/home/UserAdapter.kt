@@ -9,14 +9,20 @@ import com.android.kotlin.familymessagingapp.databinding.LayoutUserBinding
 import com.android.kotlin.familymessagingapp.model.UserData
 
 class UserAdapter(
+    private val isSelectType: Boolean,
     private val onItemClicked: (UserData) -> Unit
+
 ) : ListAdapter<UserData, UserAdapter.UserViewHolder>(DiffCallback) {
 
     inner class UserViewHolder(
         private val binding: LayoutUserBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(userData: UserData) {
+            binding.isSelectType = isSelectType
             binding.userdata = userData
+            binding.root.setOnClickListener {
+                onItemClicked(userData)
+            }
         }
     }
 
@@ -31,12 +37,7 @@ class UserAdapter(
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        val item = getItem(position)
-
-        holder.itemView.setOnClickListener {
-            onItemClicked(item)
-        }
-        holder.bind(item)
+        holder.bind(getItem(position))
     }
 
     companion object DiffCallback : DiffUtil.ItemCallback<UserData>() {

@@ -110,4 +110,9 @@
     <string name="sender_you">Bạn</string>
     <string name="create_group">Tạo nhóm chat</string>
     <string name="communication">Cộng đồng</string>
+    <string name="create">Tạo</string>
+    <string name="group_chat_name_hint">Tên nhóm chat (Tùy chọn)</string>
+    <string name="select_member">Chọn thành viên</string>
+    <string name="select_member_guide">Nhóm chat tối thiểu 3 và tối đa 100 thành viên</string>
+    <string name="contacts">Liên hệ</string>
 </resources>

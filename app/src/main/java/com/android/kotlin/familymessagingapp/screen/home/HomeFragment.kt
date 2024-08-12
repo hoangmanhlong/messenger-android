@@ -130,7 +130,7 @@ class HomeFragment : Fragment() {
         searchHistoriesRecyclerView?.adapter = searchHistoryAdapter
 
         usersRecyclerView = binding.searchResultRecyclerView
-        userAdapter = UserAdapter {
+        userAdapter = UserAdapter(false) {
             navigateToChatRoom(null, it)
         }
         usersRecyclerView?.adapter = userAdapter

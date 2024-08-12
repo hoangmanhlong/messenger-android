@@ -122,4 +122,9 @@
     <string name="sender_you">You</string>
     <string name="create_group">Create group chat</string>
     <string name="communication">Communication</string>
+    <string name="create">Create</string>
+    <string name="group_chat_name_hint">Group chat name (Optional)</string>
+    <string name="select_member">Select member</string>
+    <string name="select_member_guide">Group chat minimum 3 and maximum 100 members</string>
+    <string name="contacts">Contacts</string>
 </resources>

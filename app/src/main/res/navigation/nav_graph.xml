@@ -111,4 +111,9 @@
         android:name="com.android.kotlin.familymessagingapp.screen.my_qr.MyQRFragment"
         android:label="fragment_my_qr"
         tools:layout="@layout/fragment_my_qr" />
+    <fragment
+        android:id="@+id/createGroupChatFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.create_group_chat.CreateGroupChatFragment"
+        android:label="fragment_create_group_chat"
+        tools:layout="@layout/fragment_create_group_chat" />
 </navigation>

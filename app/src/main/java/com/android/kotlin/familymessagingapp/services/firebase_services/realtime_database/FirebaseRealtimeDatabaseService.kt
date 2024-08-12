@@ -222,7 +222,7 @@ class FirebaseRealtimeDatabaseService(
                             launch {
                                 deferredList.awaitAll()
                                 chatroom = chatroom?.copy(membersData = membersData)
-                                notificationHelper.updateShortcuts(membersData)
+//                                notificationHelper.updateShortcuts(membersData)
                                 chatroom?.getChatRoomNameAndImage()
                                 trySend(chatroom).isSuccess
                             }
