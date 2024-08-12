@@ -1,24 +1,27 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.MobileConfig
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
+import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
-import com.android.kotlin.familymessagingapp.model.UserSettings
+import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.NotificationHelper
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -26,7 +29,6 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import io.socket.client.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -62,7 +64,7 @@ class FirebaseRealtimeDatabaseService(
     private val firebaseStorageService: FirebaseStorageService,
     private val fcmService: FCMService,
     private val socketClient: SocketClient,
-    private val notificationHelper: NotificationHelper
+    private val localDatabaseRepository: LocalDatabaseRepository
 ) {
 
     companion object {
@@ -74,18 +76,27 @@ class FirebaseRealtimeDatabaseService(
 
     private val registeredChatRoomsListeners = mutableMapOf<DatabaseReference, ValueEventListener>()
 
-    private val registerUserDataListener = mutableMapOf<DatabaseReference, ValueEventListener>()
+    private val registerPublicUserDataListener =
+        mutableMapOf<DatabaseReference, ValueEventListener>()
+
+    private val registerPrivateUserDataListener =
+        mutableMapOf<DatabaseReference, ValueEventListener>()
 
     private val registerChatroomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
 
-    private val privateUserDataRef =
-        Firebase.database.reference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA)
-
     private val databaseReference = Firebase.database.reference
 
-    private val userDataRef = databaseReference.child(Constant.REALTIME_DATABASE_USER_REF_NAME)
+    private val privateUserDataRef =
+        databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA)
 
-    private val chatRoomsRef = databaseReference.child(Constant.REALTIME_DATABASE_CHAT_ROOM_REF)
+    private val secureUserDataRef =
+        databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_SECURE_USER_DATA_REF_NAME)
+
+    private val publicUserDataRef =
+        databaseReference.child(Constant.REALTIME_DATABASE_PUBLIC_USER_DATA_REF_NAME)
+
+    private val chatRoomsRef =
+        databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_CHAT_ROOM_REF)
 
     private val userPrivateInformationRef = databaseReference
         .child(Constant.FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME)
@@ -96,19 +107,48 @@ class FirebaseRealtimeDatabaseService(
 
     private val userAvatarImageRef = firebaseStorageService.userAvatarRef
 
-    private val _currentUserData: MutableLiveData<UserData?> = MutableLiveData(UserData())
-    val currentUserData: LiveData<UserData?> = _currentUserData
+    private val _publicUserData: MutableLiveData<UserData?> = MutableLiveData(UserData())
+    val publicUserData: LiveData<UserData?> = _publicUserData
+
+    private val _privateUserData: MutableLiveData<PrivateUserData?> = MutableLiveData(null)
+    val privateUserData: LiveData<PrivateUserData?> = _privateUserData
 
     private val _chatRooms = MutableStateFlow<List<ChatRoom>?>(null)
     val chatRooms: StateFlow<List<ChatRoom>?> = _chatRooms
 
-    private val userdataListener = object : ValueEventListener {
+    private val privateUserdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            _currentUserData.value = snapshot.getValue(UserData::class.java)
+            _privateUserData.value = snapshot.getValue(PrivateUserData::class.java)
+            if (_privateUserData.value == null) {
+                clearChatRoomsListener()
+                _chatRooms.value = emptyList()
+                chatroomIDList.clear()
+            } else {
+                coroutineScope.launch(Dispatchers.IO) {
+                    localDatabaseRepository.appDataStore.saveBoolean(
+                        AppDataStore.ENABLED_AI,
+                        _privateUserData.value?.mobileConfig?.turnOnSuggestedAnswers ?: false
+                    )
+                    chatroomObserver(_privateUserData.value?.chatRooms)
+                }
+            }
         }
 
         override fun onCancelled(error: DatabaseError) {
-            _currentUserData.value = null
+            _privateUserData.value = null
+            clearChatRoomsListener()
+            _chatRooms.value = emptyList()
+            chatroomIDList.clear()
+        }
+    }
+
+    private val publicUserdataListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            _publicUserData.value = snapshot.getValue(UserData::class.java)
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            _publicUserData.value = null
         }
     }
 
@@ -128,9 +168,8 @@ class FirebaseRealtimeDatabaseService(
      *
      * @param userData latest userdata from current user
      */
-    suspend fun chatroomObserver(userData: UserData?) {
-        if (userData != null && !userData.uid.isNullOrEmpty()) {
-            val chatRooms = userData.chatrooms
+    suspend fun chatroomObserver(chatRooms: List<String>?) {
+        if (Firebase.auth.uid != null) {
             if (chatRooms.isNullOrEmpty()) {
                 clearChatRoomsListener()
                 _chatRooms.value = emptyList()
@@ -141,7 +180,7 @@ class FirebaseRealtimeDatabaseService(
                 chatroomIDList.clear()
                 chatroomIDList.addAll(chatRooms)
                 val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
-                    getChatRoomFlow(it, userData)
+                    getChatRoomFlow(it)
                 }
                 combine(chatroomFlows) {
                     // Sort chat room list by latestTime
@@ -158,6 +197,10 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    private fun updatePrivateUserData(privateUserData: PrivateUserData) {
+
+    }
+
     /**
      * Add UserData Listener
      *
@@ -166,10 +209,13 @@ class FirebaseRealtimeDatabaseService(
     fun addUserDataListener() {
         socketClient.connect()
         coroutineScope.launch {
-            if (registerUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
-                val currentUserRef = userDataRef.child(auth.uid!!)
-                currentUserRef.addValueEventListener(userdataListener)
-                registerUserDataListener[currentUserRef] = userdataListener
+            if (registerPublicUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
+                val currentUserRef = publicUserDataRef.child(auth.uid!!)
+                currentUserRef.addValueEventListener(publicUserdataListener)
+                registerPublicUserDataListener[currentUserRef] = publicUserdataListener
+                val privateUserDataRef = privateUserDataRef.child(auth.uid!!)
+                privateUserDataRef.addValueEventListener(privateUserdataListener)
+                registerPrivateUserDataListener[privateUserDataRef] = privateUserdataListener
                 sendFCMTokenToServer(auth.uid!!)
                 socketClient.addOnlineStatusSocketListener(auth.uid!!)
                 updateVerifiedStatus(true)
@@ -180,7 +226,7 @@ class FirebaseRealtimeDatabaseService(
     private suspend fun sendFCMTokenToServer(uid: String) {
         val fcmToken = fcmService.getFCMToken()
         if (!fcmToken.isNullOrEmpty()) {
-            privateUserDataRef.child(uid).child(Constant.FCM_TOKEN).setValue(fcmToken)
+            secureUserDataRef.child(uid).child(Constant.FCM_TOKEN).setValue(fcmToken)
         }
     }
 
@@ -196,8 +242,7 @@ class FirebaseRealtimeDatabaseService(
      * @param chatroomId chatroomID of userdata
      */
     private fun getChatRoomFlow(
-        chatroomId: String,
-        currentUserData: UserData
+        chatroomId: String
     ): Flow<ChatRoom?> = callbackFlow {
         val chatroomRef = chatRoomsRef.child(chatroomId)
         val listener = object : ValueEventListener {
@@ -207,7 +252,7 @@ class FirebaseRealtimeDatabaseService(
                     if (chatroom != null) {
                         val listOfOtherMembers = chatroom.members?.filter { it != auth.uid }
                         val membersData: MutableList<UserData> = mutableListOf()
-                        membersData.add(currentUserData)
+                        membersData.add(_publicUserData.value!!)
                         if (!listOfOtherMembers.isNullOrEmpty()) {
                             val deferredList = listOfOtherMembers.map { memberId ->
                                 // async và awaitAll: Để lấy dữ liệu của các memberId khác song song,
@@ -258,7 +303,7 @@ class FirebaseRealtimeDatabaseService(
      * giúp dễ dàng sử dụng trong coroutine.
      */
     private suspend fun getUserData(uid: String): UserData? = suspendCoroutine { continuation ->
-        userDataRef.child(uid).addListenerForSingleValueEvent(object : ValueEventListener {
+        publicUserDataRef.child(uid).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val userData = snapshot.getValue(UserData::class.java)
                 continuation.resume(userData)
@@ -275,10 +320,10 @@ class FirebaseRealtimeDatabaseService(
             try {
                 val uid = auth.uid
                 if (uid != null) {
-                    userDataRef
+                    privateUserDataRef
                         .child(uid)
-                        .child(UserData.SETTINGS)
-                        .child(UserSettings.ENABLED_AI)
+                        .child(Constant.FIREBASE_REALTIME_DATABASE_MOBILE_CONFIG_REF_NAME)
+                        .child(MobileConfig.TURN_ON_SUGGESTED_ANSWERS)
                         .setValue(enabled)
                         .await()
                     true
@@ -301,7 +346,7 @@ class FirebaseRealtimeDatabaseService(
                     )
                     updatedUserData = userData.copy(userAvatar = downloadUrl)
                 }
-                userDataRef.child(userData.uid!!).setValue(updatedUserData).await()
+                publicUserDataRef.child(userData.uid!!).setValue(updatedUserData).await()
                 true
             } catch (e: Exception) {
                 false
@@ -337,7 +382,7 @@ class FirebaseRealtimeDatabaseService(
     suspend fun deleteUserData(uid: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                userDataRef.child(uid).removeValue().await()
+                publicUserDataRef.child(uid).removeValue().await()
                 true
             } catch (e: Exception) {
                 false
@@ -378,17 +423,18 @@ class FirebaseRealtimeDatabaseService(
     suspend fun search(keyword: String, searchByUid: Boolean): List<UserData> {
         return try {
             if (searchByUid) {
-                val userData = userDataRef.child(keyword).get().await().getValue(UserData::class.java)
+                val userData =
+                    publicUserDataRef.child(keyword).get().await().getValue(UserData::class.java)
                 if (userData == null) emptyList() else listOf(userData)
             } else {
                 val query = when {
-                    StringUtils.isValidEmail(keyword) -> userDataRef.orderByChild(UserData.EMAIL)
+                    StringUtils.isValidEmail(keyword) -> publicUserDataRef.orderByChild(UserData.EMAIL)
                         .equalTo(keyword)
 
-                    StringUtils.isNumber(keyword) -> userDataRef.orderByChild(UserData.PHONE_NUMBER)
+                    StringUtils.isNumber(keyword) -> publicUserDataRef.orderByChild(UserData.PHONE_NUMBER)
                         .equalTo(keyword)
 
-                    else -> userDataRef.orderByChild(UserData.USERNAME).equalTo(keyword)
+                    else -> publicUserDataRef.orderByChild(UserData.USERNAME).equalTo(keyword)
                 }
 
                 val dataSnapshot = query.get().await()
@@ -409,7 +455,7 @@ class FirebaseRealtimeDatabaseService(
         coroutineScope.launch {
             try {
                 val uid = auth.uid ?: return@launch
-                privateUserDataRef.child(uid)
+                secureUserDataRef.child(uid)
                     .child(Constant.FIREBASE_REALTIME_DATABASE_VERIFIED_STATUS_REF_NAME)
                     .setValue(isVerified)
                     .await()
@@ -476,7 +522,7 @@ class FirebaseRealtimeDatabaseService(
                     // Update user data with chat room ID
                     val updateUserChatRooms: suspend (String) -> Unit = { memberId ->
                         val userChatRoomsRef =
-                            userDataRef.child(memberId).child(UserData.CHAT_ROOMS)
+                            privateUserDataRef.child(memberId).child(UserData.CHAT_ROOMS)
                         val userDataSnapshot = userChatRoomsRef.get().await()
                         val currentChatRooms = userDataSnapshot.getValue(object :
                             GenericTypeIndicator<List<String>>() {}) ?: listOf()
@@ -528,14 +574,20 @@ class FirebaseRealtimeDatabaseService(
     }
 
     private fun clearUserDataListener() {
-        registerUserDataListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
-        registerUserDataListener.clear()
+        registerPublicUserDataListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
+        registerPublicUserDataListener.clear()
+        registerPrivateUserDataListener.forEach { (ref, listener) ->
+            ref.removeEventListener(
+                listener
+            )
+        }
+        registerPrivateUserDataListener.clear()
     }
 
     fun removeAllListener() {
         clearUserDataListener()
         clearChatRoomsListener()
-        _currentUserData.value = UserData()
+        _publicUserData.value = UserData()
         _chatRooms.value = null
         chatroomIDList.clear()
     }
@@ -556,7 +608,7 @@ class FirebaseRealtimeDatabaseService(
         // This method is called when firebaseUser is not null, so uid will always be non-null
         val currentUid = auth.uid!!
         // Get the current user node reference
-        val userInfoSnapshot = userDataRef.child(currentUid).get().await()
+        val userInfoSnapshot = publicUserDataRef.child(currentUid).get().await()
         // If the node is null, then return
         if (userInfoSnapshot.exists()) {
             addUserDataListener()
@@ -574,7 +626,7 @@ class FirebaseRealtimeDatabaseService(
             updatedUserData = updatedUserData.copy(userAvatar = downloadUrl)
         }
         // Update the user data in the Realtime Database
-        userDataRef.child(currentUid).setValue(updatedUserData).await()
+        publicUserDataRef.child(currentUid).setValue(updatedUserData).await()
         addUserDataListener()
     }
 

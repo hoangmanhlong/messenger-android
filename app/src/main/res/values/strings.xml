@@ -2,7 +2,7 @@
     <string name="author">Hoang Manh Long</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="fcm_message" translatable="false">FCM Message</string>
-    <string name="app_name" translatable="false">ZChat</string>
+    <string name="app_name" translatable="false">Callback</string>
     <string name="bubble_host" translatable="false">hoang.manh.long.com</string>
 
 

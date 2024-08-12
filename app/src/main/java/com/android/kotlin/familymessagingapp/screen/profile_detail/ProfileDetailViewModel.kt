@@ -47,8 +47,7 @@ class ProfileDetailViewModel @Inject constructor(
             username = userData.username,
             email = userData.email,
             phoneNumber = userData.phoneNumber,
-            userAvatar = userData.userAvatar,
-            chatrooms = userData.chatrooms
+            userAvatar = userData.userAvatar
         )
     }
 

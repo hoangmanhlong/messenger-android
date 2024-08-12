@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,11 @@ class ProfileViewModel @Inject constructor(
 
     val currentUserLiveData = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
-        .currentUserData
+        .publicUserData
+
+    val privateUserData: LiveData<PrivateUserData?> = firebaseServiceRepository
+        .firebaseRealtimeDatabaseService
+        .privateUserData
 
     val isTheEnglishLanguageDisplayed = localDatabaseRepository
         .appDataStore
@@ -41,9 +46,9 @@ class ProfileViewModel @Inject constructor(
     val authenticationStatus: LiveData<Boolean?> = firebaseServiceRepository.authenticateState
 
     init {
-        currentUserLiveData.observeForever { userdata ->
+        privateUserData.observeForever { userdata ->
             userdata?.let {
-                currentEnabledAIStatus = userdata.settings?.enabledAI ?: false
+                currentEnabledAIStatus = userdata.mobileConfig?.turnOnSuggestedAnswers ?: false
             }
         }
     }

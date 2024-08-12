@@ -99,6 +99,7 @@ class CreateGroupChatFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity?.let { KeyBoardUtils.setupHideKeyboard(view, it) }
 
         viewModel.createGroupButtonVisibilityState.observe(this.viewLifecycleOwner) {
             binding.btCreateGroupChat.isEnabled = it

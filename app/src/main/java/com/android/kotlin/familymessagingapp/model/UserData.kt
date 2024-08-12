@@ -22,34 +22,29 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @IgnoreExtraProperties
 data class UserData(
-    @Expose @SerializedName(UID) val uid: String? = null,
-    @Expose @SerializedName(USERNAME) val username: String? = null,
-//    @Expose @SerializedName("username_lowercase") val usernameLowercase: String? = null,
-    @Expose @SerializedName(EMAIL) val email: String? = null,
-    @Expose @SerializedName(PHONE_NUMBER) val phoneNumber: String? = null,
-    @Expose @SerializedName("user_avatar") val userAvatar: String? = null,
-    @Expose @SerializedName(CHAT_ROOMS) val chatrooms: List<String>? = null,
-    val settings: UserSettings? = null
+    val uid: String? = null,
+    val username: String? = null,
+    val email: String? = null,
+    val phoneNumber: String? = null,
+    val userAvatar: String? = null,
 ) : Parcelable {
     companion object {
         const val UID = "uid"
         const val USERNAME = "username"
-        const val USERNAME_LOWERCASE = "usernameLowercase"
         const val PHONE_NUMBER = "phoneNumber"
         const val EMAIL = "email"
         const val CHAT_ROOMS = "chatrooms"
         const val SETTINGS = "settings"
     }
 
+    @Exclude
     fun verified(): Boolean = !this.email.isNullOrEmpty()
             && !this.phoneNumber.isNullOrEmpty()
             && !this.username.isNullOrEmpty()
             && !this.uid.isNullOrEmpty()
-            && !this.chatrooms.isNullOrEmpty()
 
-    @IgnoredOnParcel
     @Exclude
-    val shortcutId = "shortcut_$uid"
+    fun getShortcutId(): String = "shortcut_$uid"
 }
 
 fun FirebaseUser.toUserData(): UserData = UserData(

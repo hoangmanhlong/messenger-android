@@ -12,5 +12,5 @@ class MyQRViewModel @Inject constructor(
 
     val currentUserData = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
-        .currentUserData
+        .publicUserData
 }

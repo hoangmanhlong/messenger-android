@@ -81,60 +81,60 @@ class NotificationHelper(private val context: Context) {
                 }
             )
         }
-        updateShortcuts(null)
+//        updateShortcuts(null)
     }
 
-    @WorkerThread
-    suspend fun updateShortcut(userData: UserData): ShortcutInfoCompat? {
-        if (userData.username == null || userData.uid == null) return null
-        val bitmap =
-            MediaUtils.convertImageUrlToBitmap(context, userData.userAvatar) ?: return null
-        val icon = IconCompat.createWithBitmap(bitmap)
-        // Create a dynamic shortcut for each of the contacts.
-        // The same shortcut ID will be used when we show a bubble notification.
-        return ShortcutInfoCompat.Builder(context, userData.shortcutId)
-            .setLocusId(LocusIdCompat(userData.shortcutId))
-            .setActivity(ComponentName(context, MainActivity::class.java))
-            .setShortLabel(userData.username)
-            .setIcon(icon)
-            .setLongLived(true)
-            .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
-            .setIntent(
-                Intent(context, MainActivity::class.java)
-                    .setAction(Intent.ACTION_VIEW)
-                    .setData(
-                        Uri.parse(
-                            context.getString(R.string.bubble_host) + "/chatroom/${userData.uid}"
-                        )
-                    )
-            )
-            .setPerson(
-                Person.Builder()
-                    .setName(userData.username)
-                    .setIcon(icon)
-                    .build()
-            )
-            .build()
-    }
-
-    @WorkerThread
-    suspend fun updateShortcuts(importantContact: List<UserData>?) {
-        var shortcuts = importantContact?.map { userdata -> updateShortcut(userdata) }
-        // Move the important contact to the front of the shortcut list.
-        if (importantContact != null) {
-            shortcuts =
-                shortcuts?.sortedByDescending { it?.id == importantContact.firstOrNull()?.shortcutId }
-        }
-        // Truncate the list if we can't show all of our contacts.
-        val maxCount = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)
-        if (shortcuts != null && shortcuts.size > maxCount) {
-            shortcuts = shortcuts.take(maxCount)
-        }
-        shortcuts = shortcuts?.filterNotNull()
-        for (shortcut in shortcuts ?: emptyList()) {
-            ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
-        }
-    }
+//    @WorkerThread
+//    suspend fun updateShortcut(userData: UserData): ShortcutInfoCompat? {
+//        if (userData.username == null || userData.uid == null) return null
+//        val bitmap =
+//            MediaUtils.convertImageUrlToBitmap(context, userData.userAvatar) ?: return null
+//        val icon = IconCompat.createWithBitmap(bitmap)
+//        // Create a dynamic shortcut for each of the contacts.
+//        // The same shortcut ID will be used when we show a bubble notification.
+//        return ShortcutInfoCompat.Builder(context, userData.shortcutId)
+//            .setLocusId(LocusIdCompat(userData.shortcutId))
+//            .setActivity(ComponentName(context, MainActivity::class.java))
+//            .setShortLabel(userData.username)
+//            .setIcon(icon)
+//            .setLongLived(true)
+//            .setCategories(setOf("com.example.android.bubbles.category.TEXT_SHARE_TARGET"))
+//            .setIntent(
+//                Intent(context, MainActivity::class.java)
+//                    .setAction(Intent.ACTION_VIEW)
+//                    .setData(
+//                        Uri.parse(
+//                            context.getString(R.string.bubble_host) + "/chatroom/${userData.uid}"
+//                        )
+//                    )
+//            )
+//            .setPerson(
+//                Person.Builder()
+//                    .setName(userData.username)
+//                    .setIcon(icon)
+//                    .build()
+//            )
+//            .build()
+//    }
+//
+//    @WorkerThread
+//    suspend fun updateShortcuts(importantContact: List<UserData>?) {
+//        var shortcuts = importantContact?.map { userdata -> updateShortcut(userdata) }
+//        // Move the important contact to the front of the shortcut list.
+//        if (importantContact != null) {
+//            shortcuts =
+//                shortcuts?.sortedByDescending { it?.id == importantContact.firstOrNull()?.shortcutId }
+//        }
+//        // Truncate the list if we can't show all of our contacts.
+//        val maxCount = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)
+//        if (shortcuts != null && shortcuts.size > maxCount) {
+//            shortcuts = shortcuts.take(maxCount)
+//        }
+//        shortcuts = shortcuts?.filterNotNull()
+//        for (shortcut in shortcuts ?: emptyList()) {
+//            ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
+//        }
+//    }
 
     private fun flagUpdateCurrent(mutable: Boolean): Int {
         return if (mutable) {

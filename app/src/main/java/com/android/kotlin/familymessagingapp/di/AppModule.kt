@@ -123,9 +123,9 @@ object AppModule {
         firebaseStorageService: FirebaseStorageService,
         fcmService: FCMService,
         socketClient: SocketClient,
-        notificationHelper: NotificationHelper
+        localDatabaseRepository: LocalDatabaseRepository
     ): FirebaseRealtimeDatabaseService =
-        FirebaseRealtimeDatabaseService(auth, firebaseStorageService, fcmService, socketClient, notificationHelper)
+        FirebaseRealtimeDatabaseService(auth, firebaseStorageService, fcmService, socketClient, localDatabaseRepository)
 
     @Singleton
     @Provides

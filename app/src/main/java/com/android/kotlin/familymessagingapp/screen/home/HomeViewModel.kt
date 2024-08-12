@@ -35,7 +35,7 @@ class HomeViewModel @Inject constructor(
 
     val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
-        .currentUserData
+        .publicUserData
 
     val chatRoomsLiveData: LiveData<List<ChatRoom>?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService

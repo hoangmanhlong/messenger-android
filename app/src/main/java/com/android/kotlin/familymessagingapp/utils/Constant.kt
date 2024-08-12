@@ -1,7 +1,5 @@
 package com.android.kotlin.familymessagingapp.utils
 
-import android.net.Uri
-import androidx.core.net.toUri
 import com.android.kotlin.familymessagingapp.BuildConfig
 
 object Constant {
@@ -32,23 +30,29 @@ object Constant {
 
     const val IS_THE_FIRST_LAUNCH = "IS_THE_FIRST_LAUNCH"
 
-    const val REALTIME_DATABASE_USER_REF_NAME = "users_information_data"
-
-    const val FIREBASE_STORAGE_USER_DATA_REF_NAME = "user_data"
+    const val REALTIME_DATABASE_PUBLIC_USER_DATA_REF_NAME = "public_user_data"
 
     const val FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA = "private_user_data"
 
+    const val FIREBASE_REALTIME_DATABASE_SECURE_USER_DATA_REF_NAME = "secure_user_data"
+
+    const val FIREBASE_REALTIME_DATABASE_MOBILE_CONFIG_REF_NAME = "mobileConfig"
+
+
+
+    const val FIREBASE_STORAGE_USER_DATA_REF_NAME = "user_data"
+
     const val FCM_TOKEN = "fcmToken"
 
-    const val FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME = "${FIREBASE_STORAGE_USER_DATA_REF_NAME}/user_avatar_images"
+    const val FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME =
+        "${FIREBASE_STORAGE_USER_DATA_REF_NAME}/user_avatar_images"
 
     const val FIREBASE_STORAGE_CHAT_ROOM_REF_NAME = "chat_room"
 
-    const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME = "$FIREBASE_STORAGE_CHAT_ROOM_REF_NAME/message_images"
+    const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME =
+        "$FIREBASE_STORAGE_CHAT_ROOM_REF_NAME/message_images"
 
-    const val REALTIME_DATABASE_CHAT_ROOM_REF = "chatrooms"
-
-    const val REALTIME_DATABASE_MESSAGES_REF = "$REALTIME_DATABASE_USER_REF_NAME/messages"
+    const val FIREBASE_REALTIME_DATABASE_CHAT_ROOM_REF = "chatrooms"
 
     const val CHAT_ROOM_KEY = "CHAT_ROOM_KEY"
 
@@ -57,11 +61,13 @@ object Constant {
     // Notification Channel constants
 
     // Name of Notification Channel for verbose notifications of background work
-    @JvmField val VERBOSE_NOTIFICATION_CHANNEL_NAME: CharSequence =
+    @JvmField
+    val VERBOSE_NOTIFICATION_CHANNEL_NAME: CharSequence =
         "Verbose WorkManager Notifications"
     const val VERBOSE_NOTIFICATION_CHANNEL_DESCRIPTION =
         "Shows notifications whenever work starts"
-    @JvmField val NOTIFICATION_TITLE: CharSequence = "WorkRequest Starting"
+    @JvmField
+    val NOTIFICATION_TITLE: CharSequence = "WorkRequest Starting"
     const val CHANNEL_ID = "VERBOSE_NOTIFICATION"
     const val NOTIFICATION_ID = 1
 
@@ -88,6 +94,8 @@ object Constant {
     const val FIREBASE_REALTIME_DATABASE_VERIFIED_STATUS_REF_NAME = "verified"
 
     const val USER_VERIFIED_STATUS_SOCKET_EVENT = "USER_VERIFIED_STATUS_SOCKET_EVENT"
+
+    const val NEW_CHATROOM_SOCKET_EVENT = "NEW_CHATROOM_SOCKET_EVENT"
 
     const val NEW_MESSAGE_SOCKET_EVENT = "NEW_MESSAGE_SOCKET_EVENT"
 

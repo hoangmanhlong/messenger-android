@@ -103,6 +103,13 @@ class ProfileFragment : Fragment() {
             it?.let { binding.userData = it }
         }
 
+        _viewModel.privateUserData.observe(this.viewLifecycleOwner) {
+            it?.let {
+                binding.turnOnSuggestedAnswers = it.mobileConfig?.turnOnSuggestedAnswers
+            }
+
+        }
+
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) {
             it?.let {
                 if (!it) {

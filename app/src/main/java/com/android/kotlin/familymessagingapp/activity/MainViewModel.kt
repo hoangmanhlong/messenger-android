@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
@@ -42,7 +43,11 @@ class MainViewModel @Inject constructor(
 
     val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
-        .currentUserData
+        .publicUserData
+
+    private val privateUserData: LiveData<PrivateUserData?> = firebaseServiceRepository
+        .firebaseRealtimeDatabaseService
+        .privateUserData
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -84,17 +89,17 @@ class MainViewModel @Inject constructor(
 
     init {
         executeTheJobOnFirstRun()
-        currentUserLiveData.observeForever {
-            viewModelScope.launch(Dispatchers.IO) {
-                if (it != null && !it.uid.isNullOrEmpty()) {
-                    localDatabaseRepository.appDataStore.saveBoolean(
-                        AppDataStore.ENABLED_AI,
-                        it.settings?.enabledAI ?: false
-                    )
-                }
-                firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it)
-            }
-        }
+//        privateUserData.observeForever {
+//            viewModelScope.launch(Dispatchers.IO) {
+//                if (it != null) {
+//                    localDatabaseRepository.appDataStore.saveBoolean(
+//                        AppDataStore.ENABLED_AI,
+//                        it.mobileConfig?.turnOnSuggestedAnswers ?: false
+//                    )
+//                    firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it.chatRooms)
+//                }
+//            }
+//        }
     }
 
     override fun onCleared() {

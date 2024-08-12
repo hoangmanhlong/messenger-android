@@ -11,6 +11,10 @@
             type="com.android.kotlin.familymessagingapp.model.UserData" />
 
         <variable
+            name="turnOnSuggestedAnswers"
+            type="Boolean" />
+
+        <variable
             name="isTheEnglishLanguageDisplayed"
             type="Boolean" />
 
@@ -213,7 +217,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="16dp"
-                            android:checked="@{userData.settings.enabledAI || false}"
+                            android:checked="@{turnOnSuggestedAnswers || false}"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
