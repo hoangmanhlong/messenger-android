@@ -3,6 +3,7 @@ package com.android.kotlin.familymessagingapp.data.remote.socket
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
 import com.android.kotlin.familymessagingapp.utils.Constant
 import io.socket.client.IO
@@ -26,8 +27,9 @@ sealed class BackendEventObject {
         val chatRoomId: String,
         val chatRoomName: String?,
         val chatRoomImage: String?,
-        val members: List<String>,
-        val newMessage: Message,
+        val members: List<String>? = null,
+        val newMessage: Message? = null,
+        val chatRoomType: String? = null
     ) : BackendEventObject()
 
     @Serializable
@@ -52,6 +54,7 @@ class SocketClient {
         const val USER_ONLINE_STATUS_SOCKET_EVENT = Constant.USER_ONLINE_STATUS_SOCKET_EVENT
         const val USER_VERIFIED_STATUS_SOCKET_EVENT = Constant.USER_VERIFIED_STATUS_SOCKET_EVENT
         const val NEW_MESSAGE_SOCKET_EVENT = Constant.NEW_MESSAGE_SOCKET_EVENT
+        const val NEW_CHATROOM_SOCKET_EVENT = Constant.NEW_CHATROOM_SOCKET_EVENT
     }
 
     private var socket: Socket? = null
@@ -84,9 +87,26 @@ class SocketClient {
             chatRoomName = chatRoom.chatRoomImage,
             chatRoomImage = chatRoom.chatRoomImage,
             members = chatRoom.members!!,
-            newMessage = message.toMessageSocketEvent()
+            newMessage = message.toMessageSocketEvent(),
+            chatRoomType = chatRoom.chatRoomType
         )
         emitStatus(NEW_MESSAGE_SOCKET_EVENT, chatroom)
+    }
+
+    fun emitNewChatRoom(chatRoom: ChatRoom): Result<Boolean> {
+        return if (socket == null) {
+            Result.failure(ServerErrorException())
+        } else {
+            val chatroomDto: BackendEventObject.ChatRoom = BackendEventObject.ChatRoom(
+                chatRoomId = chatRoom.chatRoomId!!,
+                chatRoomName = chatRoom.chatroomName,
+                chatRoomImage = chatRoom.chatRoomImage,
+                members = chatRoom.members!!,
+                newMessage = null
+            )
+            emitStatus(NEW_CHATROOM_SOCKET_EVENT, chatroomDto)
+            Result.success(true)
+        }
     }
 
     /**

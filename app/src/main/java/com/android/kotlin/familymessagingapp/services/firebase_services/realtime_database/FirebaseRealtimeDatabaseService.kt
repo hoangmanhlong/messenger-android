@@ -547,6 +547,9 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    /**
+     * Delete all registered chatroom listeners
+     */
     private fun clearChatRoomsListener() {
         registeredChatRoomsListeners.forEach { (ref, listener) -> ref.removeEventListener(listener) }
         registeredChatRoomsListeners.clear()
@@ -564,6 +567,9 @@ class FirebaseRealtimeDatabaseService(
         registerPrivateUserDataListener.clear()
     }
 
+    /**
+     * Delete everything(Listener, Data, List) of current user
+     */
     fun removeAllListener() {
         clearPublicUserDataListener()
         clearPrivateUserDataListener()
