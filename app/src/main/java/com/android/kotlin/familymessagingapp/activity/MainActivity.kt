@@ -140,6 +140,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         navigationView.setNavigationItemSelectedListener { menuItem ->
+            if (navController.currentDestination?.id != Screen.HomeScreen.screenId) {
+                closeDrawer()
+                return@setNavigationItemSelectedListener false
+            }
+
             when (menuItem.itemId) {
                 R.id.createGroupChatMenu -> {
                     navController.navigate(Screen.CreateGroupChat.screenId)

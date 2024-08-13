@@ -45,10 +45,6 @@ class MainViewModel @Inject constructor(
         .firebaseRealtimeDatabaseService
         .publicUserData
 
-    private val privateUserData: LiveData<PrivateUserData?> = firebaseServiceRepository
-        .firebaseRealtimeDatabaseService
-        .privateUserData
-
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 

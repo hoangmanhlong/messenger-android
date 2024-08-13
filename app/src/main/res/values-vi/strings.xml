@@ -23,7 +23,7 @@
 
     <string name="setting">Cài đặt</string>
     <string name="logout">Đăng xuất</string>
-    <string name="feedback">Báo lỗi</string>
+    <string name="feedback">Gửi ý kiến phản hồi</string>
     <string name="logout_message">Bạn có chắc muốn đăng xuất?</string>
     <string name="ok">OK</string>
     <string name="cancel">Hủy bỏ</string>

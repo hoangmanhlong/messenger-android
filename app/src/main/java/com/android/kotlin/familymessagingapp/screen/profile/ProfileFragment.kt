@@ -104,10 +104,7 @@ class ProfileFragment : Fragment() {
         }
 
         _viewModel.privateUserData.observe(this.viewLifecycleOwner) {
-            it?.let {
-                binding.turnOnSuggestedAnswers = it.mobileConfig?.turnOnSuggestedAnswers
-            }
-
+            binding.turnOnSuggestedAnswers = it?.mobileConfig?.turnOnSuggestedAnswers ?: false
         }
 
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) {

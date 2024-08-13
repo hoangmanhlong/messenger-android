@@ -38,10 +38,9 @@ class FirebaseServiceRepository(
     val authenticateState: LiveData<Boolean?> = _authenticateState
 
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-        val authState = auth.currentUser != null
-        _authenticateState.value = authState
+        _authenticateState.value = auth.currentUser != null
         if (!gotAuthenticationStateWhenStartingTheApp)  {
-            if (authState) firebaseRealtimeDatabaseService.addUserDataListener()
+            if (_authenticateState.value == true) firebaseRealtimeDatabaseService.addUserDataListener()
             gotAuthenticationStateWhenStartingTheApp = true
         }
     }

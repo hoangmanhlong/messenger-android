@@ -273,7 +273,7 @@ class HomeFragment : Fragment() {
                     }
 
                     viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
-                        if (chatRoomsList != null && viewModel.currentUserLiveData.value?.uid != null) {
+                        if (chatRoomsList != null) {
                             viewModel.setIsLoadingStatus(false)
                             binding.isConversationEmpty = chatRoomsList.isEmpty()
                             chatroomAdapter?.submitList(chatRoomsList)
@@ -347,25 +347,6 @@ class HomeFragment : Fragment() {
                 viewModel.searchKeyword(keyword, isQRString)
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        EventBus.getDefault().unregister(this)
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-    fun onQRScanResultEvenBus(qrScanResultEvenBus: QRScanResultEvenBus) {
-        if (searchView?.isShowing == false) searchView?.show()
-        searchViewEditText?.text =
-            Editable.Factory.getInstance().newEditable(qrScanResultEvenBus.qrString)
-        onActionSearch(qrScanResultEvenBus.qrString, true)
-        EventBus.getDefault().removeStickyEvent(qrScanResultEvenBus)
     }
 
     override fun onDestroyView() {

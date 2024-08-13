@@ -34,7 +34,6 @@ data class UserData(
         const val PHONE_NUMBER = "phoneNumber"
         const val EMAIL = "email"
         const val CHAT_ROOMS = "chatrooms"
-        const val SETTINGS = "settings"
     }
 
     @Exclude

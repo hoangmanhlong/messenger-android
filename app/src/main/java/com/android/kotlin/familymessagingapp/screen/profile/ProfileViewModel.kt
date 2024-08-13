@@ -47,9 +47,7 @@ class ProfileViewModel @Inject constructor(
 
     init {
         privateUserData.observeForever { userdata ->
-            userdata?.let {
-                currentEnabledAIStatus = userdata.mobileConfig?.turnOnSuggestedAnswers ?: false
-            }
+            currentEnabledAIStatus = userdata?.mobileConfig?.turnOnSuggestedAnswers ?: false
         }
     }
 

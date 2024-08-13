@@ -127,4 +127,5 @@
     <string name="select_member">Select member</string>
     <string name="select_member_guide">Group chat minimum 3 and maximum 100 members</string>
     <string name="contacts">Contacts</string>
+    <string name="menu" translatable="false">Menu</string>
 </resources>

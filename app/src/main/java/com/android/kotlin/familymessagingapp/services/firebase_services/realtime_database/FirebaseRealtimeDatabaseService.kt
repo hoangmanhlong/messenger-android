@@ -18,10 +18,8 @@ import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.android.kotlin.familymessagingapp.utils.NotificationHelper
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -87,7 +85,7 @@ class FirebaseRealtimeDatabaseService(
     private val databaseReference = Firebase.database.reference
 
     private val privateUserDataRef =
-        databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA)
+        databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_PRIVATE_USER_DATA_REF_NAME)
 
     private val secureUserDataRef =
         databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_SECURE_USER_DATA_REF_NAME)
@@ -97,13 +95,6 @@ class FirebaseRealtimeDatabaseService(
 
     private val chatRoomsRef =
         databaseReference.child(Constant.FIREBASE_REALTIME_DATABASE_CHAT_ROOM_REF)
-
-    private val userPrivateInformationRef = databaseReference
-        .child(Constant.FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME)
-
-    private val searchHistoryRef = databaseReference
-        .child(Constant.FIREBASE_REALTIME_DATABASE_USER_PRIVATE_INFO_REF_NAME)
-        .child(Constant.FIREBASE_REALTIME_DATABASE_SEARCH_HISTORY_REF_NAME)
 
     private val userAvatarImageRef = firebaseStorageService.userAvatarRef
 
@@ -118,27 +109,11 @@ class FirebaseRealtimeDatabaseService(
 
     private val privateUserdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            _privateUserData.value = snapshot.getValue(PrivateUserData::class.java)
-            if (_privateUserData.value == null) {
-                clearChatRoomsListener()
-                _chatRooms.value = emptyList()
-                chatroomIDList.clear()
-            } else {
-                coroutineScope.launch(Dispatchers.IO) {
-                    localDatabaseRepository.appDataStore.saveBoolean(
-                        AppDataStore.ENABLED_AI,
-                        _privateUserData.value?.mobileConfig?.turnOnSuggestedAnswers ?: false
-                    )
-                    chatroomObserver(_privateUserData.value?.chatRooms)
-                }
-            }
+            updatePrivateUserData(snapshot.getValue(PrivateUserData::class.java))
         }
 
         override fun onCancelled(error: DatabaseError) {
-            _privateUserData.value = null
-            clearChatRoomsListener()
-            _chatRooms.value = emptyList()
-            chatroomIDList.clear()
+            updatePrivateUserData(null)
         }
     }
 
@@ -168,37 +143,44 @@ class FirebaseRealtimeDatabaseService(
      *
      * @param userData latest userdata from current user
      */
-    suspend fun chatroomObserver(chatRooms: List<String>?) {
-        if (Firebase.auth.uid != null) {
-            if (chatRooms.isNullOrEmpty()) {
-                clearChatRoomsListener()
-                _chatRooms.value = emptyList()
-                chatroomIDList.clear()
-            } else {
-                if (StringUtils.areListsEqual(chatRooms, chatroomIDList)) return
-                clearChatRoomsListener()
-                chatroomIDList.clear()
-                chatroomIDList.addAll(chatRooms)
-                val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
-                    getChatRoomFlow(it)
-                }
-                combine(chatroomFlows) {
-                    // Sort chat room list by latestTime
-                    it.filterNotNull().toList()
-                        .sortedByDescending { chatroom -> chatroom.latestTime }
-                }.collect {
-                    _chatRooms.value = it
-                }
-            }
+    private suspend fun chatroomObserver(chatRooms: List<String>?) {
+        if (chatRooms.isNullOrEmpty()) {
+            updateChatRoomListNullOrEmptyStatus()
         } else {
+            if (StringUtils.areListsEqual(chatRooms, chatroomIDList)) return
             clearChatRoomsListener()
-            _chatRooms.value = null
             chatroomIDList.clear()
+            chatroomIDList.addAll(chatRooms)
+            val chatroomFlows: List<Flow<ChatRoom?>> = chatRooms.map {
+                getChatRoomFlow(it)
+            }
+            combine(chatroomFlows) {
+                // Sort chat room list by latestTime
+                it.filterNotNull().toList()
+                    .sortedByDescending { chatroom -> chatroom.latestTime }
+            }.collect {
+                _chatRooms.value = it
+            }
         }
     }
 
-    private fun updatePrivateUserData(privateUserData: PrivateUserData) {
+    private fun updateChatRoomListNullOrEmptyStatus() {
+        clearChatRoomsListener()
+        _chatRooms.value = emptyList()
+        chatroomIDList.clear()
+    }
 
+    private fun updatePrivateUserData(privateUserData: PrivateUserData?) {
+        _privateUserData.value = privateUserData
+        coroutineScope.launch {
+            localDatabaseRepository.appDataStore.saveBoolean(
+                AppDataStore.ENABLED_AI,
+                privateUserData?.mobileConfig?.turnOnSuggestedAnswers ?: false
+            )
+
+            if (privateUserData == null) updateChatRoomListNullOrEmptyStatus()
+            else chatroomObserver(privateUserData.chatRooms)
+        }
     }
 
     /**
@@ -209,13 +191,16 @@ class FirebaseRealtimeDatabaseService(
     fun addUserDataListener() {
         socketClient.connect()
         coroutineScope.launch {
-            if (registerPublicUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
+            if (registerPublicUserDataListener.keys.isEmpty() && registerPrivateUserDataListener.keys.isEmpty() && !auth.uid.isNullOrEmpty()) {
+
                 val currentUserRef = publicUserDataRef.child(auth.uid!!)
                 currentUserRef.addValueEventListener(publicUserdataListener)
                 registerPublicUserDataListener[currentUserRef] = publicUserdataListener
+
                 val privateUserDataRef = privateUserDataRef.child(auth.uid!!)
                 privateUserDataRef.addValueEventListener(privateUserdataListener)
                 registerPrivateUserDataListener[privateUserDataRef] = privateUserdataListener
+
                 sendFCMTokenToServer(auth.uid!!)
                 socketClient.addOnlineStatusSocketListener(auth.uid!!)
                 updateVerifiedStatus(true)
@@ -227,12 +212,6 @@ class FirebaseRealtimeDatabaseService(
         val fcmToken = fcmService.getFCMToken()
         if (!fcmToken.isNullOrEmpty()) {
             secureUserDataRef.child(uid).child(Constant.FCM_TOKEN).setValue(fcmToken)
-        }
-    }
-
-    private suspend fun subscribeToTopicForChatRoomList(chatroomIDList: List<String>) {
-        chatroomIDList.forEach { chatroomId ->
-            fcmService.subscribeToTopic(chatroomId)
         }
     }
 
@@ -322,7 +301,7 @@ class FirebaseRealtimeDatabaseService(
                 if (uid != null) {
                     privateUserDataRef
                         .child(uid)
-                        .child(Constant.FIREBASE_REALTIME_DATABASE_MOBILE_CONFIG_REF_NAME)
+                        .child(PrivateUserData.MOBILE_CONFIG)
                         .child(MobileConfig.TURN_ON_SUGGESTED_ANSWERS)
                         .setValue(enabled)
                         .await()
@@ -573,21 +552,24 @@ class FirebaseRealtimeDatabaseService(
         registeredChatRoomsListeners.clear()
     }
 
-    private fun clearUserDataListener() {
+    private fun clearPublicUserDataListener() {
         registerPublicUserDataListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
         registerPublicUserDataListener.clear()
+    }
+
+    private fun clearPrivateUserDataListener() {
         registerPrivateUserDataListener.forEach { (ref, listener) ->
-            ref.removeEventListener(
-                listener
-            )
+            ref.removeEventListener(listener)
         }
         registerPrivateUserDataListener.clear()
     }
 
     fun removeAllListener() {
-        clearUserDataListener()
+        clearPublicUserDataListener()
+        clearPrivateUserDataListener()
         clearChatRoomsListener()
         _publicUserData.value = UserData()
+        _privateUserData.value = null
         _chatRooms.value = null
         chatroomIDList.clear()
     }
