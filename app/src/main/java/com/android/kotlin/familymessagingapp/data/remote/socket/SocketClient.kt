@@ -5,6 +5,7 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
+import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.utils.Constant
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -14,13 +15,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
-sealed class BackendEventObject {
+sealed class BackendEvent {
 
     @Serializable
-    data class OnlineStatus(val uid: String) : BackendEventObject()
+    data class OnlineStatus(val uid: String) : BackendEvent()
 
     @Serializable
-    data class Verified(val uid: String, val verified: Boolean) : BackendEventObject()
+    data class Verified(val uid: String, val verified: Boolean) : BackendEvent()
 
     @Serializable
     data class ChatRoom(
@@ -30,7 +31,7 @@ sealed class BackendEventObject {
         val members: List<String>? = null,
         val newMessage: Message? = null,
         val chatRoomType: String? = null
-    ) : BackendEventObject()
+    ) : BackendEvent()
 
     @Serializable
     data class Message(
@@ -41,13 +42,24 @@ sealed class BackendEventObject {
         val video: String? = null,
         val audio: String? = null,
         val timestamp: String? = null
-    ) : BackendEventObject()
+    ) : BackendEvent()
 
     @Serializable
-    data class NewMessageNotification(val chatRoom: ChatRoom) : BackendEventObject()
+    data class NewMessageNotification(val chatRoom: ChatRoom) : BackendEvent()
+
+    @Serializable
+    data class CreateNewChatRoomResponse(
+        val chatRoomId: String? = null,
+        val serverCode: String? = null
+    ) : BackendEvent()
+
+    @Serializable
+    data class Response(val status: Boolean?): BackendEvent()
 }
 
-class SocketClient {
+class SocketClient(
+    private val realtimeDatabaseService: FirebaseRealtimeDatabaseService
+) {
 
     companion object {
         val TAG: String = SocketClient::class.java.simpleName
@@ -60,6 +72,12 @@ class SocketClient {
     private var socket: Socket? = null
 
     private val pushNewMessageSocketListener = Emitter.Listener {}
+
+    private val createNewChatRoomSocketEventListener = Emitter.Listener { args ->
+        val data = args.getOrNull(0) as? String ?: return@Listener
+        val createNewChatRoomResponse = Json.decodeFromString<BackendEvent.CreateNewChatRoomResponse>(data)
+        realtimeDatabaseService.createChatRoomStatus(createNewChatRoomResponse)
+    }
 
     init {
         socket = getSocket()
@@ -78,11 +96,11 @@ class SocketClient {
     fun disconnect() = socket?.disconnect()
 
     fun addOnlineStatusSocketListener(uid: String) {
-        emitStatus(USER_ONLINE_STATUS_SOCKET_EVENT, BackendEventObject.OnlineStatus(uid))
+        emitStatus(USER_ONLINE_STATUS_SOCKET_EVENT, BackendEvent.OnlineStatus(uid))
     }
 
     fun emitNewMessageToOtherUser(chatRoom: ChatRoom, message: Message) {
-        val chatroom: BackendEventObject.ChatRoom = BackendEventObject.ChatRoom(
+        val chatroom: BackendEvent.ChatRoom = BackendEvent.ChatRoom(
             chatRoomId = chatRoom.chatRoomId!!,
             chatRoomName = chatRoom.chatRoomImage,
             chatRoomImage = chatRoom.chatRoomImage,
@@ -97,7 +115,7 @@ class SocketClient {
         return if (socket == null) {
             Result.failure(ServerErrorException())
         } else {
-            val chatroomDto: BackendEventObject.ChatRoom = BackendEventObject.ChatRoom(
+            val chatroomDto: BackendEvent.ChatRoom = BackendEvent.ChatRoom(
                 chatRoomId = chatRoom.chatRoomId!!,
                 chatRoomName = chatRoom.chatroomName,
                 chatRoomImage = chatRoom.chatRoomImage,
@@ -116,7 +134,7 @@ class SocketClient {
      * reified là từ khóa đặc biệt trong Kotlin, cho phép bạn sử dụng thông tin về kiểu dữ liệu T
      * tại thời điểm chạy. Điều này chỉ có thể được sử dụng trong các hàm inline.
      */
-    private inline fun <reified T : BackendEventObject> emitStatus(event: String, data: T) {
+    private inline fun <reified T : BackendEvent> emitStatus(event: String, data: T) {
         socket?.emit(event, Json.encodeToString(data))
     }
 }

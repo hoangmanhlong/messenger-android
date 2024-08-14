@@ -5,6 +5,8 @@ import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
+import com.android.kotlin.familymessagingapp.data.remote.ServerCode
+import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEvent
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
@@ -515,23 +517,42 @@ class FirebaseRealtimeDatabaseService(
 
                     members.forEach { member -> updateUserChatRooms(member) }
                 } else {
-                    val chatRoomUpdates = mapOf(
-                        "${ChatRoom.MESSAGES}/${updatedMessage.messageId}" to updatedMessage,
-                        ChatRoom.LAST_MESSAGE to updatedMessage,
-                        ChatRoom.LATEST_TIME to currentTimestamp
-                    )
 
-                    chatRoomsRef.child(chatRoom.chatRoomId)
-                        .updateChildren(chatRoomUpdates)
-                        .await()
-                    socketClient.emitNewMessageToOtherUser(
-                        chatRoom,
-                        updatedMessage
-                    )
                 }
                 Result.Success(newChatRoom)
             } catch (e: Exception) {
                 Result.Error(e)
+            }
+        }
+    }
+
+    private suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message) {
+        val chatRoomUpdates = mapOf(
+            "${ChatRoom.MESSAGES}/${message.messageId}" to message,
+            ChatRoom.LAST_MESSAGE to message,
+            ChatRoom.LATEST_TIME to StringUtils.getCurrentTime().toString()
+        )
+
+        chatRoomsRef.child(chatRoom.chatRoomId)
+            .updateChildren(chatRoomUpdates)
+            .await()
+        socketClient.emitNewMessageToOtherUser(chatRoom, message)
+    }
+
+    suspend fun createNewDoubleChatRoom(members: List<String>, chatRoomType: ChatRoomType, message: Message?) {
+
+    }
+
+    fun createChatRoomStatus(createNewChatRoomResponse: BackendEvent.CreateNewChatRoomResponse) {
+        val serverCode = createNewChatRoomResponse.serverCode
+        if (serverCode.isNullOrEmpty() || ServerCode.ERROR.code == serverCode) {
+
+        } else {
+            val chatroomId = createNewChatRoomResponse.chatRoomId
+            if (chatroomId == null) {
+
+            } else {
+
             }
         }
     }

@@ -1,7 +1,7 @@
 package com.android.kotlin.familymessagingapp.model
 
 import android.os.Parcelable
-import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEventObject
+import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEvent
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
@@ -44,7 +44,7 @@ data class Message(
     }
 }
 
-fun Message.toMessageSocketEvent(): BackendEventObject.Message = BackendEventObject.Message(
+fun Message.toMessageSocketEvent(): BackendEvent.Message = BackendEvent.Message(
     messageId = messageId,
     senderId = senderId,
     text = text,
