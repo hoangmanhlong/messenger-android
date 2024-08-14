@@ -1,12 +1,13 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.remote.ServerCode
-import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEvent
+import com.android.kotlin.familymessagingapp.data.remote.socket.CreateNewChatRoomSocketEvenBus
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
@@ -15,8 +16,10 @@ import com.android.kotlin.familymessagingapp.model.MobileConfig
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
+import com.android.kotlin.familymessagingapp.screen.chatroom.NewChatRoomEventBus
 import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.android.kotlin.familymessagingapp.utils.Constant
@@ -44,6 +47,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -446,115 +452,84 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    /**
-     * Lưu tin nhắn mới vào chatroom
-     * sẽ có 2 trường hợp xảy ra
-     * 1. chatroom đã tồn tại - có tin nhắn trong chatroom này
-     *      - lưu tin nhắn mới vào chatroom đó theo vào message path  với key là messageID
-     * 2. chatroom mới - lần đầu tiên người dùng tạo tin nhắn trong chatroom (Trong trường hợp người
-     * dùng đến từ chức năng tìm kiếm)
-     *      - Khởi tạo chatroom trên realtime bao gồm cả tin nhắn đầu tiên (đầy đủ thông tin)
-     *      - lưu chatroomID vào userdata của các member trong phòng
-     * @param chatRoom
-     * @param message new message that send by user
-     */
-    suspend fun updateNewMessage(chatRoom: ChatRoom, message: Message): Result<ChatRoom?> {
-        var newChatRoom: ChatRoom? = null
-        return withContext(Dispatchers.IO) {
-            try {
-                // Upload photo if it exists
-                val photoUrl = uploadPhotoMessageToStorage(message.photo)
+    private suspend fun createNewMessage(message: Message): Message {
+        // Upload photo if it exists
+        val photoUrl = uploadPhotoMessageToStorage(message.photo)
 
-                val currentTimestamp = StringUtils.getCurrentTime()
+        val currentTimestamp = StringUtils.getCurrentTime()
 
-                val updatedMessage = message.copy(
-                    messageId = currentTimestamp.toString(),
-                    timestamp = currentTimestamp,
-                    photo = photoUrl,
-                    text = message.text,
-                    audio = message.audio,
-                    senderId = auth.uid,
-                    video = message.video,
-                    type = message.type,
-                    status = message.status,
-                    emoticon = message.emoticon,
-                    replyMessageId = message.replyMessageId
-                )
+        return message.copy(
+            messageId = currentTimestamp.toString(),
+            timestamp = currentTimestamp,
+            photo = photoUrl,
+            text = message.text,
+            audio = message.audio,
+            senderId = auth.uid,
+            video = message.video,
+            type = message.type,
+            status = message.status,
+            emoticon = message.emoticon,
+            replyMessageId = message.replyMessageId
+        )
+    }
 
-                if (chatRoom.chatRoomId == null) {
-                    // Thêm uid của user hiện tại vào chatroom
-                    val members = mutableListOf<String>()
-                    chatRoom.members?.firstOrNull()?.let { members.add(it) }
-                    members.add(auth.uid!!)
-                    val finalChatRoom = ChatRoom(
-                        chatRoomId = StringUtils.generateChatRoomId(members[0], members[1]),
-                        members = members,
-                        messages = hashMapOf(updatedMessage.messageId!! to updatedMessage),
-                        latestTime = currentTimestamp,
-                        lastMessage = updatedMessage,
-                        chatRoomType = ChatRoomType.Private.type
-                    )
-                    val chatroomID = finalChatRoom.chatRoomId!!
-                    chatRoomsRef.child(chatroomID)
-                        .setValue(finalChatRoom)
-                        .await()
-                    newChatRoom = finalChatRoom
 
-                    // Update user data with chat room ID
-                    val updateUserChatRooms: suspend (String) -> Unit = { memberId ->
-                        val userChatRoomsRef =
-                            privateUserDataRef.child(memberId).child(UserData.CHAT_ROOMS)
-                        val userDataSnapshot = userChatRoomsRef.get().await()
-                        val currentChatRooms = userDataSnapshot.getValue(object :
-                            GenericTypeIndicator<List<String>>() {}) ?: listOf()
-                        val updatedChatRooms = currentChatRooms.toMutableList().apply {
-                            if (!contains(chatroomID)) {
-                                add(chatroomID)
-                            }
-                        }
-                        userChatRoomsRef.setValue(updatedChatRooms).await()
+    suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message) {
+        try {
+            val chatRoomUpdates = mapOf(
+                "${ChatRoom.MESSAGES}/${message.messageId}" to message,
+                ChatRoom.LAST_MESSAGE to message,
+                ChatRoom.LATEST_TIME to StringUtils.getCurrentTime().toString()
+            )
+
+            chatRoomsRef.child(chatRoom.chatRoomId!!)
+                .updateChildren(chatRoomUpdates)
+                .await()
+
+            Log.d(TAG, "pushMessageToChatRoom: " + chatRoom + "message " + message)
+            socketClient.emitNewMessageToOtherUser(chatRoom, message)
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun createChatRoom(chatRoom: ChatRoom, message: Message?) {
+        if(chatRoom.members.isNullOrEmpty() || chatRoom.chatRoomType == null) return
+        withContext(Dispatchers.IO) {
+            EventBus.getDefault().register(this@FirebaseRealtimeDatabaseService)
+            socketClient.emitNewChatRoom(
+                ChatRoom(members = chatRoom.members, chatRoomType = chatRoom.chatRoomType),
+                message
+            )
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.BACKGROUND, sticky = true)
+    fun createChatRoomStatus(createNewChatRoomSocketEvenBus: CreateNewChatRoomSocketEvenBus) {
+        val chatRoom: ChatRoom? = createNewChatRoomSocketEvenBus.chatRoom
+        val responseStatusCode: Int? = createNewChatRoomSocketEvenBus.responseStatusCode
+        val message: Message? = createNewChatRoomSocketEvenBus.message
+        coroutineScope.launch {
+            if (ServerCode.SUCCESS.code == responseStatusCode && !chatRoom?.chatRoomId.isNullOrEmpty()) {
+                if (chatRoom?.chatRoomType == ChatRoomType.Double.type && message != null) {
+                    try {
+                        val newMessage = createNewMessage(message)
+                        pushMessageToChatRoom(chatRoom, newMessage)
+                        EventBus
+                            .getDefault()
+                            .postSticky(NewChatRoomEventBus(Result.Success(chatRoom)))
+                    } catch (e: Exception) {
+                        EventBus.getDefault().postSticky(NewChatRoomEventBus(Result.Error(e)))
                     }
-
-                    members.forEach { member -> updateUserChatRooms(member) }
-                } else {
+                    return@launch
+                }
+                if (chatRoom?.chatRoomType == ChatRoomType.Group.type) {
 
                 }
-                Result.Success(newChatRoom)
-            } catch (e: Exception) {
-                Result.Error(e)
             }
         }
-    }
-
-    private suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message) {
-        val chatRoomUpdates = mapOf(
-            "${ChatRoom.MESSAGES}/${message.messageId}" to message,
-            ChatRoom.LAST_MESSAGE to message,
-            ChatRoom.LATEST_TIME to StringUtils.getCurrentTime().toString()
-        )
-
-        chatRoomsRef.child(chatRoom.chatRoomId)
-            .updateChildren(chatRoomUpdates)
-            .await()
-        socketClient.emitNewMessageToOtherUser(chatRoom, message)
-    }
-
-    suspend fun createNewDoubleChatRoom(members: List<String>, chatRoomType: ChatRoomType, message: Message?) {
-
-    }
-
-    fun createChatRoomStatus(createNewChatRoomResponse: BackendEvent.CreateNewChatRoomResponse) {
-        val serverCode = createNewChatRoomResponse.serverCode
-        if (serverCode.isNullOrEmpty() || ServerCode.ERROR.code == serverCode) {
-
-        } else {
-            val chatroomId = createNewChatRoomResponse.chatRoomId
-            if (chatroomId == null) {
-
-            } else {
-
-            }
-        }
+        EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
+        EventBus.getDefault().removeStickyEvent(responseStatusCode)
     }
 
     private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {

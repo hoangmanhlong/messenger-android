@@ -38,7 +38,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideBackendServiceRepository(socketClient: SocketClient, appService: BackendApiService): BackendServiceRepository =
+    fun provideBackendServiceRepository(
+        socketClient: SocketClient,
+        appService: BackendApiService
+    ): BackendServiceRepository =
         BackendServiceRepository(appService, socketClient)
 
     @Provides
@@ -125,7 +128,13 @@ object AppModule {
         socketClient: SocketClient,
         localDatabaseRepository: LocalDatabaseRepository
     ): FirebaseRealtimeDatabaseService =
-        FirebaseRealtimeDatabaseService(auth, firebaseStorageService, fcmService, socketClient, localDatabaseRepository)
+        FirebaseRealtimeDatabaseService(
+            auth,
+            firebaseStorageService,
+            fcmService,
+            socketClient,
+            localDatabaseRepository
+        )
 
     @Singleton
     @Provides
@@ -163,6 +172,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNotificationHelper(application: Application): NotificationHelper = NotificationHelper(application)
+    fun provideNotificationHelper(application: Application): NotificationHelper =
+        NotificationHelper(application)
 
 }

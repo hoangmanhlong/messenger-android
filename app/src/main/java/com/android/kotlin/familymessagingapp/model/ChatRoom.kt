@@ -6,7 +6,6 @@ import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.ktx.Firebase
 import kotlinx.parcelize.Parcelize
-import kotlinx.serialization.Serializable
 
 /**
  * @property chatRoomId unique identifier of chat room
@@ -44,7 +43,7 @@ data class ChatRoom(
     @Exclude
     fun getChatRoomNameAndImage() {
         when (chatRoomType) {
-            ChatRoomType.Private.type -> {
+            ChatRoomType.Double.type -> {
                 val otherUserUid = members?.firstOrNull { it != Firebase.auth.uid }
                 val userdata = membersData?.firstOrNull { it.uid == otherUserUid }
                 userdata?.let {

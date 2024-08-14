@@ -28,7 +28,7 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
 @BindingAdapter("bindChatRoomImage")
 fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
     val defaultImageRes = when (chatRoom.chatRoomType) {
-        ChatRoomType.Private.type -> R.drawable.ic_user_default
+        ChatRoomType.Double.type -> R.drawable.ic_user_default
         ChatRoomType.Group.type -> R.drawable.group
         else -> R.drawable.ic_user_default
     }

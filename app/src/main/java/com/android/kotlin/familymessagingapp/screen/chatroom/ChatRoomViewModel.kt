@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
@@ -29,6 +30,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import javax.inject.Inject
 
 sealed class SendMessageStatus {
@@ -184,7 +188,8 @@ class ChatRoomViewModel @Inject constructor(
         _chatRoom.value = _chatRoom.value?.copy(
             chatroomName = userData.username,
             chatRoomImage = userData.userAvatar,
-            members = listOf(userData.uid!!)
+            members = listOf(userData.uid!!, Firebase.auth.uid!!),
+            chatRoomType = ChatRoomType.Double.type
         )
         viewModelScope.launch {
             if (!userData.uid.isNullOrEmpty()) {
@@ -360,23 +365,16 @@ class ChatRoomViewModel @Inject constructor(
             _sendMessageStatus.value = SendMessageStatus.Sending
             val sendMessage = Message().copy(text = message.text, photo = message.photo)
             clearInput()
-            val sendResult = firebaseServiceRepository
-                .firebaseRealtimeDatabaseService
-                .updateNewMessage(chatRoom = _chatRoom.value!!, message = sendMessage)
-
-            when (sendResult) {
-                is Result.Success -> {
-                    _sendMessageStatus.value = SendMessageStatus.Success
-                    val data = sendResult.data
-                    if (data != null && _chatRoom.value!!.chatRoomId == null) {
-                        _chatRoom.value = _chatRoom.value?.copy(chatRoomId = data.chatRoomId)
-                        initChatRoomListener()
-                    }
-                }
-
-                is Result.Error -> {
-                    _sendMessageStatus.value = SendMessageStatus.Error(null)
-                }
+            if (_chatRoom.value?.chatRoomId.isNullOrEmpty()) {
+                EventBus.getDefault().register(this@ChatRoomViewModel)
+                firebaseServiceRepository
+                    .firebaseRealtimeDatabaseService
+                    .createChatRoom(_chatRoom.value!!, sendMessage)
+            } else {
+                firebaseServiceRepository.firebaseRealtimeDatabaseService.pushMessageToChatRoom(
+                    _chatRoom.value!!,
+                    sendMessage
+                )
             }
         }
     }
@@ -397,5 +395,23 @@ class ChatRoomViewModel @Inject constructor(
 
     companion object {
         val TAG: String = ChatRoomViewModel::class.java.simpleName
+    }
+
+    @Subscribe(threadMode = ThreadMode.BACKGROUND, sticky = true)
+    fun onCreateNewChatRoomListener(newChatRoomEventBus: NewChatRoomEventBus) {
+        when (newChatRoomEventBus.result) {
+            is Result.Success -> {
+                _sendMessageStatus.value = SendMessageStatus.Success
+                _chatRoom.value =
+                    _chatRoom.value?.copy(chatRoomId = newChatRoomEventBus.result.data.chatRoomId)
+                initChatRoomListener()
+            }
+
+            is Result.Error -> {
+                _sendMessageStatus.value = SendMessageStatus.Error(null)
+            }
+        }
+        EventBus.getDefault().unregister(this@ChatRoomViewModel)
+        EventBus.getDefault().removeStickyEvent(newChatRoomEventBus)
     }
 }

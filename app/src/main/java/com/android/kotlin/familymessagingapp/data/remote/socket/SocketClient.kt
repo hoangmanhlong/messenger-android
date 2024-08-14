@@ -2,6 +2,7 @@ package com.android.kotlin.familymessagingapp.data.remote.socket
 
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
@@ -13,6 +14,7 @@ import io.socket.emitter.Emitter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.greenrobot.eventbus.EventBus
 
 @Serializable
 sealed class BackendEvent {
@@ -24,10 +26,10 @@ sealed class BackendEvent {
     data class Verified(val uid: String, val verified: Boolean) : BackendEvent()
 
     @Serializable
-    data class ChatRoom(
-        val chatRoomId: String,
-        val chatRoomName: String?,
-        val chatRoomImage: String?,
+    data class ChatRoomRequest(
+        val chatRoomId: String? = null,
+        val chatRoomName: String? = null,
+        val chatRoomImage: String? = null,
         val members: List<String>? = null,
         val newMessage: Message? = null,
         val chatRoomType: String? = null
@@ -45,21 +47,19 @@ sealed class BackendEvent {
     ) : BackendEvent()
 
     @Serializable
-    data class NewMessageNotification(val chatRoom: ChatRoom) : BackendEvent()
+    data class NewMessageNotification(val chatRoomRequest: ChatRoomRequest) : BackendEvent()
 
     @Serializable
     data class CreateNewChatRoomResponse(
-        val chatRoomId: String? = null,
-        val serverCode: String? = null
+        val chatRoomRequest: ChatRoomRequest? = null,
+        val responseStatusCode: Int? = null
     ) : BackendEvent()
 
     @Serializable
-    data class Response(val status: Boolean?): BackendEvent()
+    data class Response(val status: Boolean?) : BackendEvent()
 }
 
-class SocketClient(
-    private val realtimeDatabaseService: FirebaseRealtimeDatabaseService
-) {
+class SocketClient {
 
     companion object {
         val TAG: String = SocketClient::class.java.simpleName
@@ -73,10 +73,26 @@ class SocketClient(
 
     private val pushNewMessageSocketListener = Emitter.Listener {}
 
+    private var chatroom: ChatRoom? = null
+
+    private var message: Message? = null
+
     private val createNewChatRoomSocketEventListener = Emitter.Listener { args ->
         val data = args.getOrNull(0) as? String ?: return@Listener
-        val createNewChatRoomResponse = Json.decodeFromString<BackendEvent.CreateNewChatRoomResponse>(data)
-        realtimeDatabaseService.createChatRoomStatus(createNewChatRoomResponse)
+        val createNewChatRoomResponse =
+            Json.decodeFromString<BackendEvent.CreateNewChatRoomResponse>(data)
+        chatroom =
+            chatroom?.copy(chatRoomId = createNewChatRoomResponse.chatRoomRequest?.chatRoomId)
+        EventBus.getDefault().postSticky(
+            CreateNewChatRoomSocketEvenBus(
+                chatRoom = chatroom,
+                createNewChatRoomResponse.responseStatusCode,
+                message
+            )
+        )
+        chatroom = null
+        message = null
+        socket?.off(NEW_CHATROOM_SOCKET_EVENT)
     }
 
     init {
@@ -100,7 +116,7 @@ class SocketClient(
     }
 
     fun emitNewMessageToOtherUser(chatRoom: ChatRoom, message: Message) {
-        val chatroom: BackendEvent.ChatRoom = BackendEvent.ChatRoom(
+        val chatroom: BackendEvent.ChatRoomRequest = BackendEvent.ChatRoomRequest(
             chatRoomId = chatRoom.chatRoomId!!,
             chatRoomName = chatRoom.chatRoomImage,
             chatRoomImage = chatRoom.chatRoomImage,
@@ -111,17 +127,21 @@ class SocketClient(
         emitStatus(NEW_MESSAGE_SOCKET_EVENT, chatroom)
     }
 
-    fun emitNewChatRoom(chatRoom: ChatRoom): Result<Boolean> {
+    fun emitNewChatRoom(chatRoom: ChatRoom, message: Message?): Result<Boolean> {
         return if (socket == null) {
             Result.failure(ServerErrorException())
         } else {
-            val chatroomDto: BackendEvent.ChatRoom = BackendEvent.ChatRoom(
-                chatRoomId = chatRoom.chatRoomId!!,
+            val chatroomDto: BackendEvent.ChatRoomRequest = BackendEvent.ChatRoomRequest(
+                chatRoomId = null,
                 chatRoomName = chatRoom.chatroomName,
                 chatRoomImage = chatRoom.chatRoomImage,
                 members = chatRoom.members!!,
+                chatRoomType = chatRoom.chatRoomType,
                 newMessage = null
             )
+            if (chatroom?.chatRoomType == ChatRoomType.Double.type) this.message = message
+            this.chatroom = chatRoom
+            socket?.on(NEW_CHATROOM_SOCKET_EVENT, createNewChatRoomSocketEventListener)
             emitStatus(NEW_CHATROOM_SOCKET_EVENT, chatroomDto)
             Result.success(true)
         }

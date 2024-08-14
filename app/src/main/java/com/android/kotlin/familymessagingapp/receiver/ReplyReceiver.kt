@@ -42,11 +42,11 @@ class ReplyReceiver : BroadcastReceiver() {
 
             if (chatRoomId.isNotEmpty() && !input.isNullOrBlank()) {
                 val message = Message(text = input)
-                firebaseServiceRepository.firebaseRealtimeDatabaseService
-                    .updateNewMessage(
-                        chatRoom = ChatRoom(),
-                        message = message
-                    )
+//                firebaseServiceRepository.firebaseRealtimeDatabaseService
+//                    .updateNewMessage(
+//                        chatRoom = ChatRoom(),
+//                        message = message
+//                    )
                 // We should update the notification so that the user can see that the reply has been
                 // sent.
 //                repository.updateNotification(chatRoomId)
