@@ -371,10 +371,19 @@ class ChatRoomViewModel @Inject constructor(
                     .firebaseRealtimeDatabaseService
                     .createChatRoom(_chatRoom.value!!, sendMessage)
             } else {
-                firebaseServiceRepository.firebaseRealtimeDatabaseService.pushMessageToChatRoom(
+                val sendResult = firebaseServiceRepository.firebaseRealtimeDatabaseService.pushMessageToChatRoom(
                     _chatRoom.value!!,
                     sendMessage
                 )
+                when (sendResult) {
+                    is Result.Success -> {
+                        _sendMessageStatus.value = SendMessageStatus.Success
+                    }
+
+                    is Result.Error -> {
+                        _sendMessageStatus.value = SendMessageStatus.Error(null)
+                    }
+                }
             }
         }
     }

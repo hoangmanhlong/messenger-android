@@ -63,9 +63,9 @@ object StringUtils {
 
     fun showLastMessageToChatRoomView(context: Context, message: Message?): String {
         var result = context.getString(R.string.connected)
-        message?.let {
-            result = if (!it.text.isNullOrEmpty() || !it.photo.isNullOrEmpty()) {
-                if (!it.text.isNullOrEmpty()) it.text else context.getString(R.string.photo_last_message)
+        if (message != null) {
+            result = if (!message.text.isNullOrEmpty() || !message.photo.isNullOrEmpty()) {
+                if (!message.text.isNullOrEmpty()) message.text else context.getString(R.string.photo_last_message)
             } else {
                 result
             }

@@ -16,7 +16,6 @@ import com.android.kotlin.familymessagingapp.model.MobileConfig
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.model.Result
-import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.screen.chatroom.NewChatRoomEventBus
@@ -28,7 +27,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
@@ -473,23 +471,24 @@ class FirebaseRealtimeDatabaseService(
         )
     }
 
+    suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val newMessage = createNewMessage(message)
+                val chatRoomUpdates = mapOf(
+                    "${ChatRoom.MESSAGES}/${newMessage.messageId}" to newMessage,
+                    ChatRoom.LAST_MESSAGE to newMessage,
+                    ChatRoom.LATEST_TIME to StringUtils.getCurrentTime()
+                )
 
-    suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message) {
-        try {
-            val chatRoomUpdates = mapOf(
-                "${ChatRoom.MESSAGES}/${message.messageId}" to message,
-                ChatRoom.LAST_MESSAGE to message,
-                ChatRoom.LATEST_TIME to StringUtils.getCurrentTime().toString()
-            )
-
-            chatRoomsRef.child(chatRoom.chatRoomId!!)
-                .updateChildren(chatRoomUpdates)
-                .await()
-
-            Log.d(TAG, "pushMessageToChatRoom: " + chatRoom + "message " + message)
-            socketClient.emitNewMessageToOtherUser(chatRoom, message)
-        } catch (e: Exception) {
-            throw e
+                chatRoomsRef.child(chatRoom.chatRoomId!!)
+                    .updateChildren(chatRoomUpdates)
+                    .await()
+                socketClient.emitNewMessageToOtherUser(chatRoom, newMessage)
+                Result.Success(true)
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
         }
     }
 
@@ -513,8 +512,7 @@ class FirebaseRealtimeDatabaseService(
             if (ServerCode.SUCCESS.code == responseStatusCode && !chatRoom?.chatRoomId.isNullOrEmpty()) {
                 if (chatRoom?.chatRoomType == ChatRoomType.Double.type && message != null) {
                     try {
-                        val newMessage = createNewMessage(message)
-                        pushMessageToChatRoom(chatRoom, newMessage)
+                        pushMessageToChatRoom(chatRoom, message)
                         EventBus
                             .getDefault()
                             .postSticky(NewChatRoomEventBus(Result.Success(chatRoom)))

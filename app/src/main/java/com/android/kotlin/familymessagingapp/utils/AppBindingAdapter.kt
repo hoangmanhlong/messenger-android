@@ -58,7 +58,7 @@ fun bindMessageFormattedTime(textView: TextView, time: Long) {
 }
 
 @BindingAdapter("bindLastMessageOfChatroom")
-fun bindLastMessageOfChatroom(textView: TextView, message: Message) {
+fun bindLastMessageOfChatroom(textView: TextView, message: Message?) {
     textView.text = StringUtils.showLastMessageToChatRoomView(textView.context, message)
 }
 

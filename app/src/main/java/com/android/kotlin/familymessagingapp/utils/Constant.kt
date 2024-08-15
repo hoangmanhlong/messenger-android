@@ -48,7 +48,7 @@ object Constant {
     const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME =
         "$FIREBASE_STORAGE_CHAT_ROOM_REF_NAME/message_images"
 
-    const val FIREBASE_REALTIME_DATABASE_CHAT_ROOM_REF = "chatrooms"
+    const val FIREBASE_REALTIME_DATABASE_CHAT_ROOM_REF = "chatRooms"
 
     const val CHAT_ROOM_KEY = "CHAT_ROOM_KEY"
 
