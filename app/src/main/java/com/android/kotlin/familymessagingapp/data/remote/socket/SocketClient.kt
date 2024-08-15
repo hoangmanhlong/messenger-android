@@ -1,12 +1,12 @@
 package com.android.kotlin.familymessagingapp.data.remote.socket
 
+import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
-import com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database.FirebaseRealtimeDatabaseService
 import com.android.kotlin.familymessagingapp.utils.Constant
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.greenrobot.eventbus.EventBus
+import org.json.JSONObject
 
 @Serializable
 sealed class BackendEvent {
@@ -51,7 +52,7 @@ sealed class BackendEvent {
 
     @Serializable
     data class CreateNewChatRoomResponse(
-        val chatRoomRequest: ChatRoomRequest? = null,
+        val chatRoom: ChatRoomRequest? = null,
         val responseStatusCode: Int? = null
     ) : BackendEvent()
 
@@ -78,11 +79,19 @@ class SocketClient {
     private var message: Message? = null
 
     private val createNewChatRoomSocketEventListener = Emitter.Listener { args ->
-        val data = args.getOrNull(0) as? String ?: return@Listener
+        // Kiểm tra nếu args.getOrNull(0) là một JSONObject và chuyển đổi nó thành String
+        val data = (args.getOrNull(0) as? JSONObject)?.toString()
+        if (data == null) {
+            chatroom = null
+            message = null
+            socket?.off(NEW_CHATROOM_SOCKET_EVENT)
+            return@Listener
+        }
+
         val createNewChatRoomResponse =
             Json.decodeFromString<BackendEvent.CreateNewChatRoomResponse>(data)
         chatroom =
-            chatroom?.copy(chatRoomId = createNewChatRoomResponse.chatRoomRequest?.chatRoomId)
+            chatroom?.copy(chatRoomId = createNewChatRoomResponse.chatRoom?.chatRoomId)
         EventBus.getDefault().postSticky(
             CreateNewChatRoomSocketEvenBus(
                 chatRoom = chatroom,
