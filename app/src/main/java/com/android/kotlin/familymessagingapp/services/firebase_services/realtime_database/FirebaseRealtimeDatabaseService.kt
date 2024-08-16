@@ -11,12 +11,12 @@ import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Contact
-import com.android.kotlin.familymessagingapp.model.ContactDto
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.MobileConfig
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.model.toContact
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
@@ -115,6 +115,11 @@ class FirebaseRealtimeDatabaseService(
 
     private val _chatRooms = MutableStateFlow<List<ChatRoom>?>(null)
     val chatRooms: StateFlow<List<ChatRoom>?> = _chatRooms
+
+    /**
+     * Message sent when creating a double chat room
+     */
+    private var messageSentWhenCreatingDoubleChatRoom: Message? = null
 
     private val privateUserdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -306,20 +311,12 @@ class FirebaseRealtimeDatabaseService(
     suspend fun getContacts(): List<Contact> = withContext(Dispatchers.IO) {
         if (Firebase.auth.currentUser == null) return@withContext emptyList()
         try {
-            val snapshot = privateUserDataRef.child(Firebase.auth.uid!!).child(Constant.CONTACTS).get().await()
-
-            snapshot.children.mapNotNull { userSnapshot ->
-                val uid = userSnapshot.key // Get the UID from the key
-                val contactDto = userSnapshot.getValue(ContactDto::class.java)
-                if (uid != null && contactDto != null) {
-                    async {
-                        val userData = getUserData(uid)
-                        contactDto.toContact().copy(contactData = userData)
-                    }
-                } else {
-                    null
+            _privateUserData.value?.contacts?.mapNotNull {
+                async {
+                    val userData = getUserData(it.key)
+                    it.value.toContact().copy(contactData = userData)
                 }
-            }.awaitAll()
+            }?.awaitAll() ?: emptyList()
         } catch (e: Exception) {
             emptyList()
         }
@@ -532,13 +529,18 @@ class FirebaseRealtimeDatabaseService(
     }
 
     suspend fun createChatRoom(chatRoom: ChatRoom, message: Message?) {
+        this.messageSentWhenCreatingDoubleChatRoom = message
         if (chatRoom.members.isNullOrEmpty() || chatRoom.chatRoomType == null) return
         withContext(Dispatchers.IO) {
             EventBus.getDefault().register(this@FirebaseRealtimeDatabaseService)
-            socketClient.emitNewChatRoom(
-                ChatRoom(members = chatRoom.members, chatRoomType = chatRoom.chatRoomType),
-                message
+            val result = socketClient.emitNewChatRoom(
+                ChatRoom(members = chatRoom.members, chatRoomType = chatRoom.chatRoomType)
             )
+            if (result is Result.Error) {
+                EventBus.getDefault()
+                    .postSticky(NewChatRoomEventBus(Result.Error(result.exception)))
+                EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
+            }
         }
     }
 
@@ -549,14 +551,17 @@ class FirebaseRealtimeDatabaseService(
      */
     @Subscribe(threadMode = ThreadMode.BACKGROUND, sticky = true)
     fun createChatRoomStatus(createNewChatRoomSocketEvenBus: CreateNewChatRoomSocketEvenBus) {
-        val chatRoom: ChatRoom? = createNewChatRoomSocketEvenBus.chatRoom
-        val responseStatusCode: Int? = createNewChatRoomSocketEvenBus.responseStatusCode
-        val message: Message? = createNewChatRoomSocketEvenBus.message
         coroutineScope.launch {
+            val chatRoom: ChatRoom? = createNewChatRoomSocketEvenBus.chatRoom
+            val responseStatusCode: Int? = createNewChatRoomSocketEvenBus.responseStatusCode
+
             if (ServerCode.SUCCESS.code == responseStatusCode && !chatRoom?.chatRoomId.isNullOrEmpty()) {
-                if (chatRoom?.chatRoomType == ChatRoomType.Double.type && message != null) {
+                if (chatRoom?.chatRoomType == ChatRoomType.Double.type && this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom != null) {
                     try {
-                        pushMessageToChatRoom(chatRoom, message)
+                        pushMessageToChatRoom(
+                            chatRoom,
+                            this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom!!
+                        )
 
                         // Send create new chatroom status to UI - ChatRoomViewModel
                         EventBus
@@ -565,15 +570,18 @@ class FirebaseRealtimeDatabaseService(
                     } catch (e: Exception) {
                         EventBus.getDefault().postSticky(NewChatRoomEventBus(Result.Error(e)))
                     }
-                    return@launch
                 }
                 if (chatRoom?.chatRoomType == ChatRoomType.Group.type) {
-
+                    // TODO: Handle group chatroom
                 }
+            } else {
+                EventBus.getDefault()
+                    .postSticky(NewChatRoomEventBus(Result.Error(ServerErrorException())))
             }
+            this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom = null
+            EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
+            EventBus.getDefault().removeStickyEvent(createNewChatRoomSocketEvenBus)
         }
-        EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
-        EventBus.getDefault().removeStickyEvent(createNewChatRoomSocketEvenBus)
     }
 
     private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {

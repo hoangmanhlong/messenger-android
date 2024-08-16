@@ -4,6 +4,7 @@ import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
@@ -76,14 +77,11 @@ class SocketClient {
 
     private var chatroom: ChatRoom? = null
 
-    private var message: Message? = null
-
     private val createNewChatRoomSocketEventListener = Emitter.Listener { args ->
         // Kiểm tra nếu args.getOrNull(0) là một JSONObject và chuyển đổi nó thành String
         val data = (args.getOrNull(0) as? JSONObject)?.toString()
         if (data == null) {
             chatroom = null
-            message = null
             socket?.off(NEW_CHATROOM_SOCKET_EVENT)
             return@Listener
         }
@@ -96,11 +94,9 @@ class SocketClient {
             CreateNewChatRoomSocketEvenBus(
                 chatRoom = chatroom,
                 createNewChatRoomResponse.responseStatusCode,
-                message
             )
         )
         chatroom = null
-        message = null
         socket?.off(NEW_CHATROOM_SOCKET_EVENT)
     }
 
@@ -136,9 +132,9 @@ class SocketClient {
         emitStatus(NEW_MESSAGE_SOCKET_EVENT, chatroom)
     }
 
-    fun emitNewChatRoom(chatRoom: ChatRoom, message: Message?): Result<Boolean> {
+    fun emitNewChatRoom(chatRoom: ChatRoom): Result<Boolean> {
         return if (socket == null) {
-            Result.failure(ServerErrorException())
+            Result.Error(ServerErrorException())
         } else {
             val chatroomDto: BackendEvent.ChatRoomRequest = BackendEvent.ChatRoomRequest(
                 chatRoomId = null,
@@ -148,11 +144,10 @@ class SocketClient {
                 chatRoomType = chatRoom.chatRoomType,
                 newMessage = null
             )
-            if (chatroom?.chatRoomType == ChatRoomType.Double.type) this.message = message
             this.chatroom = chatRoom
             socket?.on(NEW_CHATROOM_SOCKET_EVENT, createNewChatRoomSocketEventListener)
             emitStatus(NEW_CHATROOM_SOCKET_EVENT, chatroomDto)
-            Result.success(true)
+            Result.Success(true)
         }
     }
 

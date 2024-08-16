@@ -27,6 +27,8 @@ class CreateGroupChatViewModel @Inject constructor(
 
     private var keyword: String? = null
 
+    private val privateUserData = firebaseServiceRepository.firebaseRealtimeDatabaseService.privateUserData
+
     private val _selectedContacts: MutableLiveData<MutableList<Contact>> = MutableLiveData(mutableListOf())
     val selectedContacts: LiveData<MutableList<Contact>> = _selectedContacts
 

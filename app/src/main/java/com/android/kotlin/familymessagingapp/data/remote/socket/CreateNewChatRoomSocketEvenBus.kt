@@ -5,6 +5,5 @@ import com.android.kotlin.familymessagingapp.model.Message
 
 data class CreateNewChatRoomSocketEvenBus(
     val chatRoom: ChatRoom?,
-    val responseStatusCode: Int?,
-    val message: Message?
+    val responseStatusCode: Int?
 )

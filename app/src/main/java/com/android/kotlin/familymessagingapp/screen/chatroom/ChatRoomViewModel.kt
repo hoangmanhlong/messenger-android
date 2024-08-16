@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -381,7 +382,7 @@ class ChatRoomViewModel @Inject constructor(
                     }
 
                     is Result.Error -> {
-                        _sendMessageStatus.value = SendMessageStatus.Error(null)
+                        _sendMessageStatus.value = SendMessageStatus.Error(sendResult.exception)
                     }
                 }
             }
@@ -406,7 +407,8 @@ class ChatRoomViewModel @Inject constructor(
         val TAG: String = ChatRoomViewModel::class.java.simpleName
     }
 
-    @Subscribe(threadMode = ThreadMode.BACKGROUND, sticky = true)
+    @MainThread
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     fun onCreateNewChatRoomListener(newChatRoomEventBus: NewChatRoomEventBus) {
         when (newChatRoomEventBus.result) {
             is Result.Success -> {

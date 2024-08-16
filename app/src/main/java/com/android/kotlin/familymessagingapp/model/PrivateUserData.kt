@@ -9,7 +9,8 @@ import kotlinx.parcelize.Parcelize
 data class PrivateUserData(
     val chatRooms: List<String>? = null,
     val mobileConfig: MobileConfig? = null,
-    val searchHistories: Map<String, SearchHistory>? = null
+    val searchHistories: Map<String, SearchHistory>? = null,
+    val contacts: Map<String, ContactDto>? = null
 ): Parcelable {
     companion object {
         const val CHAT_ROOMS = "chatRooms"
