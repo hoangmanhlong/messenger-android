@@ -15,9 +15,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentCreateGroupChatBinding
-import com.android.kotlin.familymessagingapp.screen.home.UserAdapter
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CreateGroupChatFragment : Fragment() {
 
     private val viewModel: CreateGroupChatViewModel by viewModels()
@@ -28,7 +29,7 @@ class CreateGroupChatFragment : Fragment() {
 
     private var selectMemberRecyclerView: RecyclerView? = null
 
-    private var selectMemberAdapter: UserAdapter? = null
+    private var contactAdapter: ContactAdapter? = null
 
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
@@ -47,9 +48,8 @@ class CreateGroupChatFragment : Fragment() {
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
 
         selectMemberRecyclerView = binding.selectMemberRecyclerView
-        selectMemberAdapter = UserAdapter(true) { userData ->
-
-        }
+        contactAdapter = ContactAdapter { viewModel.updateMember(it) }
+        selectMemberRecyclerView?.adapter = contactAdapter
 
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -115,6 +115,13 @@ class CreateGroupChatFragment : Fragment() {
 
         viewModel.clearSearchInputState.observe(this.viewLifecycleOwner) {
             binding.ivClearSearchInput.visibility = if (it) View.VISIBLE else View.GONE
+        }
+
+        viewModel.contacts.observe(this.viewLifecycleOwner) {
+            it?.let {
+                binding.isEmptyContacts = it.isEmpty()
+                contactAdapter?.submitList(it)
+            }
         }
     }
 }

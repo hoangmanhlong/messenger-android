@@ -36,6 +36,8 @@ object Constant {
 
     const val FIREBASE_REALTIME_DATABASE_SECURE_USER_DATA_REF_NAME = "secure_user_data"
 
+    const val CONTACTS = "contacts"
+
     const val FIREBASE_STORAGE_USER_DATA_REF_NAME = "user_data"
 
     const val FCM_TOKEN = "fcmToken"

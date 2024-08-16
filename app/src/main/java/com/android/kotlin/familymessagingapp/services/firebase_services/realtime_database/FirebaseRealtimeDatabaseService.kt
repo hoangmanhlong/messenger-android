@@ -1,7 +1,6 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,12 +10,15 @@ import com.android.kotlin.familymessagingapp.data.remote.socket.CreateNewChatRoo
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
+import com.android.kotlin.familymessagingapp.model.Contact
+import com.android.kotlin.familymessagingapp.model.ContactDto
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.MobileConfig
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.PrivateUserData
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.model.toContact
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.screen.chatroom.NewChatRoomEventBus
 import com.android.kotlin.familymessagingapp.services.firebase_services.fcm.FCMService
@@ -24,6 +26,7 @@ import com.android.kotlin.familymessagingapp.services.firebase_services.storage.
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -300,6 +303,28 @@ class FirebaseRealtimeDatabaseService(
         })
     }
 
+    suspend fun getContacts(): List<Contact> = withContext(Dispatchers.IO) {
+        if (Firebase.auth.currentUser == null) return@withContext emptyList()
+        try {
+            val snapshot = privateUserDataRef.child(Firebase.auth.uid!!).child(Constant.CONTACTS).get().await()
+
+            snapshot.children.mapNotNull { userSnapshot ->
+                val uid = userSnapshot.key // Get the UID from the key
+                val contactDto = userSnapshot.getValue(ContactDto::class.java)
+                if (uid != null && contactDto != null) {
+                    async {
+                        val userData = getUserData(uid)
+                        contactDto.toContact().copy(contactData = userData)
+                    }
+                } else {
+                    null
+                }
+            }.awaitAll()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun updateEnabledAIUserData(enabled: Boolean): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -450,6 +475,11 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    /**
+     * #### Create new message
+     *
+     * @param message The message object consists only of content fields such as [Message.text, Message.audio, Message.photo, Message.video]
+     */
     private suspend fun createNewMessage(message: Message): Message {
         // Upload photo if it exists
         val photoUrl = uploadPhotoMessageToStorage(message.photo)
@@ -471,19 +501,28 @@ class FirebaseRealtimeDatabaseService(
         )
     }
 
+    /**
+     * #### Push message to chatroom
+     *
+     * @param chatRoom A chat room already exists in the database.
+     * @param message New messages sent by users
+     */
     suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
                 val newMessage = createNewMessage(message)
+
+                // Add new message, update latest message, latest active time to chat room
                 val chatRoomUpdates = mapOf(
                     "${ChatRoom.MESSAGES}/${newMessage.messageId}" to newMessage,
                     ChatRoom.LAST_MESSAGE to newMessage,
                     ChatRoom.LATEST_TIME to StringUtils.getCurrentTime()
                 )
 
-                chatRoomsRef.child(chatRoom.chatRoomId!!)
-                    .updateChildren(chatRoomUpdates)
-                    .await()
+                // Update chat room to Firebase Realtime Database
+                chatRoomsRef.child(chatRoom.chatRoomId!!).updateChildren(chatRoomUpdates).await()
+
+                // send notify to socket to push new message to other user
                 socketClient.emitNewMessageToOtherUser(chatRoom, newMessage)
                 Result.Success(true)
             } catch (e: Exception) {
@@ -493,7 +532,7 @@ class FirebaseRealtimeDatabaseService(
     }
 
     suspend fun createChatRoom(chatRoom: ChatRoom, message: Message?) {
-        if(chatRoom.members.isNullOrEmpty() || chatRoom.chatRoomType == null) return
+        if (chatRoom.members.isNullOrEmpty() || chatRoom.chatRoomType == null) return
         withContext(Dispatchers.IO) {
             EventBus.getDefault().register(this@FirebaseRealtimeDatabaseService)
             socketClient.emitNewChatRoom(
@@ -503,6 +542,11 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    /**
+     * #### Listener when new chatroom is created from socket event
+     *
+     * @param createNewChatRoomSocketEvenBus a Eventbus event object containing the response result from the server
+     */
     @Subscribe(threadMode = ThreadMode.BACKGROUND, sticky = true)
     fun createChatRoomStatus(createNewChatRoomSocketEvenBus: CreateNewChatRoomSocketEvenBus) {
         val chatRoom: ChatRoom? = createNewChatRoomSocketEvenBus.chatRoom
@@ -513,6 +557,8 @@ class FirebaseRealtimeDatabaseService(
                 if (chatRoom?.chatRoomType == ChatRoomType.Double.type && message != null) {
                     try {
                         pushMessageToChatRoom(chatRoom, message)
+
+                        // Send create new chatroom status to UI - ChatRoomViewModel
                         EventBus
                             .getDefault()
                             .postSticky(NewChatRoomEventBus(Result.Success(chatRoom)))
@@ -527,7 +573,7 @@ class FirebaseRealtimeDatabaseService(
             }
         }
         EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
-        EventBus.getDefault().removeStickyEvent(responseStatusCode)
+        EventBus.getDefault().removeStickyEvent(createNewChatRoomSocketEvenBus)
     }
 
     private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {
