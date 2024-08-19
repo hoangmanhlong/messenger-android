@@ -27,9 +27,11 @@ class CreateGroupChatViewModel @Inject constructor(
 
     private var keyword: String? = null
 
-    private val privateUserData = firebaseServiceRepository.firebaseRealtimeDatabaseService.privateUserData
+    private val privateUserData =
+        firebaseServiceRepository.firebaseRealtimeDatabaseService.privateUserData
 
-    private val _selectedContacts: MutableLiveData<MutableList<Contact>> = MutableLiveData(mutableListOf())
+    private val _selectedContacts: MutableLiveData<MutableList<Contact>> =
+        MutableLiveData(mutableListOf())
     val selectedContacts: LiveData<MutableList<Contact>> = _selectedContacts
 
     private val _chatRoom: MutableLiveData<ChatRoom> =
@@ -82,8 +84,18 @@ class CreateGroupChatViewModel @Inject constructor(
     fun createChatRoom() {
         viewModelScope.launch {
             if (_chatRoom.value == null) return@launch
+            var chatRoomName = _chatRoom.value?.chatroomName
+            val membersId: MutableList<String> = mutableListOf()
+            if (chatRoomName.isNullOrEmpty()) {
+                chatRoomName = createChatRoomName()
+            }
+            _selectedContacts.value?.mapNotNull {
+                it.uid?.let { it1 -> membersId.add(it1) }
+            }
             _chatRoom.value = chatRoom.value?.copy(
                 chatRoomImage = if (selectedImageUri.value == null) null else selectedImageUri.value.toString(),
+                members = membersId,
+                chatroomName = chatRoomName
             )
             EventBus.getDefault().register(this@CreateGroupChatViewModel)
             firebaseServiceRepository.firebaseRealtimeDatabaseService.createChatRoom(
@@ -91,5 +103,19 @@ class CreateGroupChatViewModel @Inject constructor(
                 message = null
             )
         }
+    }
+
+    private fun createChatRoomName(): String = if (_selectedContacts.value?.size == 3) {
+        "${_selectedContacts.value?.get(0)}, ${_selectedContacts.value?.get(1)}, ${
+            _selectedContacts.value?.get(
+                2
+            )
+        }"
+    } else {
+        "${_selectedContacts.value?.get(0)}, ${_selectedContacts.value?.get(1)}, ${
+            _selectedContacts.value?.get(
+                2
+            )
+        },..."
     }
 }

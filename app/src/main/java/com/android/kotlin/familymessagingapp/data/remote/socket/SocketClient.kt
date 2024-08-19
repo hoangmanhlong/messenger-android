@@ -75,6 +75,9 @@ class SocketClient {
 
     private val pushNewMessageSocketListener = Emitter.Listener {}
 
+    /**
+     * Chat room is being created and sent to server
+     */
     private var chatroom: ChatRoom? = null
 
     private val createNewChatRoomSocketEventListener = Emitter.Listener { args ->
@@ -132,17 +135,22 @@ class SocketClient {
         emitStatus(NEW_MESSAGE_SOCKET_EVENT, chatroom)
     }
 
+    /**
+     * Send a event to server to create a new chat room.
+     *
+     * @param chatRoom: ChatRoom contain members and chatroom type
+     * @return Result<Boolean> return true if success, false otherwise
+     */
     fun emitNewChatRoom(chatRoom: ChatRoom): Result<Boolean> {
-        return if (socket == null) {
+        return if (socket == null || socket?.connected() == false) {
             Result.Error(ServerErrorException())
         } else {
+            // Just send members (chatroom members) and chatRoomType (chatroom type) for the server
+            // to create a group on the database. After receiving the response, the app will update
+            // the remaining fields.
             val chatroomDto: BackendEvent.ChatRoomRequest = BackendEvent.ChatRoomRequest(
-                chatRoomId = null,
-                chatRoomName = chatRoom.chatroomName,
-                chatRoomImage = chatRoom.chatRoomImage,
                 members = chatRoom.members!!,
-                chatRoomType = chatRoom.chatRoomType,
-                newMessage = null
+                chatRoomType = chatRoom.chatRoomType
             )
             this.chatroom = chatRoom
             socket?.on(NEW_CHATROOM_SOCKET_EVENT, createNewChatRoomSocketEventListener)

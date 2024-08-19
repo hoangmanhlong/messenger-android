@@ -94,6 +94,10 @@ class CreateGroupChatFragment : Fragment() {
             }
             false
         }
+
+        binding.btCreateGroupChat.setOnClickListener {
+            viewModel.createChatRoom()
+        }
         return binding.root
     }
 

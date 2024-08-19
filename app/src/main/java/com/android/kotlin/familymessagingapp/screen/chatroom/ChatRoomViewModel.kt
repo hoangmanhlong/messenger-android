@@ -410,16 +410,16 @@ class ChatRoomViewModel @Inject constructor(
     @MainThread
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     fun onCreateNewChatRoomListener(newChatRoomEventBus: NewChatRoomEventBus) {
-        when (newChatRoomEventBus.result) {
+        when (val result = newChatRoomEventBus.result) {
             is Result.Success -> {
                 _sendMessageStatus.value = SendMessageStatus.Success
                 _chatRoom.value =
-                    _chatRoom.value?.copy(chatRoomId = newChatRoomEventBus.result.data.chatRoomId)
+                    _chatRoom.value?.copy(chatRoomId = result.data.chatRoomId)
                 initChatRoomListener()
             }
 
             is Result.Error -> {
-                _sendMessageStatus.value = SendMessageStatus.Error(null)
+                _sendMessageStatus.value = SendMessageStatus.Error(result.exception)
             }
         }
         EventBus.getDefault().unregister(this@ChatRoomViewModel)
