@@ -116,4 +116,7 @@
     <string name="select_member_guide">Nhóm chat tối thiểu 3 và tối đa 100 thành viên</string>
     <string name="contacts">Liên hệ</string>
     <string name="contacts_empty">Không có liên hệ nào</string>
+    <string name="format_chatroom_members">%s thành viên</string>
+    <string name="chatroom">Phòng chat</string>
+    <string name="user">Người dùng</string>
 </resources>

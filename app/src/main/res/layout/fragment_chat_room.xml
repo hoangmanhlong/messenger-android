@@ -96,17 +96,31 @@
                             tools:src="@drawable/baohong" />
                     </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        style="@style/TextAppearance.Material3.BodyLarge"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
                         android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:singleLine="true"
-                        android:text="@{chatroom.chatroomName}"
-                        android:textSize="18sp"
-                        tools:text="@string/author" />
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/TextAppearance.Material3.BodyLarge"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:singleLine="true"
+                            bindChatRoomName="@{chatroom}"
+                            android:textSize="18sp"
+                            tools:text="@string/author" />
+
+                        <TextView
+                            bindChatRoomTypeStatus="@{chatroom}"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            tools:text="68 members" />
+
+                    </LinearLayout>
+
 
                     <ImageView
                         android:id="@+id/AI_animation"
@@ -173,12 +187,12 @@
                     app:layout_constraintTop_toTopOf="parent">
 
                     <androidx.recyclerview.widget.RecyclerView
-                        android:padding="8dp"
-                        android:clipToPadding="false"
                         android:id="@+id/pinnedMessageRecyclerview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clipToPadding="false"
                         android:overScrollMode="never"
+                        android:padding="8dp"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -567,4 +581,3 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
-

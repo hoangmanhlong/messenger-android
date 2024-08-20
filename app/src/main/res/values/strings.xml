@@ -129,4 +129,7 @@
     <string name="contacts">Contacts</string>
     <string name="menu" translatable="false">Menu</string>
     <string name="contacts_empty">No contact yet</string>
+    <string name="format_chatroom_members">%s members</string>
+    <string name="chatroom">Chat room</string>
+    <string name="user">User</string>
 </resources>

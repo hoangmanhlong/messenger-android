@@ -47,7 +47,9 @@ object Constant {
 
     const val FIREBASE_STORAGE_CHAT_ROOM_REF_NAME = "chat_room"
 
-    const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME =
+    const val FIREBASE_STORAGE_IMAGES_OF_MESSAGES_IN_CHAT_ROOM_REF_NAME = "images_of_messages"
+
+    const val FIREBASE_STORAGE_CHAT_ROOM_MESSAGES_IMAGE_REF_NAME =
         "$FIREBASE_STORAGE_CHAT_ROOM_REF_NAME/message_images"
 
     const val FIREBASE_REALTIME_DATABASE_CHAT_ROOM_REF = "chatRooms"
@@ -100,6 +102,8 @@ object Constant {
     const val APP_BASE_URI = "https://${BuildConfig.APPLICATION_ID}/"
 
     fun getAppUrl(endpoint: String): String = "$APP_BASE_URI$endpoint"
+
+    const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME = "chat_room_images"
 }
 
 

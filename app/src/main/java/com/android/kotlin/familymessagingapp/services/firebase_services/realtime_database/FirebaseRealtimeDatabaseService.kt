@@ -121,6 +121,8 @@ class FirebaseRealtimeDatabaseService(
      */
     private var messageSentWhenCreatingDoubleChatRoom: Message? = null
 
+    private var chatRoomSentWhenCreatingDoubleChatRoom: ChatRoom? = null
+
     private val privateUserdataListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             updatePrivateUserData(snapshot.getValue(PrivateUserData::class.java))
@@ -347,7 +349,7 @@ class FirebaseRealtimeDatabaseService(
             try {
                 var updatedUserData = userData
                 if (imageUri != null) {
-                    val downloadUrl = firebaseStorageService.putUserAvatarUriToStorage(
+                    val downloadUrl = firebaseStorageService.putImageUriToStorage(
                         imageUri,
                         firebaseStorageService.userAvatarRef.child(userData.uid!!)
                     )
@@ -523,13 +525,42 @@ class FirebaseRealtimeDatabaseService(
                 socketClient.emitNewMessageToOtherUser(chatRoom, newMessage)
                 Result.Success(true)
             } catch (e: Exception) {
-                Result.Error(e)
+                throw e
+            }
+        }
+    }
+
+    private suspend fun updateChatRoomNameAndImage(chatRoom: ChatRoom): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                var chatRoomImage = chatRoom.chatRoomImage
+                if (!chatRoomImage.isNullOrEmpty()) {
+                    chatRoomImage = firebaseStorageService.putImageUriToStorage(
+                        chatRoom.chatRoomImage!!.toUri(),
+                        firebaseStorageService.initializeChatRoomImageRefInStorage(chatRoom.chatRoomId!!)
+                    )
+                }
+
+                // Add new message, update latest message, latest active time to chat room
+                val chatRoomUpdates = mapOf(
+                    ChatRoom.CHAT_ROOM_IMAGE to chatRoomImage,
+                    ChatRoom.LATEST_TIME to StringUtils.getCurrentTime(),
+                    ChatRoom.CHAT_ROOM_NAME to chatRoom.chatroomName,
+                )
+
+                // Update chat room to Firebase Realtime Database
+                chatRoomsRef.child(chatRoom.chatRoomId!!).updateChildren(chatRoomUpdates).await()
+
+                Result.Success(true)
+            } catch (e: Exception) {
+                throw e
             }
         }
     }
 
     suspend fun createChatRoom(chatRoom: ChatRoom, message: Message?) {
         this.messageSentWhenCreatingDoubleChatRoom = message
+        this.chatRoomSentWhenCreatingDoubleChatRoom = chatRoom
         if (chatRoom.members.isNullOrEmpty() || chatRoom.chatRoomType == null) return
         withContext(Dispatchers.IO) {
             EventBus.getDefault().register(this@FirebaseRealtimeDatabaseService)
@@ -554,6 +585,7 @@ class FirebaseRealtimeDatabaseService(
         coroutineScope.launch {
             val chatRoom: ChatRoom? = createNewChatRoomSocketEvenBus.chatRoom
             val responseStatusCode: Int? = createNewChatRoomSocketEvenBus.responseStatusCode
+            var newChatRoom = this@FirebaseRealtimeDatabaseService.chatRoomSentWhenCreatingDoubleChatRoom
 
             if (ServerCode.SUCCESS.code == responseStatusCode && !chatRoom?.chatRoomId.isNullOrEmpty()) {
                 if (chatRoom?.chatRoomType == ChatRoomType.Double.type && this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom != null) {
@@ -571,14 +603,23 @@ class FirebaseRealtimeDatabaseService(
                         EventBus.getDefault().postSticky(NewChatRoomEventBus(Result.Error(e)))
                     }
                 }
-                if (chatRoom?.chatRoomType == ChatRoomType.Group.type) {
-                    // TODO: Handle group chatroom
+                if (chatRoom?.chatRoomType == ChatRoomType.Group.type && newChatRoom != null) {
+                    try {
+                        newChatRoom = newChatRoom.copy(chatRoomId = chatRoom.chatRoomId)
+                        updateChatRoomNameAndImage(newChatRoom)
+                        EventBus
+                            .getDefault()
+                            .postSticky(NewChatRoomEventBus(Result.Success(chatRoom)))
+                    } catch (e: Exception) {
+                        EventBus.getDefault().postSticky(NewChatRoomEventBus(Result.Error(e)))
+                    }
                 }
             } else {
                 EventBus.getDefault()
                     .postSticky(NewChatRoomEventBus(Result.Error(ServerErrorException())))
             }
             this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom = null
+            this@FirebaseRealtimeDatabaseService.chatRoomSentWhenCreatingDoubleChatRoom = null
             EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
             EventBus.getDefault().removeStickyEvent(createNewChatRoomSocketEvenBus)
         }
@@ -586,9 +627,9 @@ class FirebaseRealtimeDatabaseService(
 
     private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {
         return photo?.let {
-            firebaseStorageService.putUserAvatarUriToStorage(
+            firebaseStorageService.putImageUriToStorage(
                 imageUri = it.toUri(),
-                storageRef = firebaseStorageService.chatroomRef.child(
+                storageRef = firebaseStorageService.chatroomMessageRef.child(
                     StringUtils.getCurrentTime().toString()
                 )
             )

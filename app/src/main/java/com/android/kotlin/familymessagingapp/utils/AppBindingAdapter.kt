@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -69,4 +70,32 @@ fun bindPinnedBy(textView: TextView, pinnedMessage: PinnedMessage) {
         pinnedMessage.senderName,
         StringUtils.formatTime(pinnedMessage.pinTime!!, false)
     )
+}
+
+@BindingAdapter("bindChatRoomTypeStatus")
+fun bindChatRoomTypeStatus(textView: TextView, chatRoom: ChatRoom) {
+    if (chatRoom.chatRoomType == ChatRoomType.Group.type) {
+        val members = chatRoom.members
+        if (members.isNullOrEmpty()) {
+            textView.visibility = View.GONE
+        } else {
+            textView.visibility = View.VISIBLE
+            textView.text = textView.context.getString(
+                R.string.format_chatroom_members,
+                members.size.toString()
+            )
+        }
+    } else {
+        textView.visibility = View.GONE
+    }
+}
+
+@BindingAdapter("bindChatRoomName")
+fun bindChatRoomName(textView: TextView, chatRoom: ChatRoom) {
+    val chatRoomName = chatRoom.chatroomName
+    textView.text = if (chatRoomName.isNullOrEmpty()) {
+        textView.context.getString(if (chatRoom.chatRoomType == ChatRoomType.Group.type) R.string.chatroom else  R.string.user)
+    } else {
+        chatRoomName
+    }
 }

@@ -20,7 +20,9 @@ class FirebaseStorageService(private val application: Application) {
 
     val userAvatarRef = storageRef.child(Constant.FIREBASE_STORAGE_USER_AVATAR_IMAGE_REF_NAME)
 
-    val chatroomRef = storageRef.child(Constant.FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME)
+    val chatRoomRef = storageRef.child(Constant.FIREBASE_STORAGE_CHAT_ROOM_REF_NAME)
+
+    val chatroomMessageRef = storageRef.child(Constant.FIREBASE_STORAGE_CHAT_ROOM_MESSAGES_IMAGE_REF_NAME)
 
     suspend fun createDownloadUrlFromImageUrl(
         imageUrl: String,
@@ -47,7 +49,7 @@ class FirebaseStorageService(private val application: Application) {
         }
     }
 
-    suspend fun putUserAvatarUriToStorage(
+    suspend fun putImageUriToStorage(
         imageUri: Uri,
         storageRef: StorageReference
     ): String? {
@@ -70,5 +72,11 @@ class FirebaseStorageService(private val application: Application) {
                 false
             }
         }
+    }
+
+    fun initializeChatRoomImageRefInStorage(chatroomId: String): StorageReference {
+        return chatRoomRef.child(chatroomId)
+            .child(Constant.FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME)
+            .child(chatroomId)
     }
 }

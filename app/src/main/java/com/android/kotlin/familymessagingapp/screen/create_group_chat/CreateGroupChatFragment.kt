@@ -9,12 +9,17 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentCreateGroupChatBinding
+import com.android.kotlin.familymessagingapp.model.InvalidChatRoomException
+import com.android.kotlin.familymessagingapp.model.ServerErrorException
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -126,6 +131,46 @@ class CreateGroupChatFragment : Fragment() {
                 binding.isEmptyContacts = it.isEmpty()
                 contactAdapter?.submitList(it)
             }
+        }
+
+        viewModel.createNewChatRoomStatus.observe(this.viewLifecycleOwner) {
+            it?.let {
+                when(it) {
+                    is CreateNewChatRoomStatus.Success -> {
+                        (activity as MainActivity).isShowLoadingDialog(false)
+                    }
+                    is CreateNewChatRoomStatus.Fail -> {
+                        (activity as MainActivity).isShowLoadingDialog(false)
+                        var message = R.string.error_occurred
+                        val exception = it.exception
+                        if (exception is InvalidChatRoomException) {
+
+                        } else if(exception is ServerErrorException) {
+
+                        } else {
+
+                        }
+                        showErrorDialog(message)
+                    }
+
+                    is CreateNewChatRoomStatus.Loading -> {
+                        (activity as MainActivity).isShowLoadingDialog(true)
+                    }
+                }
+                viewModel.setCreateNewChatRoomStatus(null)
+            }
+        }
+    }
+
+    private fun showErrorDialog(@StringRes errorMessage: Int) {
+        if (activity == null) {
+            findNavController().navigateUp()
+        } else {
+            DialogUtils.showNotificationDialog(
+                context = requireActivity(),
+                message = errorMessage,
+                cancelable = true
+            ).show()
         }
     }
 }

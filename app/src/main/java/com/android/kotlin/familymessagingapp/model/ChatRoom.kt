@@ -27,8 +27,8 @@ data class ChatRoom(
     val lastMessage: Message? = null,
     val pinnedMessages: Map<String, PinnedMessage>? = null,
     val chatRoomType: String? = null,
-    @Exclude var chatRoomImage: String? = null,
-    @Exclude var chatroomName: String? = null,
+    var chatRoomImage: String? = null,
+    var chatroomName: String? = null,
     @Exclude val membersData: List<UserData>? = null
 ) : Parcelable {
 
@@ -38,23 +38,39 @@ data class ChatRoom(
         const val LAST_MESSAGE = "lastMessage"
         const val LATEST_TIME = "latestTime"
         const val PINNED_MESSAGES = "pinnedMessages"
+        const val CHAT_ROOM_IMAGE = "chatRoomImage"
+        const val CHAT_ROOM_NAME = "chatroomName"
+        const val MEMBERS_DATA = "membersData"
+        const val ACTIVE = "isActive"
     }
 
     @Exclude
     fun getChatRoomNameAndImage() {
+        if (members.isNullOrEmpty() || membersData.isNullOrEmpty()) return
+
         when (chatRoomType) {
             ChatRoomType.Double.type -> {
-                val otherUserUid = members?.firstOrNull { it != Firebase.auth.uid }
-                val userdata = membersData?.firstOrNull { it.uid == otherUserUid }
+                val otherUserUid = members.firstOrNull { it != Firebase.auth.uid }
+                val userdata = membersData.firstOrNull { it.uid == otherUserUid }
                 userdata?.let {
                     this.chatroomName = it.username
                     this.chatRoomImage = it.userAvatar
                 }
+
             }
 
             ChatRoomType.Group.type -> {
-
+                if (chatroomName.isNullOrEmpty()) {
+                    val membersName =
+                        membersData.filter { members.contains(it.uid) }.map { it.username }
+                    this.chatroomName = when {
+                        members.size > 3 -> "${membersName[0]}, ${membersName[1]}, ${membersName[2]}, ..."
+                        members.size == 3 -> "${membersName[0]}, ${membersName[1]}, ${membersName[2]}"
+                        else -> membersName.joinToString(", ")
+                    }
+                }
             }
+
             else -> {}
         }
     }

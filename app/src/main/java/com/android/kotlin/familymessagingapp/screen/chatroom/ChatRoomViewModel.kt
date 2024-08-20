@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 sealed class SendMessageStatus {
@@ -372,10 +373,14 @@ class ChatRoomViewModel @Inject constructor(
                     .firebaseRealtimeDatabaseService
                     .createChatRoom(_chatRoom.value!!, sendMessage)
             } else {
-                val sendResult = firebaseServiceRepository.firebaseRealtimeDatabaseService.pushMessageToChatRoom(
-                    _chatRoom.value!!,
-                    sendMessage
-                )
+                val sendResult = try {
+                    firebaseServiceRepository.firebaseRealtimeDatabaseService.pushMessageToChatRoom(
+                        _chatRoom.value!!,
+                        sendMessage
+                    )
+                } catch (e: Exception) {
+                    Result.Error(e)
+                }
                 when (sendResult) {
                     is Result.Success -> {
                         _sendMessageStatus.value = SendMessageStatus.Success
