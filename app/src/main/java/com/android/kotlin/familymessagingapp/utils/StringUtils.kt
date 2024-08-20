@@ -5,6 +5,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.Message
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -61,11 +63,31 @@ object StringUtils {
         return regex.matches(url)
     }
 
-    fun showLastMessageToChatRoomView(context: Context, message: Message?): String {
+    fun getFormattedLatestMessageOfChatRoom(context: Context, message: Message?): String {
         var result = context.getString(R.string.connected)
         if (message != null) {
             result = if (!message.text.isNullOrEmpty() || !message.photo.isNullOrEmpty()) {
                 if (!message.text.isNullOrEmpty()) message.text else context.getString(R.string.photo_last_message)
+            } else {
+                result
+            }
+            val senderName = message.senderData?.username
+            if (senderName != null) {
+                result = if (message.senderId == Firebase.auth.uid) {
+                    context.getString(R.string.sender_you) + ": $result"
+                } else {
+                    "$senderName: $result"
+                }
+            }
+        }
+        return result
+    }
+
+    fun showPinnedMessage(context: Context, message: Message?): String {
+        var result = context.getString(R.string.connected)
+        message?.let {
+            result = if (!it.text.isNullOrEmpty() || !it.photo.isNullOrEmpty()) {
+                if (!it.text.isNullOrEmpty()) it.text else context.getString(R.string.photo_last_message)
             } else {
                 result
             }

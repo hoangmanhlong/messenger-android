@@ -5,6 +5,7 @@ import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEvent
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 @Parcelize
@@ -24,7 +25,7 @@ data class Message(
     val replyMessageId: String? = null,
     @Exclude var pinned: Boolean? = null,
     @Exclude var replyMessage: Message? = null,
-    @Exclude var senderName: String? = null
+    @Exclude @Contextual var senderData: UserData? = null
 ) : Parcelable {
 
     @Exclude

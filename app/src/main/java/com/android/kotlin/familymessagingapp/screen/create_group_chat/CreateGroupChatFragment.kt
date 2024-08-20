@@ -138,18 +138,19 @@ class CreateGroupChatFragment : Fragment() {
                 when(it) {
                     is CreateNewChatRoomStatus.Success -> {
                         (activity as MainActivity).isShowLoadingDialog(false)
+                        findNavController().navigateUp()
                     }
                     is CreateNewChatRoomStatus.Fail -> {
                         (activity as MainActivity).isShowLoadingDialog(false)
                         var message = R.string.error_occurred
                         val exception = it.exception
-                        if (exception is InvalidChatRoomException) {
-
-                        } else if(exception is ServerErrorException) {
-
-                        } else {
-
-                        }
+//                        if (exception is InvalidChatRoomException) {
+//
+//                        } else if(exception is ServerErrorException) {
+//
+//                        } else {
+//
+//                        }
                         showErrorDialog(message)
                     }
 

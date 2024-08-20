@@ -63,6 +63,10 @@ import kotlin.coroutines.suspendCoroutine
  *
  * Solution: remove all listener before logout
  *
+ * Fatal Exception: java.lang.NullPointerException: Can't pass null for argument 'pathString' in child()
+ *
+ * Solution: check again index of element in array(0, 1, 2...), If(0, 2, 3,...) will crash
+ *
  * #### Problem
  * - [chatroomObserver] When chatroom list of chatroom is changed all chatroom listener cancelled. This is not really optimal. Chatrooms that still exist should not be deleted and re-added.
  */
@@ -264,6 +268,8 @@ class FirebaseRealtimeDatabaseService(
                                 chatroom = chatroom?.copy(membersData = membersData)
 //                                notificationHelper.updateShortcuts(membersData)
                                 chatroom?.getChatRoomNameAndImage()
+                                chatroom?.getSenderDataOfMessage()
+                                chatroom?.getLatestMessageData()
                                 trySend(chatroom).isSuccess
                             }
                         } else {

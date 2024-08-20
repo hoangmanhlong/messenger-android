@@ -97,11 +97,19 @@ data class ChatRoom(
     }
 
     @Exclude
-    fun getSenderNameOfMessage() {
+    fun getSenderDataOfMessage() {
         messages?.values?.forEach { message ->
             message.senderId?.let { senderId ->
-                message.senderName = membersData?.firstOrNull { it.uid == senderId }?.username
+                message.senderData = membersData?.firstOrNull { it.uid == senderId }
             }
         }
     }
+
+    @Exclude
+    fun getLatestMessageData() {
+        lastMessage?.let { message ->
+            message.senderData = membersData?.firstOrNull { it.uid == message.senderId }
+        }
+    }
+
 }

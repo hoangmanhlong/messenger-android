@@ -390,11 +390,11 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
         _viewModel.selectedMessage.observe(this.viewLifecycleOwner) { selectedMessage ->
             if (selectedMessage != null) {
-                binding.tvSenderNameReplyMessage.text = selectedMessage.senderName
+                binding.tvSenderNameReplyMessage.text = selectedMessage.senderData?.username
                 if (!selectedMessage.text.isNullOrEmpty()) {
                     context?.let {
                         binding.tvTextReplyMessage.text =
-                            StringUtils.showLastMessageToChatRoomView(it, selectedMessage)
+                            StringUtils.getFormattedLatestMessageOfChatRoom(it, selectedMessage)
                     }
                 }
                 if (!selectedMessage.photo.isNullOrEmpty()) {

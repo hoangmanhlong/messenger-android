@@ -28,21 +28,29 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
 
 @BindingAdapter("bindChatRoomImage")
 fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
-    val defaultImageRes = when (chatRoom.chatRoomType) {
-        ChatRoomType.Double.type -> R.drawable.ic_user_default
-        ChatRoomType.Group.type -> R.drawable.group
-        else -> R.drawable.ic_user_default
-    }
-
     val chatRoomImageUrl = chatRoom.chatRoomImage
     if (chatRoomImageUrl.isNullOrEmpty()) {
+        val defaultImageRes = when (chatRoom.chatRoomType) {
+            ChatRoomType.Double.type -> R.drawable.ic_user_default
+            ChatRoomType.Group.type -> R.drawable.group
+            else -> R.drawable.ic_user_default
+        }
         imageView.setImageResource(defaultImageRes)
     } else {
+        val density = imageView.context.resources.displayMetrics.density
+        val imageViewWidth = imageView.width
+        val imageViewHeight = imageView.height
+
+        // Giới hạn kích thước hình ảnh dựa trên mật độ màn hình và kích thước của ImageView
+        val targetWidth = (imageViewWidth * density).toInt()
+        val targetHeight = (imageViewHeight * density).toInt()
+
         Glide.with(imageView.context)
             .load(chatRoomImageUrl)
             .error(R.drawable.ic_broken_image)
             .placeholder(R.drawable.loading_animation)
-            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            .override(targetWidth, targetHeight)
+            .fitCenter()
             .into(imageView)
     }
 }
@@ -60,7 +68,7 @@ fun bindMessageFormattedTime(textView: TextView, time: Long) {
 
 @BindingAdapter("bindLastMessageOfChatroom")
 fun bindLastMessageOfChatroom(textView: TextView, message: Message?) {
-    textView.text = StringUtils.showLastMessageToChatRoomView(textView.context, message)
+    textView.text = StringUtils.getFormattedLatestMessageOfChatRoom(textView.context, message)
 }
 
 @BindingAdapter("bindPinnedBy")
@@ -88,6 +96,12 @@ fun bindChatRoomTypeStatus(textView: TextView, chatRoom: ChatRoom) {
     } else {
         textView.visibility = View.GONE
     }
+}
+
+@BindingAdapter("bindFormattedContentOfPinnedMessage")
+fun bindFormattedContentOfPinnedMessage(textView: TextView, pinnedMessage: PinnedMessage) {
+    val pinnedMessageData = pinnedMessage.pinnedMessageData
+    textView.text = StringUtils.showPinnedMessage(textView.context, pinnedMessageData)
 }
 
 @BindingAdapter("bindChatRoomName")

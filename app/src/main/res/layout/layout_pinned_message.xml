@@ -27,7 +27,7 @@
         <TextView
             style="@style/TextAppearance.Material3.BodyLarge"
             android:id="@+id/tvPinnedMessageText"
-            bindLastMessageOfChatroom="@{pinnedMessage.pinnedMessageData}"
+            bindFormattedContentOfPinnedMessage="@{pinnedMessage}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

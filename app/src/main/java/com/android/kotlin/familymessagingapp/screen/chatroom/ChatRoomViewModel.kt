@@ -296,7 +296,6 @@ class ChatRoomViewModel @Inject constructor(
                     chatRoomType = chatRoom?.chatRoomType
                 )
                 _chatRoom.value?.getReplyMessages()
-                _chatRoom.value?.getSenderNameOfMessage()
                 _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
                 if (chatRoom != null) {
                     viewModelScope.launch {
