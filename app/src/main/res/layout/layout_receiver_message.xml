@@ -23,6 +23,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/receiverMessageView"
         android:layout_width="match_parent"
+        android:paddingBottom="4dp"
         android:layout_height="wrap_content">
 
         <androidx.constraintlayout.widget.Guideline
@@ -30,17 +31,35 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.8" />
+            app:layout_constraintGuide_percent="0.9" />
+
+        <com.google.android.material.card.MaterialCardView
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/ivAvatar"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            app:cardCornerRadius="15dp"
+            app:strokeWidth="0dp">
+
+            <ImageView
+                bindNormalImage="@{message.senderData.userAvatar}"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/baohong" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
+            android:layout_marginStart="8dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="4dp"
             android:gravity="start"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@id/guideline"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivAvatar"
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
@@ -51,6 +70,13 @@
                 android:textSize="12sp"
                 android:visibility="@{isPinnedMessage ? View.VISIBLE : View.GONE}" />
 
+            <TextView
+                android:layout_marginStart="4dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                bindSenderNameOfMessage="@{message}"
+                tools:text="John Doe" />
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
@@ -59,7 +85,6 @@
                     android:id="@+id/messageContentView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="4dp"
                     android:orientation="vertical"
                     app:layout_constraintTop_toTopOf="parent">
 

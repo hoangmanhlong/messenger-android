@@ -116,11 +116,18 @@ fun bindFormattedContentOfPinnedMessage(textView: TextView, pinnedMessage: Pinne
     textView.text = StringUtils.showPinnedMessage(textView.context, pinnedMessageData)
 }
 
+@BindingAdapter("bindSenderNameOfMessage")
+fun bindSenderNameOfMessage(textView: TextView, message: Message) {
+    val senderName = message.senderData?.username
+    textView.text =
+        if (senderName.isNullOrEmpty()) textView.context.getString(R.string.app_user) else senderName
+}
+
 @BindingAdapter("bindChatRoomName")
 fun bindChatRoomName(textView: TextView, chatRoom: ChatRoom) {
     val chatRoomName = chatRoom.chatroomName
     textView.text = if (chatRoomName.isNullOrEmpty()) {
-        textView.context.getString(if (chatRoom.chatRoomType == ChatRoomType.Group.type) R.string.chatroom else  R.string.user)
+        textView.context.getString(if (chatRoom.chatRoomType == ChatRoomType.Group.type) R.string.chatroom else R.string.user)
     } else {
         chatRoomName
     }

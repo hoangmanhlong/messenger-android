@@ -127,4 +127,7 @@
     <string name="block">Chặn</string>
     <string name="search_in_conversation">Tìm kiếm trong cuộc trò chuyện</string>
     <string name="pinned_messages">Tin nhắn được ghim</string>
+    <string name="audio_call">Gọi thoại</string>
+    <string name="video_call">Gọi video</string>
+    <string name="app_user">Người dùng ứng dụng</string>
 </resources>

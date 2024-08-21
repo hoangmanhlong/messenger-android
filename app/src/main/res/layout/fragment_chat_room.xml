@@ -253,8 +253,8 @@
                             android:id="@+id/messageRecyclerview"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:overScrollMode="never"
                             android:clipToPadding="false"
+                            android:overScrollMode="never"
                             android:padding="10dp"
                             tools:listitem="@layout/layout_sender_message" />
 
@@ -439,7 +439,6 @@
                     android:layout_height="wrap_content"
                     android:padding="8dp">
 
-
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/inputViewContainer"
                         android:layout_width="0dp"
@@ -448,7 +447,6 @@
                         app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="25dp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/btSendMessage"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -460,9 +458,6 @@
                             android:orientation="horizontal"
                             android:paddingHorizontal="8dp"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintEnd_toStartOf="@id/btSendMessage"
-                            app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent">
 
                             <EditText

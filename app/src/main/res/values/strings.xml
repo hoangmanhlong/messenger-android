@@ -140,4 +140,7 @@
     <string name="block">Block</string>
     <string name="search_in_conversation">Search in conversation</string>
     <string name="pinned_messages">Pinned messages</string>
+    <string name="audio_call">Audio call</string>
+    <string name="video_call">Video call</string>
+    <string name="app_user">App user</string>
 </resources>
