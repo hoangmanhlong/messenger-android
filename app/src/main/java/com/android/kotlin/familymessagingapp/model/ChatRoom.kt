@@ -29,7 +29,8 @@ data class ChatRoom(
     val chatRoomType: String? = null,
     var chatRoomImage: String? = null,
     var chatroomName: String? = null,
-    @Exclude val membersData: List<UserData>? = null
+    @Exclude val membersData: List<UserData>? = null,
+    @Exclude val roleInChatRoom: String? = null
 ) : Parcelable {
 
     companion object {

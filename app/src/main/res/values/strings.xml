@@ -132,4 +132,12 @@
     <string name="format_chatroom_members">%s members</string>
     <string name="chatroom">Chat room</string>
     <string name="user">User</string>
+    <string name="add_chatroom_description">Add group description</string>
+    <string name="leave_group">Leave group</string>
+    <string name="add_members">Add members</string>
+    <string name="members">Members</string>
+    <string name="leave_chatroom_warning">Are you sure you want to leave the group?</string>
+    <string name="block">Block</string>
+    <string name="search_in_conversation">Search in conversation</string>
+    <string name="pinned_messages">Pinned messages</string>
 </resources>

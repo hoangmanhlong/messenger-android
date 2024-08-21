@@ -21,6 +21,9 @@
         <action
             android:id="@+id/action_chatRoomFragment_to_callFragment"
             app:destination="@id/callFragment" />
+        <action
+            android:id="@+id/action_chatRoomFragment_to_chatRoomDetailFragment"
+            app:destination="@id/chatRoomDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/loginFragment"
@@ -116,4 +119,9 @@
         android:name="com.android.kotlin.familymessagingapp.screen.create_group_chat.CreateGroupChatFragment"
         android:label="fragment_create_group_chat"
         tools:layout="@layout/fragment_create_group_chat" />
+    <fragment
+        android:id="@+id/chatRoomDetailFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.chatroom_detail.ChatRoomDetailFragment"
+        android:label="fragment_chat_room_detail"
+        tools:layout="@layout/fragment_chat_room_detail" />
 </navigation>

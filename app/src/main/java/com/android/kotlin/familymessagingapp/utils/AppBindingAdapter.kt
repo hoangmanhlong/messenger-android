@@ -98,6 +98,18 @@ fun bindChatRoomTypeStatus(textView: TextView, chatRoom: ChatRoom) {
     }
 }
 
+@BindingAdapter("visibleViewGroupChatRoom")
+fun visibleViewGroupChatRoom(view: View, chatRoomType: String?) {
+    if (chatRoomType.isNullOrEmpty()) return
+    view.visibility = if (chatRoomType == ChatRoomType.Group.type) View.VISIBLE else View.GONE
+}
+
+@BindingAdapter("visibleViewDoubleChatRoom")
+fun visibleViewDoubleChatRoom(view: View, chatRoomType: String?) {
+    if (chatRoomType.isNullOrEmpty()) return
+    view.visibility = if (chatRoomType == ChatRoomType.Double.type) View.VISIBLE else View.GONE
+}
+
 @BindingAdapter("bindFormattedContentOfPinnedMessage")
 fun bindFormattedContentOfPinnedMessage(textView: TextView, pinnedMessage: PinnedMessage) {
     val pinnedMessageData = pinnedMessage.pinnedMessageData

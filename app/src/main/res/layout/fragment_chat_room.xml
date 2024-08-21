@@ -105,11 +105,11 @@
 
                         <TextView
                             style="@style/TextAppearance.Material3.BodyLarge"
+                            bindChatRoomName="@{chatroom}"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
                             android:singleLine="true"
-                            bindChatRoomName="@{chatroom}"
                             android:textSize="18sp"
                             tools:text="@string/author" />
 
@@ -237,14 +237,28 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/messageRecyclerview"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:clipToPadding="false"
-                        android:padding="10dp"
-                        android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}"
-                        tools:listitem="@layout/layout_sender_message" />
+                        android:orientation="vertical"
+                        android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}">
+
+                        <View
+                            android:id="@+id/messagesBlankView"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/messageRecyclerview"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:overScrollMode="never"
+                            android:clipToPadding="false"
+                            android:padding="10dp"
+                            tools:listitem="@layout/layout_sender_message" />
+
+                    </LinearLayout>
 
 
                     <!--                <androidx.constraintlayout.widget.ConstraintLayout-->

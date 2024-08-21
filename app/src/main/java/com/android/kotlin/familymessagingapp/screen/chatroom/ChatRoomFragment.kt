@@ -13,7 +13,7 @@ import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -21,18 +21,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.StringUtils
+import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -62,7 +63,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
     }
 
     // Use the 'by activityViewModels()' Kotlin property delegate from the fragment-ktx artifact
-    private val _viewModel: ChatRoomViewModel by viewModels()
+    private val _viewModel: ChatRoomViewModel by activityViewModels()
 
     private var _binding: FragmentChatRoomBinding? = null
 
@@ -108,20 +109,6 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 //            reverseLayout = false
         }
         messageRecyclerview?.layoutManager = messageLayoutManager
-
-//        messageRecyclerview?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                super.onScrolled(recyclerView, dx, dy)
-//
-//                val visibleItemCount = messageLayoutManager.childCount
-//                val totalItemCount = messageLayoutManager.itemCount
-//                val firstVisibleItemPosition = messageLayoutManager.findFirstVisibleItemPosition()
-//
-//                if (!isLoading && visibleItemCount + firstVisibleItemPosition >= totalItemCount && firstVisibleItemPosition >= 0) {
-//                    loadMoreItems()
-//                }
-//            }
-//        })
 
         messageAdapter = MessageAdapter(
             onMessageContentViewClick = {
@@ -243,9 +230,13 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             _viewModel.setReplyingMessage(false)
         }
 
-        messageRecyclerview?.setOnTouchListener { _, _ ->
+        binding.messagesBlankView.setOnClickListener {
             hideKeyboard()
-            false
+            _viewModel.hideEmojiPicker()
+        }
+
+        binding.btInfo.setOnClickListener {
+            findNavController().navigate(Screen.ChatRoomDetail.screenId)
         }
 
         return binding.root
@@ -490,7 +481,11 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        _viewModel.hideLessPinnedMessage()
+        // Since ChatRoomViewModel is managed by activity, data needs to be reset when ChatRoomFragment or ChatRoomDetail Destroy
+        if (findNavController().currentDestination?.id != Screen.ChatRoomDetail.screenId
+            || findNavController().previousBackStackEntry?.destination?.id != Screen.ChatRoom.screenId) {
+            _viewModel.resetState()
+        }
     }
 
     private fun openMessageOptions(isMessageOfMe: Boolean, isPinnedMessage: Boolean) {

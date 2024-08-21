@@ -118,6 +118,30 @@ class ChatRoomViewModel @Inject constructor(
         _selectPhotoVisibleStatus.value = visible
     }
 
+    fun resetState() {
+        selectedMessageIsPinnedMessage = null
+        selectedMessageIsMessageOfMe = null
+        _isExpandPinnedMessage.value = false
+        _imageDetailShown.value = false
+        _selectPhotoVisibleStatus.value = true
+        _isLoading.value = false
+        _pinMessageStatus.value = null
+        _emojiPickerVisible.value = false
+        _sendMessageStatus.value = null
+        _selectedMessage.value = null
+        _pinnedMessages.value = emptyList()
+        _saveImageState.value = null
+        imageMessageDrawable = null
+        _chatRoom.value = ChatRoom()
+        _AIGeneratedText.value = null
+        _AICreating.value = false
+        _isInputValid.value = isInputValid()
+        _selectedItems.value = emptyList()
+        _clearEdiText.value = false
+        _replyingMessage.value = false
+        message = Message()
+    }
+
     fun changeEmojiPickerVisibleStatus() {
         _emojiPickerVisible.value = !_emojiPickerVisible.value!!
     }
@@ -405,6 +429,10 @@ class ChatRoomViewModel @Inject constructor(
                 selectedMessage.value!!.text!!
             )
         }
+    }
+
+    fun leaveChatRoom() {
+
     }
 
     companion object {

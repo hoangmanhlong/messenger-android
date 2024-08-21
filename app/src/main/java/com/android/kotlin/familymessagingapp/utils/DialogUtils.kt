@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.view.Gravity
-import android.widget.LinearLayout
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import com.android.kotlin.familymessagingapp.R
@@ -79,6 +77,21 @@ object DialogUtils {
             onNegativeClick = onNegativeClick,
             onCancelListener = onCancelListener
         )
+    }
+
+    fun leaveChatRoomDialog(context: Context, onPositiveClick: () -> Unit?): AlertDialog {
+        return createCommonDialog(
+            context = context,
+            title = R.string.leave_group,
+            message = R.string.leave_chatroom_warning,
+            cancelable = true,
+            positiveButtonLabel = R.string.ok,
+            negativeButtonLabel = R.string.cancel,
+            onPositiveClick = onPositiveClick,
+            onNegativeClick = {},
+            onCancelListener = {}
+        )
+            .create()
     }
 
     fun showNotificationDialog(

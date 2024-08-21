@@ -119,4 +119,12 @@
     <string name="format_chatroom_members">%s thành viên</string>
     <string name="chatroom">Phòng chat</string>
     <string name="user">Người dùng</string>
+    <string name="add_chatroom_description">Thêm mô tả nhóm</string>
+    <string name="leave_group">Rời nhóm</string>
+    <string name="add_members">Thêm thành viên</string>
+    <string name="members">Thành viên</string>
+    <string name="leave_chatroom_warning">Bạn có chắc muốn rời nhóm?</string>
+    <string name="block">Chặn</string>
+    <string name="search_in_conversation">Tìm kiếm trong cuộc trò chuyện</string>
+    <string name="pinned_messages">Tin nhắn được ghim</string>
 </resources>
