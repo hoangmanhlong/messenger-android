@@ -130,4 +130,5 @@
     <string name="audio_call">Gọi thoại</string>
     <string name="video_call">Gọi video</string>
     <string name="app_user">Người dùng ứng dụng</string>
+    <string name="_new">Mới</string>
 </resources>

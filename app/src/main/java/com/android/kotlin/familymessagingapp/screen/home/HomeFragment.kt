@@ -187,6 +187,10 @@ class HomeFragment : Fragment() {
             removeSearchHistory(null, true)
         }
 
+        binding.btCreateNewChatRoom.setOnClickListener {
+            findNavController().navigate(Screen.CreateGroupChat.screenId)
+        }
+
 //        storyRecyclerView = binding.storyRecyclerView
 //        storyRecyclerView?.layoutManager = CarouselLayoutManager()
 //        val snapHelper = CarouselSnapHelper()

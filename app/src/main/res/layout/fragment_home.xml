@@ -111,6 +111,18 @@
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
+                <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                    android:id="@+id/btCreateNewChatRoom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="32dp"
+                    android:text="@string/_new"
+                    android:textSize="16sp"
+                    app:fabSize="mini"
+                    app:icon="@drawable/ic_group_add"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 

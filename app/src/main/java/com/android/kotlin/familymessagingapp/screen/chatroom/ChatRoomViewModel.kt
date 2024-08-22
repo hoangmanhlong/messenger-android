@@ -56,6 +56,9 @@ class ChatRoomViewModel @Inject constructor(
 
     private var selectedMessageIsMessageOfMe: Boolean? = null
 
+    var initializedForTheFirstTime = false
+        private set
+
     private val _isExpandPinnedMessage: MutableLiveData<Boolean> = MutableLiveData(false)
     val isExpandPinnedMessage: LiveData<Boolean> = _isExpandPinnedMessage
 
@@ -119,6 +122,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun resetState() {
+        initializedForTheFirstTime = false
         selectedMessageIsPinnedMessage = null
         selectedMessageIsMessageOfMe = null
         _isExpandPinnedMessage.value = false
@@ -299,6 +303,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     private fun initChatRoomListener() {
+        initializedForTheFirstTime = true
         val chatRoomId = _chatRoom.value?.chatRoomId
         if (!chatRoomId.isNullOrEmpty()) {
             chatroomLiveData = firebaseServiceRepository

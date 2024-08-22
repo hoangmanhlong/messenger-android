@@ -71,7 +71,7 @@
                 android:visibility="@{isPinnedMessage ? View.VISIBLE : View.GONE}" />
 
             <TextView
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 bindSenderNameOfMessage="@{message}"

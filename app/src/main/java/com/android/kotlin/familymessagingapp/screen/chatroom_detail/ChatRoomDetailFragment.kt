@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -22,6 +24,14 @@ class ChatRoomDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var leaveChatRoomDialog: AlertDialog? = null
+
+    // Registers a photo picker activity launcher in single-select mode.
+    private val pickMultipleMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+            it?.let {
+                binding.ivAvatar.setImageURI(it)
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +61,11 @@ class ChatRoomDetailFragment : Fragment() {
                 leaveChatRoomDialog?.show()
             }
         }
+
+        binding.ivAvatar.setOnClickListener {
+            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+
         return binding.root
     }
 

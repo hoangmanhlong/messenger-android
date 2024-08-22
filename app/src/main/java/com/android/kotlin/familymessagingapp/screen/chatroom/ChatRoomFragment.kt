@@ -344,9 +344,13 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         }
 
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
-            it?.let {
+            if (it != null) {
                 when (it) {
-                    is SendMessageStatus.Sending -> binding.btSendMessage.isEnabled = false
+                    is SendMessageStatus.Sending -> {
+                        binding.btSendMessage.isEnabled = false
+                        binding.sendingProgressIndicator.visibility = View.VISIBLE
+                        binding.sendingProgressIndicator.isIndeterminate = true
+                    }
 
                     is SendMessageStatus.Success -> _viewModel.setSendMessageStatus(null)
 
@@ -355,6 +359,9 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
                         _viewModel.setSendMessageStatus(null)
                     }
                 }
+            } else {
+                binding.sendingProgressIndicator.visibility = View.GONE
+                binding.sendingProgressIndicator.isIndeterminate = false
             }
         }
 
@@ -449,6 +456,9 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
      * Else set chatroom and userdata to viewModel
      */
     private fun getSharedData() {
+        // If initialized for the first time then exist
+        if (_viewModel.initializedForTheFirstTime) return
+
         val chatroom = args.chatroom
         val userdata = args.userdata
         if (chatroom == null && userdata == null) {

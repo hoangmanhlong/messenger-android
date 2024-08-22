@@ -68,29 +68,22 @@
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvChatRoomName"
+                    style="@style/TextAppearance.Material3.HeadlineSmall"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp">
-
-                    <TextView
-                        android:id="@+id/tvChatRoomName"
-                        style="@style/TextAppearance.Material3.HeadlineSmall"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:ellipsize="end"
-                        android:gravity="center_horizontal"
-                        android:maxLines="2"
-                        android:paddingHorizontal="32dp"
-                        android:text="@{chatRoom.chatroomName}"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="Hoang Manh Long" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:gravity="center_horizontal"
+                    android:maxLines="2"
+                    android:text="@{chatRoom.chatroomName}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Hoang Manh Long" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
