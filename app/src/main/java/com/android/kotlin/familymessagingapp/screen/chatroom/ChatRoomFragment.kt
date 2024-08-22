@@ -239,6 +239,10 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             findNavController().navigate(Screen.ChatRoomDetail.screenId)
         }
 
+        binding.btMoreAction.setOnClickListener {
+
+        }
+
         return binding.root
     }
 

@@ -143,4 +143,5 @@
     <string name="audio_call">Audio call</string>
     <string name="video_call">Video call</string>
     <string name="app_user">App user</string>
+    <string name="format_time_message_of_receiver_message" translatable="false">• %s</string>
 </resources>
