@@ -74,12 +74,12 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         //  Save Totken into dataStore and send the
         // FCM registration token to your app server.
 
-        val uploadWorkRequest: WorkRequest =
-            OneTimeWorkRequestBuilder<SaveFCMTokenToLocalAndSendToServerWorker>()
-                .setInputData(workDataOf(Constant.FCM_TOKEN_KEY to token))
-                .build()
-
-        WorkManager.getInstance(application).enqueue(uploadWorkRequest)
+//        val uploadWorkRequest: WorkRequest =
+//            OneTimeWorkRequestBuilder<SaveFCMTokenToLocalAndSendToServerWorker>()
+//                .setInputData(workDataOf(Constant.FCM_TOKEN_KEY to token))
+//                .build()
+//
+//        WorkManager.getInstance(application).enqueue(uploadWorkRequest)
     }
     // [END on_new_token]
 

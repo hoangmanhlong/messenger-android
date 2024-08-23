@@ -100,7 +100,7 @@
 
                         <ImageView
                             android:id="@+id/image"
-                            bindNormalImage="@{message.photo}"
+                            bindPhotoMessage="@{message.photo}"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:adjustViewBounds="true"

@@ -21,9 +21,21 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
             .load(photo)
             .error(R.drawable.ic_broken_image)
             .placeholder(R.drawable.loading_animation)
-            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            .override(600, 600)
             .into(imageView)
     } ?: imageView.setImageResource(R.drawable.ic_user_default)
+}
+
+@BindingAdapter("bindPhotoMessage")
+fun <T> bindPhotoMessage(imageView: ImageView, photo: T?) {
+    photo?.let {
+        Glide.with(imageView.context)
+            .load(photo)
+            .error(R.drawable.ic_broken_message_image)
+            .placeholder(R.drawable.image_placeholder)
+            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            .into(imageView)
+    }
 }
 
 @BindingAdapter("bindChatRoomImage")

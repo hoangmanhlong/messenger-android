@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.view.View
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
@@ -252,5 +253,20 @@ object MediaUtils {
         } catch (e: Exception) {
             null
         }
+    }
+
+    fun isValidMediaFileSize(context: Context, uri: Uri): Boolean {
+        val fileSizeInBytes = getFileSize(context, uri)
+        val fileSizeInMB = fileSizeInBytes / (1024 * 1024)
+        return fileSizeInMB < Constant.MAXIMUM_FILE_SIZE_MB
+    }
+
+    private fun getFileSize(context: Context, uri: Uri): Long {
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        return cursor?.use {
+            val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
+            it.moveToFirst()
+            it.getLong(sizeIndex)
+        } ?: 0
     }
 }

@@ -21,7 +21,7 @@
             android:layout_height="0dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:background="@color/md_theme_primary"
+            android:background="@drawable/bg_rounded_corners_view"
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView

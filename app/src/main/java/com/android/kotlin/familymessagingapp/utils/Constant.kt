@@ -4,6 +4,8 @@ import com.android.kotlin.familymessagingapp.BuildConfig
 
 object Constant {
 
+    const val MAXIMUM_FILE_SIZE_MB = 3
+
     const val USER_DATA_KEY = "USER_DATA_KEY"
 
     const val FCM_TOKEN_KEY = "FCM_TOKEN_KEY"

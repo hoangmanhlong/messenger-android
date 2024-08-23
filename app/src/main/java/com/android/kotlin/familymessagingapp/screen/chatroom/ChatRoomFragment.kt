@@ -31,6 +31,7 @@ import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
@@ -72,10 +73,21 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            _viewModel.setImageUri(uri)
-            if (Lifecycle.State.STARTED == lifecycle.currentState) {
-                if (binding.etMessage.hasFocus()) {
-                    KeyBoardUtils.showKeyboard(binding.etMessage)
+            if (context != null && uri != null) {
+                if (MediaUtils.isValidMediaFileSize(requireContext(), uri)) {
+                    _viewModel.setImageUri(uri)
+                    if (Lifecycle.State.STARTED == lifecycle.currentState) {
+                        if (binding.etMessage.hasFocus()) {
+                            KeyBoardUtils.showKeyboard(binding.etMessage)
+                        }
+                    }
+                } else {
+                    Snackbar.make(
+                        requireContext(),
+                        binding.inputViewContainer,
+                        "Selected image is larger than 3MB. Please choose a smaller image.",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -497,7 +509,8 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         super.onDestroy()
         // Since ChatRoomViewModel is managed by activity, data needs to be reset when ChatRoomFragment or ChatRoomDetail Destroy
         if (findNavController().currentDestination?.id != Screen.ChatRoomDetail.screenId
-            || findNavController().previousBackStackEntry?.destination?.id != Screen.ChatRoom.screenId) {
+            || findNavController().previousBackStackEntry?.destination?.id != Screen.ChatRoom.screenId
+        ) {
             _viewModel.resetState()
         }
     }
