@@ -8,6 +8,11 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
+data class Reaction(
+    val emoji: String,
+    val reactedBy: List<String>
+)
+
 @Parcelize
 @Serializable
 @IgnoreExtraProperties
@@ -21,7 +26,7 @@ data class Message(
     val timestamp: Long? = null,
     val status: Int? = null,
     val type: Int? = null,
-    val emoticon: String? = null,
+    val reactions: Map<String, Map<String, Boolean>>? = null,
     val replyMessageId: String? = null,
     @Exclude var pinned: Boolean? = null,
     @Exclude var replyMessage: Message? = null,
@@ -29,7 +34,7 @@ data class Message(
 ) : Parcelable {
 
     @Exclude
-    fun isEmoticonEmpty(): Boolean = emoticon.isNullOrEmpty()
+    fun isEmoticonEmpty(): Boolean = reactions.isNullOrEmpty()
 
     @Exclude
     fun isPhotoEmpty(): Boolean = photo.isNullOrEmpty()
@@ -41,7 +46,7 @@ data class Message(
     fun isPinned(): Boolean = pinned ?: false
 
     companion object {
-        const val EMOTICON = "emoticon"
+        const val REACTIONS = "reactions"
     }
 }
 

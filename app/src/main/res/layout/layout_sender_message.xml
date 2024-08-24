@@ -43,13 +43,13 @@
             app:layout_constraintStart_toEndOf="@id/guideline"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/pinned"
-                android:textSize="12sp"
-                android:visibility="@{isPinnedMessage ? View.VISIBLE : View.GONE}" />
+            <!--            <TextView-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginEnd="16dp"-->
+            <!--                android:text="@string/pinned"-->
+            <!--                android:textSize="12sp"-->
+            <!--                android:visibility="@{isPinnedMessage ? View.VISIBLE : View.GONE}" />-->
 
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -90,7 +90,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:visibility="@{message.isTextEmpty() ? View.GONE : View.VISIBLE}"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintBottom_toTopOf="@id/reactionsRecyclerView"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/imageMessageCardView">
 
@@ -121,21 +121,20 @@
                         </androidx.constraintlayout.widget.ConstraintLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
-                </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <TextView
-                    android:id="@+id/tvEmoji"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_message_emoji"
-                    android:paddingHorizontal="6dp"
-                    android:text="@{message.emoticon}"
-                    android:textSize="12sp"
-                    android:visibility="@{message.isEmoticonEmpty() ? View.GONE : View.VISIBLE}"
-                    app:layout_constraintBottom_toBottomOf="@id/messageContentView"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/messageContentView"
-                    tools:text="❤️" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/reactionsRecyclerView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="4dp"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        tools:itemCount="4"
+                        tools:listitem="@layout/layout_emoji_message" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

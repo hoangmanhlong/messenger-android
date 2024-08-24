@@ -2,6 +2,7 @@ package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutReceiverMessageBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBinding
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.Reaction
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -29,7 +31,22 @@ class MessageAdapter(
     inner class SenderMessageViewHolder(
         private val binding: LayoutSenderMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        private var reactionsAdapter: ReactionsAdapter? = null
+
+        init {
+            reactionsAdapter = ReactionsAdapter {
+
+            }
+            binding.reactionsRecyclerView.adapter = reactionsAdapter
+        }
+
         fun bind(message: Message) {
+            val reactions = message.reactions?.entries?.map {
+                Reaction(it.key, it.value.entries.map { it.key })
+            }
+            binding.reactionsRecyclerView.visibility = if(reactions == null) View.GONE else View.VISIBLE
+            reactionsAdapter?.submitList(reactions)
             if (!message.isTextEmpty()) {
                 binding.textMessageConstraintLayout.setOnLongClickListener {
                     onMessageLongClick(true, message)
@@ -56,7 +73,22 @@ class MessageAdapter(
     inner class ReceiverMessageViewHolder(
         private val binding: LayoutReceiverMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        private var reactionsAdapter: ReactionsAdapter? = null
+
+        init {
+            reactionsAdapter = ReactionsAdapter {
+
+            }
+            binding.reactionsRecyclerView.adapter = reactionsAdapter
+        }
+
         fun bind(message: Message) {
+            val reactions = message.reactions?.entries?.map {
+                Reaction(it.key, it.value.entries.map { it.key })
+            }
+            binding.reactionsRecyclerView.visibility = if(reactions == null) View.GONE else View.VISIBLE
+            reactionsAdapter?.submitList(reactions)
             if (!message.isTextEmpty()) {
                 binding.textMessageConstraintLayout.setOnLongClickListener {
                     onMessageLongClick(false, message)

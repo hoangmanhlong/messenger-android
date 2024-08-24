@@ -85,7 +85,10 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
                     Snackbar.make(
                         requireContext(),
                         binding.inputViewContainer,
-                        "Selected image is larger than 3MB. Please choose a smaller image.",
+                        requireContext().getString(
+                            R.string.file_size_exceed_limit,
+                            Constant.MAXIMUM_FILE_SIZE_MB.toString()
+                        ),
                         Snackbar.LENGTH_SHORT
                     ).show()
                 }
@@ -140,7 +143,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         pinnedMessageRecyclerview = binding.pinnedMessageRecyclerview
         pinnedMessageAdapter = PinnedMessageAdapter {
             if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
-                messageRecyclerview!!.smoothScrollToPosition(messageAdapter!!.getPositionById(it.messageId))
+                messageRecyclerview!!.scrollToPosition(messageAdapter!!.getPositionById(it.messageId))
             }
         }
         pinnedMessageRecyclerview?.adapter = pinnedMessageAdapter
@@ -405,10 +408,10 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
         _viewModel.selectedMessage.observe(this.viewLifecycleOwner) { selectedMessage ->
             if (selectedMessage != null) {
                 binding.tvSenderNameReplyMessage.text = selectedMessage.senderData?.username
-                if (!selectedMessage.text.isNullOrEmpty()) {
+                if (!selectedMessage.text.isNullOrEmpty() || !selectedMessage.photo.isNullOrEmpty()) {
                     context?.let {
                         binding.tvTextReplyMessage.text =
-                            StringUtils.getFormattedLatestMessageOfChatRoom(it, selectedMessage)
+                            if (selectedMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else selectedMessage.text
                     }
                 }
                 if (!selectedMessage.photo.isNullOrEmpty()) {

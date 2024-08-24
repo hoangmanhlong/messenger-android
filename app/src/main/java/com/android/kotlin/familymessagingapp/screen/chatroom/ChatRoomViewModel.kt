@@ -29,12 +29,10 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.util.concurrent.Executor
 import javax.inject.Inject
 
 sealed class SendMessageStatus {
@@ -95,7 +93,7 @@ class ChatRoomViewModel @Inject constructor(
     private val _chatRoom: MutableLiveData<ChatRoom?> = MutableLiveData(ChatRoom())
     val chatRoom: LiveData<ChatRoom?> = _chatRoom
 
-    private lateinit var chatroomLiveData: LiveData<ChatRoom?>
+    private var chatroomLiveData: LiveData<ChatRoom?>? = null
 
     private val _AIGeneratedText: MutableLiveData<String?> = MutableLiveData(null)
     val AIGeneratedText: LiveData<String?> = _AIGeneratedText
@@ -122,6 +120,8 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun resetState() {
+        firebaseServiceRepository.firebaseRealtimeDatabaseService.removeCurrentChatRoomListener()
+        chatroomLiveData = null
         initializedForTheFirstTime = false
         selectedMessageIsPinnedMessage = null
         selectedMessageIsMessageOfMe = null
@@ -299,6 +299,7 @@ class ChatRoomViewModel @Inject constructor(
             membersData = chatRoom.membersData,
             chatRoomType = chatRoom.chatRoomType
         )
+        _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
         initChatRoomListener()
     }
 
@@ -308,11 +309,10 @@ class ChatRoomViewModel @Inject constructor(
         if (!chatRoomId.isNullOrEmpty()) {
             chatroomLiveData = firebaseServiceRepository
                 .firebaseRealtimeDatabaseService
-                .chatRooms
-                .map { list -> list?.firstOrNull { it.chatRoomId == chatRoomId } }
+                .addChatRoomByIdListener(chatRoomId)
                 .asLiveData()
 
-            chatroomLiveData.observeForever { chatRoom ->
+            chatroomLiveData?.observeForever { chatRoom ->
                 _chatRoom.value = _chatRoom.value?.copy(
                     chatRoomId = chatRoom?.chatRoomId,
                     messages = chatRoom?.messages,

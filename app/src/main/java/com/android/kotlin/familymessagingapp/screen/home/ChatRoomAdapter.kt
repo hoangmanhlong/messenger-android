@@ -49,7 +49,7 @@ class ChatRoomAdapter(
 
     companion object DiffCallback : DiffUtil.ItemCallback<ChatRoom>() {
         override fun areItemsTheSame(oldItem: ChatRoom, newItem: ChatRoom): Boolean {
-            return oldItem == newItem
+            return oldItem.chatRoomId == newItem.chatRoomId
         }
 
         override fun areContentsTheSame(oldItem: ChatRoom, newItem: ChatRoom): Boolean {

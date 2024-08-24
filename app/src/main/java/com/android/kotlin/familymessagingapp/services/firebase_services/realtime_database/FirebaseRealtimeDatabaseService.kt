@@ -95,6 +95,8 @@ class FirebaseRealtimeDatabaseService(
 
     private val registerChatroomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
 
+    private var currentChatRoomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
+
     private val databaseReference = Firebase.database.reference
 
     private val privateUserDataRef =
@@ -299,6 +301,70 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
+    fun addChatRoomByIdListener(
+        chatroomId: String
+    ): Flow<ChatRoom?> = callbackFlow {
+        val chatroomRef = chatRoomsRef.child(chatroomId)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    var chatroom = snapshot.getValue(ChatRoom::class.java)
+                    if (chatroom != null) {
+                        val listOfOtherMembers = chatroom.members?.filter { it != auth.uid }
+                        val membersData: MutableList<UserData> = mutableListOf()
+                        membersData.add(_publicUserData.value!!)
+                        if (!listOfOtherMembers.isNullOrEmpty()) {
+                            val deferredList = listOfOtherMembers.map { memberId ->
+                                // async và awaitAll: Để lấy dữ liệu của các memberId khác song song,
+                                // bạn có thể sử dụng async để tạo các tác vụ không đồng bộ cho từng truy
+                                // vấn Firebase và sau đó sử dụng awaitAll để chờ tất cả các truy vấn hoàn thành.
+                                async {
+                                    val userData = getUserData(memberId)
+                                    userData?.let { membersData.add(it) }
+                                }
+                            }
+                            // Wait for all data to be collected
+                            launch {
+                                deferredList.awaitAll()
+                                chatroom = chatroom?.copy(membersData = membersData)
+//                                notificationHelper.updateShortcuts(membersData)
+                                chatroom?.getChatRoomNameAndImage()
+                                chatroom?.getSenderDataOfMessage()
+                                chatroom?.getLatestMessageData()
+                                trySend(chatroom).isSuccess
+                            }
+                        } else {
+                            trySend(null).isSuccess
+                        }
+                    } else {
+                        trySend(null).isSuccess
+                    }
+                } else {
+                    trySend(null).isSuccess
+                    close()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                trySend(null).isSuccess
+                close(error.toException())
+            }
+        }
+
+        chatroomRef.addValueEventListener(listener)
+        currentChatRoomListener[chatroomRef] = listener
+
+        awaitClose {
+            chatroomRef.removeEventListener(listener)
+            currentChatRoomListener.remove(chatroomRef)
+        }
+    }
+
+    fun removeCurrentChatRoomListener() {
+        currentChatRoomListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
+        currentChatRoomListener.clear()
+    }
+
     /**
      * suspendCoroutine: Hàm này chuyển đổi callback của Firebase thành một hàm suspend,
      * giúp dễ dàng sử dụng trong coroutine.
@@ -501,7 +567,7 @@ class FirebaseRealtimeDatabaseService(
             video = message.video,
             type = message.type,
             status = message.status,
-            emoticon = message.emoticon,
+            reactions = message.reactions,
             replyMessageId = message.replyMessageId
         )
     }
@@ -669,6 +735,7 @@ class FirebaseRealtimeDatabaseService(
         clearPublicUserDataListener()
         clearPrivateUserDataListener()
         clearChatRoomsListener()
+        removeCurrentChatRoomListener()
         _publicUserData.value = UserData()
         _privateUserData.value = null
         _chatRooms.value = null
@@ -756,8 +823,10 @@ class FirebaseRealtimeDatabaseService(
             chatRoomsRef.child(chatroomId)
                 .child(ChatRoom.MESSAGES)
                 .child(messageId)
-                .child(Message.EMOTICON)
-                .setValue(emoji)
+                .child(Message.REACTIONS)
+                .child(emoji)
+                .child(Firebase.auth.uid!!)
+                .setValue(true)
                 .await()
             Result.Success(true)
         } catch (e: Exception) {

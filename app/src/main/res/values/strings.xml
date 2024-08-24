@@ -145,4 +145,6 @@
     <string name="app_user">App user</string>
     <string name="format_time_message_of_receiver_message" translatable="false">• %s</string>
     <string name="_new">New</string>
+    <string name="sent_an_image">Sent an image</string>
+    <string name="file_size_exceed_limit">Selected image is larger than %sMB. Please choose a smaller image</string>
 </resources>

@@ -131,4 +131,6 @@
     <string name="video_call">Gọi video</string>
     <string name="app_user">Người dùng ứng dụng</string>
     <string name="_new">Mới</string>
+    <string name="sent_an_image">Đã gửi một hình ảnh</string>
+    <string name="file_size_exceed_limit">Hình ảnh được chọn lớn hơn %sMB. Vui lòng chọn hình ảnh nhỏ hơn</string>
 </resources>
