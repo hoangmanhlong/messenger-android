@@ -133,4 +133,5 @@
     <string name="_new">Mới</string>
     <string name="sent_an_image">Đã gửi một hình ảnh</string>
     <string name="file_size_exceed_limit">Hình ảnh được chọn lớn hơn %sMB. Vui lòng chọn hình ảnh nhỏ hơn</string>
+    <string name="message_has_been_deleted">Tin nhắn đã bị xóa</string>
 </resources>

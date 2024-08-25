@@ -657,7 +657,8 @@ class FirebaseRealtimeDatabaseService(
         coroutineScope.launch {
             val chatRoom: ChatRoom? = createNewChatRoomSocketEvenBus.chatRoom
             val responseStatusCode: Int? = createNewChatRoomSocketEvenBus.responseStatusCode
-            var newChatRoom = this@FirebaseRealtimeDatabaseService.chatRoomSentWhenCreatingDoubleChatRoom
+            var newChatRoom =
+                this@FirebaseRealtimeDatabaseService.chatRoomSentWhenCreatingDoubleChatRoom
 
             if (ServerCode.SUCCESS.code == responseStatusCode && !chatRoom?.chatRoomId.isNullOrEmpty()) {
                 if (chatRoom?.chatRoomType == ChatRoomType.Double.type && this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom != null) {
@@ -834,15 +835,33 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    suspend fun deleteMessage(chatroomId: String, messageId: String): Result<Boolean> =
+    suspend fun deleteMessage(chatroomId: String, message: Message): Result<Boolean> =
         withContext(Dispatchers.IO) {
             try {
+                val messageId = message.messageId!!
+                val deleteMessage = message.copy(
+                    messageId = messageId,
+                    senderId = message.senderId,
+                    text = null,
+                    photo = null,
+                    video = null,
+                    audio = null,
+                    timestamp = message.timestamp,
+                    status = null,
+                    type = null,
+                    senderData = null,
+                    pinned = null,
+                    replyMessage = null,
+                    reactions = null,
+                    replyMessageId = message.replyMessageId,
+                    removedBy = Firebase.auth.uid,
+                )
                 coroutineScope {
                     val deleteMessageTask = async {
                         chatRoomsRef.child(chatroomId)
                             .child(ChatRoom.MESSAGES)
                             .child(messageId)
-                            .removeValue()
+                            .setValue(deleteMessage)
                             .await()
                     }
                     val deletePinnedMessageTask = async {

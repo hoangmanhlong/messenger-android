@@ -23,8 +23,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/receiverMessageView"
         android:layout_width="match_parent"
-        android:paddingBottom="4dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="4dp">
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline"
@@ -34,12 +34,12 @@
             app:layout_constraintGuide_percent="0.9" />
 
         <com.google.android.material.card.MaterialCardView
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             android:id="@+id/ivAvatar"
             android:layout_width="30dp"
             android:layout_height="30dp"
             app:cardCornerRadius="15dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:strokeWidth="0dp">
 
             <ImageView
@@ -52,9 +52,9 @@
         </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
-            android:layout_marginStart="8dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:gravity="start"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -62,102 +62,176 @@
             app:layout_constraintStart_toEndOf="@+id/ivAvatar"
             app:layout_constraintTop_toTopOf="parent">
 
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginStart="16dp"-->
-<!--                android:text="@string/pinned"-->
-<!--                android:textSize="12sp"-->
-<!--                android:visibility="@{isPinnedMessage ? View.VISIBLE : View.GONE}" />-->
-
             <TextView
-                android:layout_marginStart="8dp"
+                bindSenderNameOfMessage="@{message}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                bindSenderNameOfMessage="@{message}"
+                android:layout_marginStart="8dp"
                 tools:text="John Doe" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:id="@+id/messageContentView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toTopOf="parent">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/messageContentView"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:id="@+id/replyMessageContainer"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
+                    android:background="@drawable/bg_reply_message_of_receiver"
+                    android:padding="8dp"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/imageMessageCardView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="@{message.isPhotoEmpty() ? View.GONE : View.VISIBLE}"
-                        app:cardCornerRadius="16dp"
+                    <View
+                        android:id="@+id/replyMessageView"
+                        android:layout_width="4dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_rounded_corners_view"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:strokeWidth="0dp">
-
-                        <ImageView
-                            android:id="@+id/image"
-                            bindPhotoMessage="@{message.photo}"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:adjustViewBounds="true"
-                            android:maxHeight="300dp"
-                            tools:src="@drawable/baohong" />
-
-                    </com.google.android.material.card.MaterialCardView>
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:visibility="@{message.isTextEmpty() ? View.GONE : View.VISIBLE}"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintBottom_toTopOf="@id/reactionsRecyclerView"
-                        app:layout_constraintTop_toBottomOf="@id/imageMessageCardView">
+                        android:padding="8dp">
 
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:id="@+id/textMessageConstraintLayout"
+                        <ImageView
+                            android:id="@+id/replyMessageImageView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_receiver_message"
-                            android:paddingHorizontal="16dp"
-                            android:paddingVertical="8dp"
+                            android:layout_marginStart="8dp"
+                            android:adjustViewBounds="true"
+                            android:maxHeight="40dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:src="@drawable/baohong" />
+
+                        <LinearLayout
+                            android:id="@+id/replyMessageTextMessageView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/replyMessageImageView"
                             app:layout_constraintTop_toTopOf="parent">
 
                             <TextView
-                                android:id="@+id/messageText"
-                                android:layout_width="wrap_content"
+                                android:id="@+id/tvSenderNameReplyMessage"
+                                style="@style/TextAppearance.AppCompat.Body1"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@{message.text}"
-                                android:textColor="@color/dark"
+                                android:ellipsize="end"
+                                android:singleLine="true"
                                 android:textSize="16sp"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                tools:text="How are you?" />
+                                tools:text="@string/author" />
 
-                        </androidx.constraintlayout.widget.ConstraintLayout>
+                            <TextView
+                                android:id="@+id/tvTextReplyMessage"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                tools:text="@string/logout_message" />
+
+                        </LinearLayout>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/reactionsRecyclerView"
+                </LinearLayout>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/imageMessageCardView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:cardCornerRadius="16dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/replyMessageContainer"
+                    app:strokeWidth="0dp">
+
+                    <ImageView
+                        android:id="@+id/image"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="4dp"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        android:adjustViewBounds="true"
+                        android:maxHeight="300dp"
+                        tools:src="@drawable/baohong" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/textMessageContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_receiver_message"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toTopOf="@id/reactionsRecyclerView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/imageMessageCardView">
+
+                    <TextView
+                        android:id="@+id/messageText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@{message.text}"
+                        android:textColor="@color/dark"
+                        android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        tools:itemCount="4"
-                        tools:listitem="@layout/layout_emoji_message" />
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="How are you?" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/removedMessageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_removed_message"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toTopOf="@id/reactionsRecyclerView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/imageMessageCardView">
+
+                    <TextView
+                        android:id="@+id/textremovedMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/message_has_been_deleted"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/reactionsRecyclerView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="4dp"
+                    android:visibility="gone"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textMessageContainer"
+                    tools:itemCount="4"
+                    tools:listitem="@layout/layout_emoji_message" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
@@ -170,7 +244,7 @@
                 android:layout_marginBottom="4dp"
                 android:gravity="start"
                 android:textSize="12sp"
-                android:visibility="@{showMessageTime ? View.VISIBLE : View.GONE}"
+                android:visibility="gone"
                 tools:text="Sunday 20/11/2002" />
 
         </LinearLayout>

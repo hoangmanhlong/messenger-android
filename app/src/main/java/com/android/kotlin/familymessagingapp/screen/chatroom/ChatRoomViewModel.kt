@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -56,6 +57,9 @@ class ChatRoomViewModel @Inject constructor(
 
     var initializedForTheFirstTime = false
         private set
+
+    private val _replyingMessage: MutableLiveData<Message?> = MutableLiveData(null)
+    val replyingMessage: LiveData<Message?> = _replyingMessage
 
     private val _isExpandPinnedMessage: MutableLiveData<Boolean> = MutableLiveData(false)
     val isExpandPinnedMessage: LiveData<Boolean> = _isExpandPinnedMessage
@@ -112,8 +116,8 @@ class ChatRoomViewModel @Inject constructor(
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
 
-    private val _replyingMessage = MutableLiveData(false)
-    val replyingMessage: LiveData<Boolean> = _replyingMessage
+    private val _replying = MutableLiveData(false)
+    val replying: LiveData<Boolean> = _replying
 
     fun setSelectPhotoVisibleStatus(visible: Boolean) {
         _selectPhotoVisibleStatus.value = visible
@@ -142,8 +146,9 @@ class ChatRoomViewModel @Inject constructor(
         _isInputValid.value = isInputValid()
         _selectedItems.value = emptyList()
         _clearEdiText.value = false
-        _replyingMessage.value = false
+        _replying.value = false
         message = Message()
+        _replyingMessage.value = null
     }
 
     fun changeEmojiPickerVisibleStatus() {
@@ -151,8 +156,10 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun setReplyingMessage(isReplying: Boolean) {
-        if (!isReplying) _selectedMessage.value = null
-        _replyingMessage.value = isReplying
+        Log.d(TAG, "setReplyingMessage: $isReplying")
+        _replyingMessage.value = if (isReplying) _selectedMessage.value else null
+        _replying.value = isReplying
+        message = message.copy(replyMessageId = _replyingMessage.value?.messageId)
     }
 
     fun setExpandPinnedMessage() {
@@ -242,7 +249,7 @@ class ChatRoomViewModel @Inject constructor(
             if (_selectedMessage.value?.senderId == Firebase.auth.uid && _chatRoom.value?.chatRoomId != null) {
                 firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteMessage(
                     _chatRoom.value!!.chatRoomId!!,
-                    selectedMessage.value!!.messageId!!
+                    selectedMessage.value!!
                 )
             }
         }
@@ -299,6 +306,7 @@ class ChatRoomViewModel @Inject constructor(
             membersData = chatRoom.membersData,
             chatRoomType = chatRoom.chatRoomType
         )
+        _chatRoom.value?.getReplyMessages()
         _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
         initChatRoomListener()
     }
@@ -393,7 +401,11 @@ class ChatRoomViewModel @Inject constructor(
     fun sendMessage() {
         viewModelScope.launch {
             _sendMessageStatus.value = SendMessageStatus.Sending
-            val sendMessage = Message().copy(text = message.text, photo = message.photo)
+            val sendMessage = Message().copy(
+                text = message.text,
+                photo = message.photo,
+                replyMessageId = message.replyMessageId
+            )
             clearInput()
             if (_chatRoom.value?.chatRoomId.isNullOrEmpty()) {
                 EventBus.getDefault().register(this@ChatRoomViewModel)
@@ -425,6 +437,7 @@ class ChatRoomViewModel @Inject constructor(
     private fun clearInput() {
         clearEditText(true)
         setImageUri(null)
+        setReplyingMessage(false)
     }
 
     fun copyMessage(activity: Activity) {

@@ -33,7 +33,6 @@ import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,7 +56,7 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 // TODO: block screen capture
 @AndroidEntryPoint
-class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
+class ChatRoomFragment : Fragment() {
 
     companion object {
         val TAG: String = ChatRoomFragment::class.java.simpleName
@@ -132,11 +131,16 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             },
             onMessageLongClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
-                openMessageOptions(isSender, _viewModel.selectedMessageIsPinnedMessage!!)
+                openMessageOptions()
             },
             onImageMessageClick = { drawable, message ->
                 hideKeyboard()
                 _viewModel.setImageDetailShown(true, drawable)
+            },
+            onReplyMessageClick = {
+                if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
+                    messageRecyclerview!!.scrollToPosition(messageAdapter!!.getPositionById(it.messageId))
+                }
             }
         )
 
@@ -288,7 +292,7 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             if (it) binding.imageDetailImageView.setImageDrawable(_viewModel.imageMessageDrawable)
         }
 
-        _viewModel.replyingMessage.observe(this.viewLifecycleOwner) {
+        _viewModel.replying.observe(this.viewLifecycleOwner) {
             binding.replyingMessage = it
         }
 
@@ -405,18 +409,18 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             }
         }
 
-        _viewModel.selectedMessage.observe(this.viewLifecycleOwner) { selectedMessage ->
-            if (selectedMessage != null) {
-                binding.tvSenderNameReplyMessage.text = selectedMessage.senderData?.username
-                if (!selectedMessage.text.isNullOrEmpty() || !selectedMessage.photo.isNullOrEmpty()) {
+        _viewModel.replyingMessage.observe(this.viewLifecycleOwner) { replyingMessage ->
+            if (replyingMessage != null) {
+                binding.tvSenderNameReplyMessage.text = replyingMessage.senderData?.username
+                if (!replyingMessage.text.isNullOrEmpty() || !replyingMessage.photo.isNullOrEmpty()) {
                     context?.let {
                         binding.tvTextReplyMessage.text =
-                            if (selectedMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else selectedMessage.text
+                            if (replyingMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyingMessage.text
                     }
                 }
-                if (!selectedMessage.photo.isNullOrEmpty()) {
+                if (!replyingMessage.photo.isNullOrEmpty()) {
                     binding.replyMessageImageView.visibility = View.VISIBLE
-                    bindNormalImage(binding.replyMessageImageView, selectedMessage.photo)
+                    bindNormalImage(binding.replyMessageImageView, replyingMessage.photo)
                 } else {
                     binding.replyMessageImageView.visibility = View.GONE
                 }
@@ -510,17 +514,15 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        val currentDestinationId = findNavController().currentDestination?.id
         // Since ChatRoomViewModel is managed by activity, data needs to be reset when ChatRoomFragment or ChatRoomDetail Destroy
-        if (findNavController().currentDestination?.id != Screen.ChatRoomDetail.screenId
-            || findNavController().previousBackStackEntry?.destination?.id != Screen.ChatRoom.screenId
-        ) {
+        if (currentDestinationId != Screen.ChatRoomDetail.screenId && currentDestinationId != Screen.ChatRoom.screenId) {
             _viewModel.resetState()
         }
     }
 
-    private fun openMessageOptions(isMessageOfMe: Boolean, isPinnedMessage: Boolean) {
-        MessageOptionsFragment(this, isMessageOfMe, isPinnedMessage)
-            .show(this.parentFragmentManager, MessageOptionsFragment.TAG)
+    private fun openMessageOptions() {
+        MessageOptionsFragment().show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
     private fun blockScreenCapture() {
@@ -528,26 +530,6 @@ class ChatRoomFragment : Fragment(), MessageOptionsEventListener {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
-    }
-
-    override fun onPinMessage() {
-        _viewModel.pinMessage()
-    }
-
-    override fun onDeleteMessage() {
-        _viewModel.deleteMessage()
-    }
-
-    override fun onCopyMessage() {
-        _viewModel.copyMessage(requireActivity())
-    }
-
-    override fun updateMessageEmoji(emoji: String) {
-        _viewModel.updateMessageEmoji(emoji)
-    }
-
-    override fun onReplyMessage() {
-        _viewModel.setReplyingMessage(true)
     }
 
     private fun showErrorDialog() {

@@ -181,7 +181,7 @@
                     android:id="@+id/ivPin"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    tools:src="@drawable/ic_push_pin" />
+                    android:src="@drawable/ic_push_pin" />
 
                 <TextView
                     android:id="@+id/tvPin"

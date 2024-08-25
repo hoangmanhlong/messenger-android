@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
@@ -7,17 +8,21 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutReceiverMessageBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBinding
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Reaction
+import com.android.kotlin.familymessagingapp.utils.bindNormalImage
+import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 class MessageAdapter(
     private val onMessageContentViewClick: () -> Unit,
     private val onMessageLongClick: (Boolean, Message) -> Unit,
-    private val onImageMessageClick: (Drawable, Message) -> Unit
+    private val onImageMessageClick: (Drawable, Message) -> Unit,
+    private val onReplyMessageClick: (Message) -> Unit,
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
 
     private val ICON_MARGIN = 16
@@ -41,32 +46,103 @@ class MessageAdapter(
             binding.reactionsRecyclerView.adapter = reactionsAdapter
         }
 
+        @SuppressLint("UseCompatLoadingForDrawables")
         fun bind(message: Message) {
-            val reactions = message.reactions?.entries?.map {
-                Reaction(it.key, it.value.entries.map { it.key })
-            }
-            binding.reactionsRecyclerView.visibility = if(reactions == null) View.GONE else View.VISIBLE
-            reactionsAdapter?.submitList(reactions)
-            if (!message.isTextEmpty()) {
-                binding.textMessageConstraintLayout.setOnLongClickListener {
-                    onMessageLongClick(true, message)
-                    false
+
+            if (!message.isReplyMessageEmpty()) {
+                val replyMessage = message.replyMessage
+                if (replyMessage != null) {
+                    binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
+                    if (replyMessage.removedByIsEmpty()) {
+
+                        if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
+                            binding.tvTextReplyMessage.context?.let {
+                                binding.tvTextReplyMessage.text =
+                                    if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
+                            }
+                        }
+                        if (!replyMessage.photo.isNullOrEmpty()) {
+                            binding.replyMessageImageView.visibility = View.VISIBLE
+                            bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
+                        } else {
+                            binding.replyMessageImageView.visibility = View.GONE
+                        }
+                    } else {
+                        binding.replyMessageImageView.visibility = View.GONE
+                        binding.tvTextReplyMessage.text =
+                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                    }
+
+                    binding.replyMessageContainer.visibility = View.VISIBLE
+                    binding.textMessageContainer.background =
+                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_sender_text_message_has_reply_message)
+                    binding.removedMessageView.background =
+                        binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message_has_reply_message)
+
+                    binding.replyMessageContainer.setOnClickListener {
+                        onReplyMessageClick(replyMessage)
+                    }
+                } else {
+                    binding.replyMessageContainer.visibility = View.GONE
+                    binding.textMessageContainer.background =
+                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_message_sender)
+
+                    binding.removedMessageView.background =
+                        binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
                 }
-                binding.textMessageConstraintLayout.setOnClickListener {
+            } else {
+                binding.replyMessageContainer.visibility = View.GONE
+                binding.textMessageContainer.background =
+                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_message_sender)
+
+                binding.removedMessageView.background =
+                    binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
+            }
+
+            if (!message.removedByIsEmpty()) {
+                binding.textMessageContainer.visibility = View.GONE
+                binding.imageMessageCardView.visibility = View.GONE
+                binding.reactionsRecyclerView.visibility = View.GONE
+                binding.removedMessageView.visibility = View.VISIBLE
+                binding.removedMessageView.setOnClickListener {
                     handleTextMessageClick(bindingAdapterPosition)
                 }
-            }
-            if (!message.isPhotoEmpty()) {
-                binding.imageMessageCardView.setOnClickListener {
-                    onImageMessageClick(binding.image.drawable, message)
+            } else {
+                binding.removedMessageView.visibility = View.GONE
+                val reactions = message.reactions?.entries?.map {
+                    Reaction(it.key, it.value.entries.map { it.key })
                 }
-                binding.imageMessageCardView.setOnLongClickListener {
-                    onMessageLongClick(true, message)
-                    false
+                binding.reactionsRecyclerView.visibility =
+                    if (reactions == null) View.GONE else View.VISIBLE
+                reactionsAdapter?.submitList(reactions)
+                if (!message.isTextEmpty()) {
+                    binding.textMessageContainer.visibility = View.VISIBLE
+                    binding.textMessageContainer.setOnLongClickListener {
+                        onMessageLongClick(true, message)
+                        false
+                    }
+                    binding.textMessageContainer.setOnClickListener {
+                        handleTextMessageClick(bindingAdapterPosition)
+                    }
+                } else {
+                    binding.textMessageContainer.visibility = View.GONE
                 }
+                if (!message.isPhotoEmpty()) {
+                    bindPhotoMessage(binding.image, message.photo)
+                    binding.imageMessageCardView.visibility = View.VISIBLE
+                    binding.imageMessageCardView.setOnClickListener {
+                        onImageMessageClick(binding.image.drawable, message)
+                    }
+                    binding.imageMessageCardView.setOnLongClickListener {
+                        onMessageLongClick(true, message)
+                        false
+                    }
+                } else {
+                    binding.imageMessageCardView.visibility = View.GONE
+                }
+                binding.message = message
             }
-            binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
-            binding.message = message
+            binding.tvMessageTime.visibility = if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
         }
     }
 
@@ -83,32 +159,105 @@ class MessageAdapter(
             binding.reactionsRecyclerView.adapter = reactionsAdapter
         }
 
+        @SuppressLint("UseCompatLoadingForDrawables")
         fun bind(message: Message) {
-            val reactions = message.reactions?.entries?.map {
-                Reaction(it.key, it.value.entries.map { it.key })
-            }
-            binding.reactionsRecyclerView.visibility = if(reactions == null) View.GONE else View.VISIBLE
-            reactionsAdapter?.submitList(reactions)
-            if (!message.isTextEmpty()) {
-                binding.textMessageConstraintLayout.setOnLongClickListener {
-                    onMessageLongClick(false, message)
-                    false
+            if (!message.isReplyMessageEmpty()) {
+
+                val replyMessage = message.replyMessage
+                if (replyMessage != null) {
+
+                    binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
+
+                    if (replyMessage.removedByIsEmpty()) {
+
+                        if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
+                            binding.tvTextReplyMessage.context?.let {
+                                binding.tvTextReplyMessage.text =
+                                    if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
+                            }
+                        }
+                        if (!replyMessage.photo.isNullOrEmpty()) {
+                            binding.replyMessageImageView.visibility = View.VISIBLE
+                            bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
+                        } else {
+                            binding.replyMessageImageView.visibility = View.GONE
+                        }
+                    } else {
+                        binding.replyMessageImageView.visibility = View.GONE
+                        binding.tvTextReplyMessage.text =
+                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                    }
+
+                    binding.replyMessageContainer.visibility = View.VISIBLE
+                    binding.textMessageContainer.background =
+                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_text_message_has_reply_message)
+                    binding.removedMessageView.background =
+                        binding.removedMessageView.context.getDrawable(R.drawable.bg_receiver_removed_message_has_reply_message)
+
+                    binding.replyMessageContainer.setOnClickListener {
+                        onReplyMessageClick(replyMessage)
+                    }
+                } else {
+                    binding.replyMessageContainer.visibility = View.GONE
+                    binding.textMessageContainer.background =
+                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message)
+
+                    binding.removedMessageView.background =
+                        binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
                 }
-                binding.textMessageConstraintLayout.setOnClickListener {
+            } else {
+                binding.replyMessageContainer.visibility = View.GONE
+                binding.textMessageContainer.background =
+                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message)
+
+                binding.removedMessageView.background =
+                    binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
+            }
+
+            if (!message.removedByIsEmpty()) {
+                binding.textMessageContainer.visibility = View.GONE
+                binding.imageMessageCardView.visibility = View.GONE
+                binding.reactionsRecyclerView.visibility = View.GONE
+                binding.removedMessageView.visibility = View.VISIBLE
+                binding.removedMessageView.setOnClickListener {
                     handleTextMessageClick(bindingAdapterPosition)
                 }
-            }
-            if (!message.isPhotoEmpty()) {
-                binding.imageMessageCardView.setOnClickListener {
-                    onImageMessageClick(binding.image.drawable, message)
+            } else {
+                binding.removedMessageView.visibility = View.GONE
+                val reactions = message.reactions?.entries?.map {
+                    Reaction(it.key, it.value.entries.map { it.key })
                 }
-                binding.imageMessageCardView.setOnLongClickListener {
-                    onMessageLongClick(false, message)
-                    false
+                binding.reactionsRecyclerView.visibility =
+                    if (reactions == null) View.GONE else View.VISIBLE
+                reactionsAdapter?.submitList(reactions)
+                if (!message.isTextEmpty()) {
+                    binding.textMessageContainer.visibility = View.VISIBLE
+                    binding.textMessageContainer.setOnLongClickListener {
+                        onMessageLongClick(false, message)
+                        false
+                    }
+                    binding.textMessageContainer.setOnClickListener {
+                        handleTextMessageClick(bindingAdapterPosition)
+                    }
+                } else {
+                    binding.textMessageContainer.visibility = View.GONE
+                }
+                if (!message.isPhotoEmpty()) {
+                    bindPhotoMessage(binding.image, message.photo)
+                    binding.imageMessageCardView.visibility = View.VISIBLE
+                    binding.imageMessageCardView.setOnClickListener {
+                        onImageMessageClick(binding.image.drawable, message)
+                    }
+                    binding.imageMessageCardView.setOnLongClickListener {
+                        onMessageLongClick(false, message)
+                        false
+                    }
+                } else {
+                    binding.imageMessageCardView.visibility = View.GONE
                 }
             }
-            binding.showMessageTime = bindingAdapterPosition == expandedMessagePosition
             binding.message = message
+            binding.tvMessageTime.visibility = if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
         }
     }
 

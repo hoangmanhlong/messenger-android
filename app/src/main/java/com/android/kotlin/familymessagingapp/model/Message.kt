@@ -28,6 +28,7 @@ data class Message(
     val type: Int? = null,
     val reactions: Map<String, Map<String, Boolean>>? = null,
     val replyMessageId: String? = null,
+    val removedBy: String? = null,
     @Exclude var pinned: Boolean? = null,
     @Exclude var replyMessage: Message? = null,
     @Exclude @Contextual var senderData: UserData? = null
@@ -44,6 +45,12 @@ data class Message(
 
     @Exclude
     fun isPinned(): Boolean = pinned ?: false
+
+    @Exclude
+    fun isReplyMessageEmpty(): Boolean = replyMessageId.isNullOrEmpty()
+
+    @Exclude
+    fun removedByIsEmpty(): Boolean = removedBy.isNullOrEmpty()
 
     companion object {
         const val REACTIONS = "reactions"

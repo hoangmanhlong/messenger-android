@@ -147,4 +147,5 @@
     <string name="_new">New</string>
     <string name="sent_an_image">Sent an image</string>
     <string name="file_size_exceed_limit">Selected image is larger than %sMB. Please choose a smaller image</string>
+    <string name="message_has_been_deleted">Message has been deleted</string>
 </resources>
