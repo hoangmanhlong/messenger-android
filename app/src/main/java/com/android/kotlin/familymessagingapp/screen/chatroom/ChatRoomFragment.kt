@@ -290,6 +290,7 @@ class ChatRoomFragment : Fragment() {
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
             binding.imageDetailShown = it
             if (it) binding.imageDetailImageView.setImageDrawable(_viewModel.imageMessageDrawable)
+            else binding.imageDetailImageView.resetZoom()
         }
 
         _viewModel.replying.observe(this.viewLifecycleOwner) {
