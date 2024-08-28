@@ -26,7 +26,6 @@ import com.android.kotlin.familymessagingapp.databinding.FragmentHomeBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.screen.Screen
-import com.android.kotlin.familymessagingapp.screen.scan_qr_code.QRScanResultEvenBus
 import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
@@ -38,9 +37,6 @@ import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -82,8 +78,6 @@ class HomeFragment : Fragment() {
     private var recentSearchHistory: LinearLayout? = null
 
     private var storyRecyclerView: RecyclerView? = null
-
-    private var storyAdapter: StoryAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -191,25 +185,22 @@ class HomeFragment : Fragment() {
             findNavController().navigate(Screen.CreateGroupChat.screenId)
         }
 
-//        storyRecyclerView = binding.storyRecyclerView
-//        storyRecyclerView?.layoutManager = CarouselLayoutManager()
-//        val snapHelper = CarouselSnapHelper()
-//        snapHelper.attachToRecyclerView(storyRecyclerView)
-//
-//        storyAdapter = StoryAdapter()
-//        storyRecyclerView?.adapter = storyAdapter
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { KeyBoardUtils.setupHideKeyboard(binding.searchView, it) }
-//        storyAdapter?.submitList(fakeStories)
 
-        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<UserData>(Constant.USER_DATA_KEY)
+        findNavController()
+            .currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<UserData>(Constant.USER_DATA_KEY)
             ?.observe(viewLifecycleOwner) {
-                findNavController().currentBackStackEntry?.savedStateHandle?.remove<UserData>(Constant.USER_DATA_KEY)
+                findNavController()
+                    .currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.remove<UserData>(Constant.USER_DATA_KEY)
                 navigateToChatRoom(null, it)
             }
 
@@ -369,7 +360,6 @@ class HomeFragment : Fragment() {
         searchHistoriesRecyclerView = null
         searchHistoryAdapter = null
         storyRecyclerView = null
-        storyAdapter = null
         recentSearchHistory = null
         viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchResult)
     }

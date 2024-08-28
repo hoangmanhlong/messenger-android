@@ -16,6 +16,7 @@ import androidx.camera.mlkit.vision.MlKitAnalyzer
 import androidx.camera.view.CameraController.COORDINATE_SYSTEM_VIEW_REFERENCED
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -27,6 +28,7 @@ import com.android.kotlin.familymessagingapp.model.QRCodeInvalidException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -61,6 +63,10 @@ class ScanQRCodeFragment : Fragment() {
 
     private var netWorkDialog: MaterialAlertDialogBuilder? = null
 
+    private var cameraPermissionRequiredDialog: AlertDialog? = null
+
+    private var isGotoSetting = false
+
     private val activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             // Handle Permission granted/rejected
@@ -70,6 +76,9 @@ class ScanQRCodeFragment : Fragment() {
                     permissionGranted = false
             }
             if (permissionGranted) startCamera()
+            else {
+                viewModel.setCameraPermissionGranted(false)
+            }
         }
 
     override fun onCreateView(
@@ -97,21 +106,32 @@ class ScanQRCodeFragment : Fragment() {
             )
         }
 
+        binding.btAuthorization.setOnClickListener {
+            goToSetting()
+        }
+
         return binding.root
+    }
+
+    private fun goToSetting() {
+        if (context == null) return
+        isGotoSetting = true
+        DeviceUtils.openApplicationInfo(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Request camera permissions
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            requestPermissions()
-        }
+        askCameraPermission()
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         viewModel.isLoading.observe(viewLifecycleOwner) {
             (activity as MainActivity).isShowLoadingDialog(it)
+        }
+
+        viewModel.cameraPermissionGranted.observe(viewLifecycleOwner) {
+            it?.let {
+                binding.cameraPermissionDeniedView.visibility = if (it) View.GONE else View.VISIBLE
+            }
         }
 
         viewModel.scanQRResult.observe(viewLifecycleOwner) { result ->
@@ -146,8 +166,19 @@ class ScanQRCodeFragment : Fragment() {
         }
     }
 
+    private fun askCameraPermission() {
+        if (viewModel.cameraPermissionGranted.value == true) return
+        if (allPermissionsGranted()) {
+            startCamera()
+        } else {
+            requestPermissions()
+        }
+        viewModel.askedForCameraPermission = true
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun startCamera() {
+        viewModel.setCameraPermissionGranted(true)
         if (activity == null) return
         cameraController = LifecycleCameraController(requireActivity())
 
@@ -175,7 +206,7 @@ class ScanQRCodeFragment : Fragment() {
                     }
 
                     context?.let {
-                        if(NetworkChecker.isNetworkAvailable(it)) {
+                        if (NetworkChecker.isNetworkAvailable(it)) {
                             viewModel.scanQRCode(barcodeResults[0].rawValue.toString())
                         } else {
                             netWorkDialog?.show()
@@ -215,20 +246,52 @@ class ScanQRCodeFragment : Fragment() {
     }
 
     private fun requestPermissions() {
+        val permissionsDenied = arrayOf(Manifest.permission.CAMERA).filter {
+            ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), it).not()
+        }
+
+        if (permissionsDenied.isNotEmpty()) {
+            showPermissionDeniedDialog()
+            return
+        }
+
         activityResultLauncher.launch(REQUIRED_PERMISSIONS)
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        context?.let { context ->
-            ContextCompat.checkSelfPermission(
-                context, it
-            ) == PackageManager.PERMISSION_GRANTED
-        } ?: false
+    private fun showPermissionDeniedDialog() {
+        if (cameraPermissionRequiredDialog == null) {
+            cameraPermissionRequiredDialog = DialogUtils.cameraPermissionRequiredDialog(
+                context = requireContext(),
+                onPositiveClick = { goToSetting() },
+                onNegativeClick = {
+                    viewModel.setCameraPermissionGranted(false)
+                }
+            )
+        }
+        cameraPermissionRequiredDialog?.show()
+    }
 
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        if (context == null) return false
+        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
     fun toggleFlashlight(enable: Boolean) {
         cameraController?.enableTorch(enable)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        if (cameraController?.isRecording == true) return
+
+        if (!allPermissionsGranted() && isGotoSetting) {
+            viewModel.setCameraPermissionGranted(false)
+            isGotoSetting = false
+            return
+        }
+
+        startCamera()
     }
 
 
@@ -244,6 +307,7 @@ class ScanQRCodeFragment : Fragment() {
         cameraController = null
         scanQRErrorDialog = null
         _binding = null
+        cameraPermissionRequiredDialog = null
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     }
 

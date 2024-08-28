@@ -148,4 +148,9 @@
     <string name="sent_an_image">Sent an image</string>
     <string name="file_size_exceed_limit">Selected image is larger than %sMB. Please choose a smaller image</string>
     <string name="message_has_been_deleted">Message has been deleted</string>
+    <string name="authorization">Authorization</string>
+    <string name="camera_access_denied">Camera access denied</string>
+    <string name="camera_access_denied_title">Camera permission required</string>
+    <string name="camera_access_denied_message">Camera permission is needed to use this feature. Please grant the permission in the app settings.</string>
+    <string name="go_to_setting">Go to setting</string>
 </resources>

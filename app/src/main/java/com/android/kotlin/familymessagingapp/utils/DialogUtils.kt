@@ -20,7 +20,7 @@ object DialogUtils {
         return dialog
     }
 
-    fun createCommonDialog(
+    private fun createCommonDialog(
         context: Context,
         @StringRes title: Int,
         @StringRes message: Int,
@@ -110,4 +110,23 @@ object DialogUtils {
         return dialog
     }
 
+    fun cameraPermissionRequiredDialog(
+        context: Context,
+        onPositiveClick: () -> Unit?,
+        onNegativeClick: () -> Unit?,
+        onCancelListener: () -> Unit? = {}
+    ): AlertDialog {
+        return createCommonDialog(
+            context = context,
+            title = R.string.camera_access_denied_title,
+            message = R.string.camera_access_denied_message,
+            cancelable = false,
+            positiveButtonLabel = R.string.go_to_setting,
+            negativeButtonLabel = R.string.cancel,
+            onPositiveClick = onPositiveClick,
+            onNegativeClick = onNegativeClick,
+            onCancelListener = onCancelListener
+        )
+            .create()
+    }
 }

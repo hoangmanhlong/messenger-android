@@ -18,6 +18,11 @@ class ScanQRCodeViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository
 ) : ViewModel() {
 
+    var askedForCameraPermission = false
+
+    private val _cameraPermissionGranted: MutableLiveData<Boolean?> = MutableLiveData(null)
+    val cameraPermissionGranted: MutableLiveData<Boolean?> = _cameraPermissionGranted
+
     private val _scanQRResult: MutableLiveData<Result<UserData>?> = MutableLiveData(null)
     val scanQRResult: MutableLiveData<Result<UserData>?> = _scanQRResult
 
@@ -30,6 +35,10 @@ class ScanQRCodeViewModel @Inject constructor(
 
     fun setLoadState(isLoading: Boolean) {
         _isLoading.value = isLoading
+    }
+
+    fun setCameraPermissionGranted(granted: Boolean) {
+        _cameraPermissionGranted.value = granted
     }
 
     fun scanQRCode(qrCode: String) {

@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import com.android.kotlin.familymessagingapp.BuildConfig
 import java.io.File
@@ -23,6 +24,13 @@ object DeviceUtils {
             action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
             putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID)
         }
+        context.startActivity(intent)
+    }
+
+    fun openApplicationInfo(context: Context) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+        intent.data = uri
         context.startActivity(intent)
     }
 
