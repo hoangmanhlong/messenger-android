@@ -237,7 +237,7 @@ class ChatRoomFragment : Fragment() {
 
         binding.btShare.setOnClickListener {
             activity?.let {
-                DeviceUtils.shareImage(requireActivity(), binding.imageDetailImageView.drawable)
+                _viewModel.shareImage(requireActivity(), binding.imageDetailImageView.drawable)
             }
         }
 

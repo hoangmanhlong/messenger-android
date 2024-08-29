@@ -43,28 +43,29 @@ fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
     val chatRoomImageUrl = chatRoom.chatRoomImage
     if (chatRoomImageUrl.isNullOrEmpty()) {
         val defaultImageRes = when (chatRoom.chatRoomType) {
-            ChatRoomType.Double.type -> R.drawable.ic_user_default
             ChatRoomType.Group.type -> R.drawable.group
             else -> R.drawable.ic_user_default
         }
         imageView.setImageResource(defaultImageRes)
-    } else {
-        val density = imageView.context.resources.displayMetrics.density
-        val imageViewWidth = imageView.width
-        val imageViewHeight = imageView.height
-
-        // Giới hạn kích thước hình ảnh dựa trên mật độ màn hình và kích thước của ImageView
-        val targetWidth = (imageViewWidth * density).toInt()
-        val targetHeight = (imageViewHeight * density).toInt()
-
-        Glide.with(imageView.context)
-            .load(chatRoomImageUrl)
-            .error(R.drawable.ic_broken_image)
-            .placeholder(R.drawable.loading_animation)
-            .override(targetWidth, targetHeight)
-            .fitCenter()
-            .into(imageView)
+        return
     }
+
+    val density = imageView.context.resources.displayMetrics.density
+    val imageViewWidth = imageView.width
+    val imageViewHeight = imageView.height
+
+    // Giới hạn kích thước hình ảnh dựa trên mật độ màn hình và kích thước của ImageView
+    val targetWidth = (imageViewWidth * density).toInt()
+    val targetHeight = (imageViewHeight * density).toInt()
+
+    Glide.with(imageView.context)
+        .load(chatRoomImageUrl)
+        .error(R.drawable.ic_broken_image)
+        .placeholder(R.drawable.loading_animation)
+        .override(targetWidth, targetHeight)
+        .fitCenter()
+        .into(imageView)
+
 }
 
 

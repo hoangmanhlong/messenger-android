@@ -137,7 +137,7 @@ class HomeFragment : Fragment() {
                 }
 
                 R.id.QrCodeMenu -> {
-                    findNavController().navigate(R.id.scanQRCodeFragment)
+                    findNavController().navigate(Screen.ScanQrCode.screenId)
                     true
                 }
 

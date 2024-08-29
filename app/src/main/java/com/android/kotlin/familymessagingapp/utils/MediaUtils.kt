@@ -232,25 +232,25 @@ object MediaUtils {
         return screenshot
     }
 
-    fun createUrlFromImageDrawable(context: Context, drawable: Drawable): Uri? {
+    fun createUriFromDrawable(context: Context, drawable: Drawable): Uri? {
         var file: File? = null
         return try {
             val bitmap = (drawable as BitmapDrawable).bitmap
 
-            // Lưu bitmap vào một tệp tạm thời
-            file = File(context.cacheDir, "shared_image.png")
+            file = File(context.cacheDir, "image_shared_to_other_apps.png")
             val fileOutputStream = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
             fileOutputStream.flush()
             fileOutputStream.close()
 
-            // Lấy URI của tệp
+            // Bước 3: Tạo một Uri từ tệp tin vừa lưu
             FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.provider",
+                "${context.packageName}.fileprovider", // Đảm bảo bạn đã khai báo trong AndroidManifest.xml
                 file
             )
         } catch (e: Exception) {
+            file?.delete()
             null
         }
     }

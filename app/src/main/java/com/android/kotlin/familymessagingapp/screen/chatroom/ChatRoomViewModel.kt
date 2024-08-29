@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -24,11 +25,13 @@ import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -213,6 +216,12 @@ class ChatRoomViewModel @Inject constructor(
                     workManager.saveImageToDeviceStorage((imageMessageDrawable as BitmapDrawable).bitmap)
                 _saveImageState.value = !result.isNullOrEmpty()
             }
+        }
+    }
+
+    fun shareImage(context: Context, drawable: Drawable) {
+        viewModelScope.launch(Dispatchers.IO) {
+            DeviceUtils.shareImage(context, drawable)
         }
     }
 

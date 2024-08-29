@@ -92,18 +92,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="12:00" />
 
-            <ImageView
-                android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:layout_marginEnd="8dp"
-                android:src="@drawable/ic_push_pin"
-                android:visibility="gone"
-                app:layout_constraintEnd_toStartOf="@id/tvLastMessageTime"
-                app:layout_constraintTop_toTopOf="parent" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
-
 
 </layout>

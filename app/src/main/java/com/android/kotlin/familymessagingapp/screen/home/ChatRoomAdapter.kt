@@ -18,33 +18,28 @@ class ChatRoomAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(chatRoom: ChatRoom) {
             binding.chatroom = chatRoom
+            binding.root.setOnClickListener {
+                onChatRoomClick(chatRoom)
+            }
+            binding.root.setOnLongClickListener {
+                onChatRoomLongClick(chatRoom)
+                false
+            }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatRoomViewHolder {
-        val viewHolder = ChatRoomViewHolder(
+        return ChatRoomViewHolder(
             LayoutChatroomBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
         )
-
-        return viewHolder
     }
 
     override fun onBindViewHolder(holder: ChatRoomViewHolder, position: Int) {
-        val item = getItem(position)
-        holder.itemView.setOnClickListener {
-            onChatRoomClick(item)
-        }
-
-        holder.itemView.setOnLongClickListener {
-            onChatRoomLongClick(item)
-            false
-        }
-
-        holder.bind(item)
+        holder.bind(getItem(position))
     }
 
     companion object DiffCallback : DiffUtil.ItemCallback<ChatRoom>() {
