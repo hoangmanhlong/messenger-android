@@ -37,13 +37,14 @@
             android:id="@+id/ivAvatar"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:visibility="gone"
             app:cardCornerRadius="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:strokeWidth="0dp">
 
             <ImageView
-                bindNormalImage="@{message.senderData.userAvatar}"
+                android:id="@+id/ivSenderAvatar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
@@ -63,11 +64,12 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                bindSenderNameOfMessage="@{message}"
+                android:id="@+id/tvReceiverName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                tools:text="John Doe" />
+                android:visibility="gone"
+                tools:text="@string/author" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/messageContentView"
@@ -172,23 +174,24 @@
                     android:id="@+id/textMessageContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_receiver_message"
+                    android:background="@drawable/bg_receiver_message_single"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="8dp"
                     android:visibility="gone"
                     app:layout_constraintBottom_toTopOf="@id/reactionsRecyclerView"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/imageMessageCardView">
+                    app:layout_constraintTop_toBottomOf="@id/imageMessageCardView"
+                    tools:background="@drawable/bg_receiver_message_single">
 
                     <TextView
                         android:id="@+id/messageText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@{message.text}"
                         android:textColor="@color/dark"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         tools:text="How are you?" />
 
@@ -236,7 +239,6 @@
 
             <TextView
                 android:id="@+id/tvMessageTime"
-                bindMessageFormattedTime="@{message.timestamp}"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"

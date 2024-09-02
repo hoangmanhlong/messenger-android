@@ -279,6 +279,19 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
+        messageAdapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                messageRecyclerview?.post {
+                    if (positionStart > 0) {
+                        messageAdapter?.notifyItemChanged(positionStart - 1)
+                    }
+                    if (positionStart < messageAdapter!!.itemCount - 1) {
+                        messageAdapter?.notifyItemChanged(positionStart + 1)
+                    }
+                }
+            }
+        })
+
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             binding.isLoading = it
         }
@@ -343,6 +356,7 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatroom ->
+                messageAdapter?.setChatRoomType(chatroom.chatRoomType!!)
                 binding.chatroom = chatroom
                 bindMessages(chatroom.messages)
             }

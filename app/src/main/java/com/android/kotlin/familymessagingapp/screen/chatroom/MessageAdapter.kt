@@ -11,8 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutReceiverMessageBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBinding
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Reaction
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
 import com.google.firebase.auth.ktx.auth
@@ -25,6 +27,8 @@ class MessageAdapter(
     private val onReplyMessageClick: (Message) -> Unit,
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
 
+    private lateinit var chatRoomType: String
+
     private val ICON_MARGIN = 16
 
     private val sender = 1
@@ -32,6 +36,10 @@ class MessageAdapter(
     private val receiver = 2
 
     private var expandedMessagePosition: Int? = null
+
+    fun setChatRoomType(type: String) {
+        chatRoomType = type
+    }
 
     inner class SenderMessageViewHolder(
         private val binding: LayoutSenderMessageBinding
@@ -85,7 +93,7 @@ class MessageAdapter(
                 } else {
                     binding.replyMessageContainer.visibility = View.GONE
                     binding.textMessageContainer.background =
-                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_message_sender)
+                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_sender_message_single)
 
                     binding.removedMessageView.background =
                         binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
@@ -93,7 +101,7 @@ class MessageAdapter(
             } else {
                 binding.replyMessageContainer.visibility = View.GONE
                 binding.textMessageContainer.background =
-                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_message_sender)
+                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_sender_message_single)
 
                 binding.removedMessageView.background =
                     binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
@@ -117,6 +125,7 @@ class MessageAdapter(
                 reactionsAdapter?.submitList(reactions)
                 if (!message.isTextEmpty()) {
                     binding.textMessageContainer.visibility = View.VISIBLE
+                    binding.messageText.text = message.text
                     binding.textMessageContainer.setOnLongClickListener {
                         onMessageLongClick(true, message)
                         false
@@ -124,6 +133,7 @@ class MessageAdapter(
                     binding.textMessageContainer.setOnClickListener {
                         handleTextMessageClick(bindingAdapterPosition)
                     }
+                    updateTextMessageOfSenderBackground(binding, message, bindingAdapterPosition)
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
@@ -140,10 +150,50 @@ class MessageAdapter(
                 } else {
                     binding.imageMessageCardView.visibility = View.GONE
                 }
-                binding.message = message
             }
-            binding.tvMessageTime.visibility = if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
+            binding.tvMessageTime.text = StringUtils.formatTime(message.timestamp!!, false)
+            binding.tvMessageTime.visibility =
+                if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
         }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun updateTextMessageOfSenderBackground(
+        binding: LayoutSenderMessageBinding,
+        message: Message,
+        bindingAdapterPosition: Int
+    ) {
+        // Get the previous and next messages
+        val previousMessage =
+            if (bindingAdapterPosition > 0) getItem(bindingAdapterPosition - 1) else null
+        val nextMessage =
+            if (bindingAdapterPosition < itemCount - 1) getItem(bindingAdapterPosition + 1) else null
+
+        // Determine if previous and next messages are from the same sender
+        val isPreviousSameSender = previousMessage?.senderId == message.senderId
+        val isNextSameSender = nextMessage?.senderId == message.senderId
+
+        val backgroundResId = when {
+            // First item in a series from the receiver
+            !isPreviousSameSender && isNextSameSender -> R.drawable.bg_sender_message_first
+
+            // Middle item in a series from the receiver
+            isPreviousSameSender && isNextSameSender -> R.drawable.bg_sender_message_middle
+
+            // Last item in a series from the receiver
+            isPreviousSameSender && !isNextSameSender -> R.drawable.bg_sender_message_last
+
+            // Single isolated item
+            !isPreviousSameSender && !isNextSameSender -> R.drawable.bg_sender_message_single
+
+            else -> R.drawable.bg_sender_message_single // Fallback
+        }
+
+        // Apply the determined background drawable
+        binding.textMessageContainer.background = binding
+            .textMessageContainer
+            .context
+            .getDrawable(backgroundResId)
     }
 
     inner class ReceiverMessageViewHolder(
@@ -160,7 +210,10 @@ class MessageAdapter(
         }
 
         @SuppressLint("UseCompatLoadingForDrawables")
-        fun bind(message: Message) {
+        fun bind(message: Message, isFirstReceiverMessage: Boolean) {
+
+            updateVisibilityReceiverNameAndImageMessage(binding, message, isFirstReceiverMessage)
+
             if (!message.isReplyMessageEmpty()) {
 
                 val replyMessage = message.replyMessage
@@ -189,10 +242,15 @@ class MessageAdapter(
                     }
 
                     binding.replyMessageContainer.visibility = View.VISIBLE
-                    binding.textMessageContainer.background =
-                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_text_message_has_reply_message)
-                    binding.removedMessageView.background =
-                        binding.removedMessageView.context.getDrawable(R.drawable.bg_receiver_removed_message_has_reply_message)
+                    binding.textMessageContainer.background = binding
+                        .textMessageContainer
+                        .context
+                        .getDrawable(R.drawable.bg_receiver_text_message_has_reply_message)
+
+                    binding.removedMessageView.background = binding
+                        .removedMessageView
+                        .context
+                        .getDrawable(R.drawable.bg_receiver_removed_message_has_reply_message)
 
                     binding.replyMessageContainer.setOnClickListener {
                         onReplyMessageClick(replyMessage)
@@ -200,7 +258,7 @@ class MessageAdapter(
                 } else {
                     binding.replyMessageContainer.visibility = View.GONE
                     binding.textMessageContainer.background =
-                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message)
+                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message_single)
 
                     binding.removedMessageView.background =
                         binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
@@ -208,7 +266,7 @@ class MessageAdapter(
             } else {
                 binding.replyMessageContainer.visibility = View.GONE
                 binding.textMessageContainer.background =
-                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message)
+                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message_single)
 
                 binding.removedMessageView.background =
                     binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
@@ -230,8 +288,11 @@ class MessageAdapter(
                 binding.reactionsRecyclerView.visibility =
                     if (reactions == null) View.GONE else View.VISIBLE
                 reactionsAdapter?.submitList(reactions)
+
                 if (!message.isTextEmpty()) {
                     binding.textMessageContainer.visibility = View.VISIBLE
+
+                    binding.messageText.text = message.text
                     binding.textMessageContainer.setOnLongClickListener {
                         onMessageLongClick(false, message)
                         false
@@ -239,9 +300,11 @@ class MessageAdapter(
                     binding.textMessageContainer.setOnClickListener {
                         handleTextMessageClick(bindingAdapterPosition)
                     }
+                    updateTextMessageOfReceiverBackground(binding, message, bindingAdapterPosition)
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
+
                 if (!message.isPhotoEmpty()) {
                     bindPhotoMessage(binding.image, message.photo)
                     binding.imageMessageCardView.visibility = View.VISIBLE
@@ -256,9 +319,88 @@ class MessageAdapter(
                     binding.imageMessageCardView.visibility = View.GONE
                 }
             }
-            binding.message = message
-            binding.tvMessageTime.visibility = if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
+
+            binding.tvMessageTime.text = StringUtils.formatTime(message.timestamp!!, false)
+            binding.tvMessageTime.visibility =
+                if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
         }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun updateTextMessageOfReceiverBackground(
+        binding: LayoutReceiverMessageBinding,
+        message: Message,
+        bindingAdapterPosition: Int
+    ) {
+        // Get the previous and next messages
+        val previousMessage =
+            if (bindingAdapterPosition > 0) getItem(bindingAdapterPosition - 1) else null
+        val nextMessage =
+            if (bindingAdapterPosition < itemCount - 1) getItem(bindingAdapterPosition + 1) else null
+
+        // Determine if previous and next messages are from the same sender
+        val isPreviousSameSender = previousMessage?.senderId == message.senderId
+        val isNextSameSender = nextMessage?.senderId == message.senderId
+
+        val backgroundResId = when {
+            // First item in a series from the receiver
+            !isPreviousSameSender && isNextSameSender -> R.drawable.bg_receiver_message_first
+
+            // Middle item in a series from the receiver
+            isPreviousSameSender && isNextSameSender -> R.drawable.bg_receiver_message_middle
+
+            // Last item in a series from the receiver
+            isPreviousSameSender && !isNextSameSender -> R.drawable.bg_receiver_message_last
+
+            // Single isolated item
+            !isPreviousSameSender && !isNextSameSender -> R.drawable.bg_receiver_message_single
+
+            else -> R.drawable.bg_receiver_message_single // Fallback
+        }
+
+        // Apply the determined background drawable
+        binding.textMessageContainer.background = binding
+            .textMessageContainer
+            .context
+            .getDrawable(backgroundResId)
+    }
+
+    private fun updateVisibilityReceiverNameAndImageMessage(
+        binding: LayoutReceiverMessageBinding,
+        message: Message,
+        isFirstReceiverMessage: Boolean
+    ) {
+        val layoutParams = binding.ivAvatar.layoutParams as ViewGroup.MarginLayoutParams
+
+        if (chatRoomType == ChatRoomType.Group.type && isFirstReceiverMessage) {
+
+            binding.tvReceiverName.visibility = View.VISIBLE
+            binding.ivAvatar.visibility = View.VISIBLE
+
+            bindNormalImage(binding.ivSenderAvatar, message.senderData?.userAvatar)
+
+            val senderName = message.senderData?.username
+                ?: binding.tvReceiverName.context.getString(R.string.app_user)
+
+            binding.tvReceiverName.text = senderName
+
+            layoutParams.topMargin = binding.ivAvatar
+                .context
+                .resources
+                .getDimensionPixelSize(R.dimen.margin_24dp)
+
+        } else if (chatRoomType == ChatRoomType.Group.type && !isFirstReceiverMessage) {
+            binding.tvReceiverName.visibility = View.GONE
+            binding.ivAvatar.visibility = View.INVISIBLE
+            layoutParams.topMargin = 0
+        } else {
+            binding.tvReceiverName.visibility = View.GONE
+            binding.ivAvatar.visibility = View.GONE
+            layoutParams.topMargin = 0
+        }
+
+        // Apply the updated layout parameters
+        binding.ivAvatar.layoutParams = layoutParams
     }
 
     override fun getItemViewType(position: Int): Int =
@@ -299,10 +441,16 @@ class MessageAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = getItem(position)
+        val isFirstReceiverMessage = if (position > 0) {
+            val previousMessage = getItem(position - 1)
+            previousMessage.senderId != item.senderId
+        } else {
+            true // Item đầu tiên luôn hiển thị ảnh và tên
+        }
         if (holder is SenderMessageViewHolder || holder is ReceiverMessageViewHolder) {
             holder.itemView.setOnClickListener { onMessageContentViewClick() }
             if (holder is SenderMessageViewHolder) holder.bind(item)
-            if (holder is ReceiverMessageViewHolder) holder.bind(item)
+            if (holder is ReceiverMessageViewHolder) holder.bind(item, isFirstReceiverMessage)
         }
     }
 

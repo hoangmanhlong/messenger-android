@@ -12,7 +12,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="0dp"
-        android:background="@drawable/bg_receiver_message"
+        android:background="@drawable/bg_receiver_message_single"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toStartOf="@id/btSend"
         android:layout_marginEnd="8dp"

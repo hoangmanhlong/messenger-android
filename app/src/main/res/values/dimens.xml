@@ -6,4 +6,7 @@
     <dimen name="spacing_small">8dp</dimen>
     <dimen name="chatroom_size">50dp</dimen>
     <dimen name="chatroom_corner_radius">25dp</dimen>
+    <dimen name="margin_14dp">14dp</dimen>
+    <dimen name="margin_24dp">24dp</dimen>
+    <dimen name="margin_32dp">32dp</dimen>
 </resources>

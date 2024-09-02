@@ -101,7 +101,7 @@
                             android:id="@+id/textMessageConstraintLayout"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_message_sender"
+                            android:background="@drawable/bg_sender_message_single"
                             android:paddingHorizontal="16dp"
                             android:paddingVertical="8dp"
                             app:layout_constraintBottom_toBottomOf="parent"
