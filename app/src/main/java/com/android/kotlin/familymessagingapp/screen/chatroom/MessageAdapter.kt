@@ -370,37 +370,43 @@ class MessageAdapter(
         message: Message,
         isFirstReceiverMessage: Boolean
     ) {
-        val layoutParams = binding.ivAvatar.layoutParams as ViewGroup.MarginLayoutParams
+        val context = binding.root.context
+        val resources = context.resources
 
-        if (chatRoomType == ChatRoomType.Group.type && isFirstReceiverMessage) {
+        val receiverAvatarCardViewLayoutParams = binding.receiverAvatarCardView.layoutParams as ViewGroup.MarginLayoutParams
+        val receiverMessageContainerLayoutParams = binding.receiverMessageContainer.layoutParams as ViewGroup.MarginLayoutParams
 
-            binding.tvReceiverName.visibility = View.VISIBLE
-            binding.ivAvatar.visibility = View.VISIBLE
+        when {
+            chatRoomType == ChatRoomType.Group.type && isFirstReceiverMessage -> {
+                binding.tvReceiverName.visibility = View.VISIBLE
+                binding.receiverAvatarCardView.visibility = View.VISIBLE
+                bindNormalImage(binding.ivSenderAvatar, message.senderData?.userAvatar)
 
-            bindNormalImage(binding.ivSenderAvatar, message.senderData?.userAvatar)
+                val senderName = message.senderData?.username ?: context.getString(R.string.app_user)
+                binding.tvReceiverName.text = senderName
 
-            val senderName = message.senderData?.username
-                ?: binding.tvReceiverName.context.getString(R.string.app_user)
+                receiverAvatarCardViewLayoutParams.topMargin = resources.getDimensionPixelSize(R.dimen.margin_24dp)
+                receiverMessageContainerLayoutParams.marginStart = resources.getDimensionPixelSize(R.dimen.spacing_small)
+            }
 
-            binding.tvReceiverName.text = senderName
+            chatRoomType == ChatRoomType.Group.type && !isFirstReceiverMessage -> {
+                binding.tvReceiverName.visibility = View.GONE
+                binding.receiverAvatarCardView.visibility = View.INVISIBLE
+                receiverAvatarCardViewLayoutParams.topMargin = 0
+                receiverMessageContainerLayoutParams.marginStart = resources.getDimensionPixelSize(R.dimen.spacing_small)
+            }
 
-            layoutParams.topMargin = binding.ivAvatar
-                .context
-                .resources
-                .getDimensionPixelSize(R.dimen.margin_24dp)
-
-        } else if (chatRoomType == ChatRoomType.Group.type && !isFirstReceiverMessage) {
-            binding.tvReceiverName.visibility = View.GONE
-            binding.ivAvatar.visibility = View.INVISIBLE
-            layoutParams.topMargin = 0
-        } else {
-            binding.tvReceiverName.visibility = View.GONE
-            binding.ivAvatar.visibility = View.GONE
-            layoutParams.topMargin = 0
+            else -> {
+                binding.tvReceiverName.visibility = View.GONE
+                binding.receiverAvatarCardView.visibility = View.GONE
+                receiverAvatarCardViewLayoutParams.topMargin = 0
+                receiverMessageContainerLayoutParams.marginStart = 0
+            }
         }
 
         // Apply the updated layout parameters
-        binding.ivAvatar.layoutParams = layoutParams
+        binding.receiverAvatarCardView.layoutParams = receiverAvatarCardViewLayoutParams
+        binding.receiverMessageContainer.layoutParams = receiverMessageContainerLayoutParams
     }
 
     override fun getItemViewType(position: Int): Int =
@@ -441,16 +447,13 @@ class MessageAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = getItem(position)
-        val isFirstReceiverMessage = if (position > 0) {
-            val previousMessage = getItem(position - 1)
-            previousMessage.senderId != item.senderId
-        } else {
-            true // Item đầu tiên luôn hiển thị ảnh và tên
-        }
         if (holder is SenderMessageViewHolder || holder is ReceiverMessageViewHolder) {
             holder.itemView.setOnClickListener { onMessageContentViewClick() }
             if (holder is SenderMessageViewHolder) holder.bind(item)
-            if (holder is ReceiverMessageViewHolder) holder.bind(item, isFirstReceiverMessage)
+            if (holder is ReceiverMessageViewHolder) {
+                val isFirstReceiverMessage = position == 0 || getItem(position - 1).senderId != item.senderId
+                holder.bind(item, isFirstReceiverMessage)
+            }
         }
     }
 

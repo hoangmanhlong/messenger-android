@@ -64,5 +64,6 @@ fun Message.toMessageSocketEvent(): BackendEvent.Message = BackendEvent.Message(
     photo = photo,
     video = video,
     audio = audio,
-    timestamp = timestamp.toString()
+    timestamp = timestamp.toString(),
+    senderName = senderData?.username
 )

@@ -15,12 +15,30 @@ import androidx.work.WorkRequest
 import androidx.work.workDataOf
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.work.SaveFCMTokenToLocalAndSendToServerWorker
+import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
+import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
+import com.android.kotlin.familymessagingapp.utils.StringUtils
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AppFirebaseMessagingService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var appDataStore: AppDataStore
 
     /**
      * Called when message is received.
@@ -38,30 +56,37 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         // and data payloads are treated as notification messages. The Firebase console always sends notification
         // messages. For more see: https://firebase.google.com/docs/cloud-messaging/concept-options
         // [END_EXCLUDE]
-        sendNotification("Heheh")
 
-        // TODO(developer): Handle FCM messages here.
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
-        Log.d(TAG, "From: ${remoteMessage.from}")
+        if (!DeviceUtils.isAppInBackground(applicationContext)) return
 
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
 
-        }
+            val jsonPayload = JSONObject(remoteMessage.data as Map<*, *>)
+            // Lấy các giá trị từ JSON
+            val photo = jsonPayload.optString("photo", "")
+            val senderId = jsonPayload.optString("senderId", "")
+            val text = jsonPayload.optString("text", "")
+            val chatRoomId = jsonPayload.optString(ChatRoom.CHAT_ROOM_ID, "")
+            val senderName = jsonPayload.optString("senderName", "")
+            val chatRoomName = jsonPayload.optString(ChatRoom.CHAT_ROOM_NAME, "")
+            val chatRoomType = jsonPayload.optString(ChatRoom.CHAT_ROOM_TYPE, "")
 
-        // Check if message contains a notification payload.
-        remoteMessage.notification?.let {
-            Log.d(TAG, "Message Notification Body: ${it.body}")
-            it.body?.let { body -> sendNotification(body) }
+            CoroutineScope(Dispatchers.IO).launch {
+                appDataStore.saveString(
+                    AppDataStore.CHAT_ROOM_ID_FROM_NOTIFICATION,
+                    chatRoomId
+                )
+            }
+
+            sendNotification(chatRoomName, senderName, chatRoomType, text, photo)
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
     }
     // [END receive_message]
-
-    private fun isLongRunningJob() = true
 
     // [START on_new_token]
     /**
@@ -71,55 +96,22 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
      */
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed token: $token")
-        //  Save Totken into dataStore and send the
-        // FCM registration token to your app server.
-
-//        val uploadWorkRequest: WorkRequest =
-//            OneTimeWorkRequestBuilder<SaveFCMTokenToLocalAndSendToServerWorker>()
-//                .setInputData(workDataOf(Constant.FCM_TOKEN_KEY to token))
-//                .build()
-//
-//        WorkManager.getInstance(application).enqueue(uploadWorkRequest)
     }
     // [END on_new_token]
-
-    /**
-     * Schedule async work using WorkManager.
-     */
-//    private fun scheduleJob() {
-//        // [START dispatch_job]
-//        val work = OneTimeWorkRequest.Builder(MyWorker::class.java).build()
-//        WorkManager.getInstance(this).beginWith(work).enqueue()
-//        // [END dispatch_job]
-//    }
-
-    /**
-     * Handle time allotted to BroadcastReceivers.
-     */
-    private fun handleNow() {
-        Log.d(TAG, "Short lived task is done.")
-    }
-
-    /**
-     * Persist token to third-party servers.
-     *
-     * Modify this method to associate the user's FCM registration token with any server-side account
-     * maintained by your application.
-     *
-     * @param token The new token.
-     */
-    private fun sendRegistrationToServer(token: String?) {
-        // TODO: Implement this method to send token to your app server.
-        Log.d(TAG, "sendRegistrationTokenToServer($token)")
-    }
 
     /**
      * Create and show a simple notification containing the received FCM message.
      *
      * @param messageBody FCM message body received.
      */
-    private fun sendNotification(messageBody: String) {
-        val requestCode = 0
+    private fun sendNotification(
+        chatRoomName: String,
+        senderName: String,
+        chatRoomType: String,
+        text: String,
+        photo: String,
+    ) {
+        val requestCode = System.currentTimeMillis().toInt()
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(
@@ -129,17 +121,26 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
+        if (text.isNullOrEmpty() && photo.isNullOrEmpty()) return
+
+        val formatContentMessage = if (chatRoomType == ChatRoomType.Group.type) {
+            senderName + ": " + text.ifEmpty { applicationContext.getString(R.string.photo_last_message) }
+        } else {
+            text.ifEmpty { applicationContext.getString(R.string.photo_last_message) }
+        }
+
         val channelId = getString(R.string.default_notification_channel_id)
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification_small)
-            .setContentTitle(getString(R.string.fcm_message))
-            .setContentText(messageBody)
+            .setSmallIcon(R.drawable.ic_earth_notification)
+            .setContentTitle(chatRoomName)
+            .setContentText(formatContentMessage)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

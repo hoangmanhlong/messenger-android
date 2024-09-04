@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
@@ -53,4 +54,17 @@ object DeviceUtils {
         }
         context.startActivity(Intent.createChooser(shareIntent, "Chia sẻ hình ảnh qua"))
     }
+
+    fun isAppInBackground(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val appProcesses = activityManager.runningAppProcesses ?: return true
+
+        for (appProcess in appProcesses) {
+            if (appProcess.processName == BuildConfig.APPLICATION_ID) {
+                return appProcess.importance != ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+            }
+        }
+        return true
+    }
+
 }

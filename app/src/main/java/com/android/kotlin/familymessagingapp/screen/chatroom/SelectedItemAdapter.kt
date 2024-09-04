@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutSelectedPhotoBinding
+import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
 
 class SelectedItemAdapter(
     private val onItemRemove: (Uri) -> Unit
@@ -16,7 +17,7 @@ class SelectedItemAdapter(
         val binding: LayoutSelectedPhotoBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Uri) {
-            binding.imageUri = item
+            loadImageFollowImageViewSize(binding.ivImage, item)
         }
     }
 

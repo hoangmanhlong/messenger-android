@@ -126,6 +126,15 @@ class ChatRoomViewModel @Inject constructor(
         _selectPhotoVisibleStatus.value = visible
     }
 
+    fun resetIsOpenFromNotificationFlag() {
+        viewModelScope.launch(Dispatchers.IO) {
+            localDatabaseRepository.appDataStore.saveString(
+                key = AppDataStore.CHAT_ROOM_ID_FROM_NOTIFICATION,
+                value = ""
+            )
+        }
+    }
+
     fun resetState() {
         firebaseServiceRepository.firebaseRealtimeDatabaseService.removeCurrentChatRoomListener()
         chatroomLiveData = null
@@ -232,7 +241,7 @@ class ChatRoomViewModel @Inject constructor(
      */
     fun setUserData(userData: UserData) {
         _chatRoom.value = _chatRoom.value?.copy(
-            chatroomName = userData.username,
+            chatRoomName = userData.username,
             chatRoomImage = userData.userAvatar,
             members = listOf(userData.uid!!, Firebase.auth.uid!!),
             chatRoomType = ChatRoomType.Double.type
@@ -304,7 +313,7 @@ class ChatRoomViewModel @Inject constructor(
     fun setChatRoom(chatRoom: ChatRoom) {
         _chatRoom.value = _chatRoom.value?.copy(
             chatRoomId = chatRoom.chatRoomId,
-            chatroomName = chatRoom.chatroomName,
+            chatRoomName = chatRoom.chatRoomName,
             messages = chatRoom.messages,
             lastMessage = chatRoom.lastMessage,
             latestTime = chatRoom.latestTime,

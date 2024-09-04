@@ -14,7 +14,7 @@ import kotlinx.parcelize.Parcelize
  * @property lastMessage latest message
  * @property latestTime Last operating time
  * @property chatRoomImage - inference attribute: image of chatroom: get from user
- * @property chatroomName - inference attribute: name of chatroom: get from usere
+ * @property chatRoomName - inference attribute: name of chatroom: get from usere
  */
 @Parcelize
 @IgnoreExtraProperties
@@ -28,7 +28,7 @@ data class ChatRoom(
     val pinnedMessages: Map<String, PinnedMessage>? = null,
     val chatRoomType: String? = null,
     var chatRoomImage: String? = null,
-    var chatroomName: String? = null,
+    var chatRoomName: String? = null,
     @Exclude val membersData: List<UserData>? = null,
     @Exclude val roleInChatRoom: String? = null
 ) : Parcelable {
@@ -40,9 +40,10 @@ data class ChatRoom(
         const val LATEST_TIME = "latestTime"
         const val PINNED_MESSAGES = "pinnedMessages"
         const val CHAT_ROOM_IMAGE = "chatRoomImage"
-        const val CHAT_ROOM_NAME = "chatroomName"
+        const val CHAT_ROOM_NAME = "chatRoomName"
         const val MEMBERS_DATA = "membersData"
         const val ACTIVE = "isActive"
+        const val CHAT_ROOM_TYPE = "chatRoomType"
     }
 
     @Exclude
@@ -54,17 +55,17 @@ data class ChatRoom(
                 val otherUserUid = members.firstOrNull { it != Firebase.auth.uid }
                 val userdata = membersData.firstOrNull { it.uid == otherUserUid }
                 userdata?.let {
-                    this.chatroomName = it.username
+                    this.chatRoomName = it.username
                     this.chatRoomImage = it.userAvatar
                 }
 
             }
 
             ChatRoomType.Group.type -> {
-                if (chatroomName.isNullOrEmpty()) {
+                if (chatRoomName.isNullOrEmpty()) {
                     val membersName =
                         membersData.filter { members.contains(it.uid) }.map { it.username }
-                    this.chatroomName = when {
+                    this.chatRoomName = when {
                         members.size > 3 -> "${membersName[0]}, ${membersName[1]}, ${membersName[2]}, ..."
                         members.size == 3 -> "${membersName[0]}, ${membersName[1]}, ${membersName[2]}"
                         else -> membersName.joinToString(", ")

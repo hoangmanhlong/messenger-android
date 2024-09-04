@@ -84,17 +84,6 @@ class MainViewModel @Inject constructor(
 
     init {
         executeTheJobOnFirstRun()
-//        privateUserData.observeForever {
-//            viewModelScope.launch(Dispatchers.IO) {
-//                if (it != null) {
-//                    localDatabaseRepository.appDataStore.saveBoolean(
-//                        AppDataStore.ENABLED_AI,
-//                        it.mobileConfig?.turnOnSuggestedAnswers ?: false
-//                    )
-//                    firebaseServiceRepository.firebaseRealtimeDatabaseService.chatroomObserver(it.chatRooms)
-//                }
-//            }
-//        }
     }
 
     override fun onCleared() {

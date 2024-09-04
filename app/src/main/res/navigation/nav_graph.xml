@@ -18,6 +18,9 @@
             android:name="chatroom"
             app:argType="com.android.kotlin.familymessagingapp.model.ChatRoom"
             app:nullable="true" />
+        <argument
+            android:name="isOpenFromNotification"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_chatRoomFragment_to_callFragment"
             app:destination="@id/callFragment" />

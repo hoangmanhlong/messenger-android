@@ -27,6 +27,9 @@ import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
+import com.android.kotlin.familymessagingapp.utils.bindNormalImage
+import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,7 +51,7 @@ class ProfileDetailFragment : Fragment() {
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             it?.let {
-                binding.ivAvatar.setImageURI(it)
+                loadImageFollowImageViewSize(binding.ivAvatar, it)
                 _viewModel.setImageUri(it)
             }
         }
@@ -143,15 +146,10 @@ class ProfileDetailFragment : Fragment() {
         // proceed with this one.
         currentAnimator?.cancel()
 
+        if (activity == null) return
+
         // Load the high-resolution "zoomed-in" image.
-        activity?.let {
-            Glide.with(requireContext())
-                .load(imageDrawable)
-                .placeholder(R.drawable.loading_animation)
-                .error(R.drawable.ic_broken_image)
-                .override(Target.SIZE_ORIGINAL)
-                .into(binding.expandedImage)
-        } ?: return
+        loadImageFollowImageViewSize(binding.expandedImage, imageDrawable)
 
         // Calculate the starting and ending bounds for the zoomed-in image.
         val startBoundsInt = Rect()

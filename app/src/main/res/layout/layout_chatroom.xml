@@ -61,7 +61,7 @@
                 android:layout_marginEnd="16dp"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="@{chatroom.chatroomName}"
+                android:text="@{chatroom.chatRoomName}"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toStartOf="@id/tvLastMessageTime"
                 app:layout_constraintStart_toStartOf="parent"

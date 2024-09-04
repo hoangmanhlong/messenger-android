@@ -12,8 +12,6 @@ object Constant {
 
     const val ENABLED_AI = "ENABLED_AI"
 
-    const val BASE_URL = "https://developer.android.com/"
-
     const val DURATION_TIMEOUT = 60
 
     const val ROOM_DATABASE_NAME = "app_database"

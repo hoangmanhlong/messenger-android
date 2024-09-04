@@ -267,10 +267,22 @@ class HomeFragment : Fragment() {
                         }
                     }
 
-                    viewModel.chatRoomsLiveData.observe(this.viewLifecycleOwner) { chatRoomsList ->
+                    viewModel.chatRoomsLiveData.observe(viewLifecycleOwner) { chatRoomsList ->
                         if (chatRoomsList != null) {
                             viewModel.setIsLoadingStatus(false)
                             binding.isConversationEmpty = chatRoomsList.isEmpty()
+
+                            if (chatRoomsList.isNotEmpty()) {
+                                // Safely handle the chatRoomIdFromNotification value
+                                val chatRoomId = viewModel.chatRoomIdFromNotification.value
+                                if (!chatRoomId.isNullOrEmpty()) {
+                                    val chatRoom = chatRoomsList.firstOrNull { it.chatRoomId == chatRoomId }
+                                    if (chatRoom != null) {
+                                        navigateToChatRoom(chatRoom, null, true)
+                                    }
+                                }
+                            }
+
                             chatroomAdapter?.submitList(chatRoomsList)
                         }
                     }
@@ -327,10 +339,11 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun navigateToChatRoom(chatroom: ChatRoom?, userdata: UserData?) {
+    private fun navigateToChatRoom(chatroom: ChatRoom?, userdata: UserData?, isOpenedFromNotification: Boolean = false) {
         val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
             chatroom = chatroom,
-            userdata = userdata
+            userdata = userdata,
+            isOpenFromNotification = isOpenedFromNotification
         )
         findNavController().navigate(action)
     }

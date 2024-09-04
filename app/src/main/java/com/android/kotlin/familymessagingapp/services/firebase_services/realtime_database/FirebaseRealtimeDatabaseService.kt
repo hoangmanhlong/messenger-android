@@ -594,7 +594,7 @@ class FirebaseRealtimeDatabaseService(
                 chatRoomsRef.child(chatRoom.chatRoomId!!).updateChildren(chatRoomUpdates).await()
 
                 // send notify to socket to push new message to other user
-                socketClient.emitNewMessageToOtherUser(chatRoom, newMessage)
+                socketClient.emitNewMessageToOtherUser(chatRoom, newMessage, _publicUserData.value?.username)
                 Result.Success(true)
             } catch (e: Exception) {
                 throw e
@@ -617,7 +617,7 @@ class FirebaseRealtimeDatabaseService(
                 val chatRoomUpdates = mapOf(
                     ChatRoom.CHAT_ROOM_IMAGE to chatRoomImage,
                     ChatRoom.LATEST_TIME to StringUtils.getCurrentTime(),
-                    ChatRoom.CHAT_ROOM_NAME to chatRoom.chatroomName,
+                    ChatRoom.CHAT_ROOM_NAME to chatRoom.chatRoomName,
                 )
 
                 // Update chat room to Firebase Realtime Database
@@ -663,8 +663,14 @@ class FirebaseRealtimeDatabaseService(
             if (ServerCode.SUCCESS.code == responseStatusCode && !chatRoom?.chatRoomId.isNullOrEmpty()) {
                 if (chatRoom?.chatRoomType == ChatRoomType.Double.type && this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom != null) {
                     try {
+                        // Because the newly created chat room from the server does not send the
+                        // chatroom name field, this chatroom name will be set to your own name to
+                        // send to the other person.
+                        val updatedChatRoom = chatRoom.copy(chatRoomName = _publicUserData.value?.username)
+
+                        // Just in case the chatroom name might exist. check first.
                         pushMessageToChatRoom(
-                            chatRoom,
+                            if (chatRoom.chatRoomName.isNullOrEmpty()) updatedChatRoom else chatRoom,
                             this@FirebaseRealtimeDatabaseService.messageSentWhenCreatingDoubleChatRoom!!
                         )
 

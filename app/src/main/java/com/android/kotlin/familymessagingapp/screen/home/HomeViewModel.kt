@@ -1,10 +1,12 @@
 package com.android.kotlin.familymessagingapp.screen.home
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.UserData
@@ -12,6 +14,7 @@ import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepositor
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,6 +33,11 @@ class HomeViewModel @Inject constructor(
     companion object {
         val TAG: String = HomeViewModel::class.java.simpleName
     }
+
+    val chatRoomIdFromNotification = localDatabaseRepository
+        .appDataStore
+        .getStringPreferenceFlow(AppDataStore.CHAT_ROOM_ID_FROM_NOTIFICATION, "")
+        .asLiveData()
 
     val authenticateState: LiveData<Boolean?> = firebaseServiceRepository.authenticateState
 
@@ -68,6 +76,10 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+
+        chatRoomIdFromNotification.observeForever {
+            Log.d(TAG, "chatRoomIdFromNotification: ${it ?: "Null"}")
+        }
     }
 
     fun setIsLoadingStatus(value: Boolean) {
@@ -92,7 +104,10 @@ class HomeViewModel @Inject constructor(
                     //            _searchedUser.value = emptyList() // clear old list when start query
 
                     _searchResultList.value =
-                        firebaseServiceRepository.firebaseRealtimeDatabaseService.search(keyword, searchByUid)
+                        firebaseServiceRepository.firebaseRealtimeDatabaseService.search(
+                            keyword,
+                            searchByUid
+                        )
 
                 } else {
                     _searchResultList.value = searchResultList.value

@@ -10,6 +10,7 @@ import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.Target
 
 // Rule : The first parameter in the binding function is always view
@@ -22,6 +23,7 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
             .error(R.drawable.ic_broken_image)
             .placeholder(R.drawable.loading_animation)
             .override(600, 600)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(imageView)
     } ?: imageView.setImageResource(R.drawable.ic_user_default)
 }
@@ -34,6 +36,7 @@ fun <T> bindPhotoMessage(imageView: ImageView, photo: T?) {
             .error(R.drawable.ic_broken_message_image)
             .placeholder(R.drawable.image_placeholder)
             .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(imageView)
     }
 }
@@ -64,8 +67,29 @@ fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
         .placeholder(R.drawable.loading_animation)
         .override(targetWidth, targetHeight)
         .fitCenter()
+        .diskCacheStrategy(DiskCacheStrategy.ALL)
         .into(imageView)
+}
 
+fun <T> loadImageFollowImageViewSize(imageView: ImageView, image: T?) {
+    if (image == null) return
+
+    val density = imageView.context.resources.displayMetrics.density
+    val imageViewWidth = imageView.width
+    val imageViewHeight = imageView.height
+
+    // Giới hạn kích thước hình ảnh dựa trên mật độ màn hình và kích thước của ImageView
+    val targetWidth = (imageViewWidth * density).toInt()
+    val targetHeight = (imageViewHeight * density).toInt()
+
+    Glide.with(imageView.context)
+        .load(image)
+        .error(R.drawable.ic_broken_image)
+        .placeholder(R.drawable.loading_animation)
+        .override(targetWidth, targetHeight)
+        .fitCenter()
+        .diskCacheStrategy(DiskCacheStrategy.ALL)
+        .into(imageView)
 }
 
 
@@ -138,7 +162,7 @@ fun bindSenderNameOfMessage(textView: TextView, message: Message) {
 
 @BindingAdapter("bindChatRoomName")
 fun bindChatRoomName(textView: TextView, chatRoom: ChatRoom) {
-    val chatRoomName = chatRoom.chatroomName
+    val chatRoomName = chatRoom.chatRoomName
     textView.text = if (chatRoomName.isNullOrEmpty()) {
         textView.context.getString(if (chatRoom.chatRoomType == ChatRoomType.Group.type) R.string.chatroom else R.string.user)
     } else {

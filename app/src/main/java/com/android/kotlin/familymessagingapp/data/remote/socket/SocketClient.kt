@@ -45,7 +45,8 @@ sealed class BackendEvent {
         val photo: String? = null,
         val video: String? = null,
         val audio: String? = null,
-        val timestamp: String? = null
+        val timestamp: String? = null,
+        val senderName: String? = null,
     ) : BackendEvent()
 
     @Serializable
@@ -123,13 +124,12 @@ class SocketClient {
         emitStatus(USER_ONLINE_STATUS_SOCKET_EVENT, BackendEvent.OnlineStatus(uid))
     }
 
-    fun emitNewMessageToOtherUser(chatRoom: ChatRoom, message: Message) {
+    fun emitNewMessageToOtherUser(chatRoom: ChatRoom, message: Message, senderName: String?) {
         val chatroom: BackendEvent.ChatRoomRequest = BackendEvent.ChatRoomRequest(
             chatRoomId = chatRoom.chatRoomId!!,
-            chatRoomName = chatRoom.chatRoomImage,
-            chatRoomImage = chatRoom.chatRoomImage,
+            chatRoomName = chatRoom.chatRoomName,
             members = chatRoom.members!!,
-            newMessage = message.toMessageSocketEvent(),
+            newMessage = message.toMessageSocketEvent().copy(senderName = senderName),
             chatRoomType = chatRoom.chatRoomType
         )
         emitStatus(NEW_MESSAGE_SOCKET_EVENT, chatroom)

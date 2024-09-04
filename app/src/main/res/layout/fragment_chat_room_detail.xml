@@ -78,7 +78,7 @@
                     android:ellipsize="end"
                     android:gravity="center_horizontal"
                     android:maxLines="2"
-                    android:text="@{chatRoom.chatroomName}"
+                    android:text="@{chatRoom.chatRoomName}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"

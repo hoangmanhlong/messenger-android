@@ -37,6 +37,7 @@ class AppDataStore(
         val TOKEN = stringPreferencesKey(Constant.TOKEN_KEY)
         val FCM_TOKEN = stringPreferencesKey(Constant.FCM_TOKEN_KEY)
         val ENABLED_AI = booleanPreferencesKey(Constant.ENABLED_AI)
+        val CHAT_ROOM_ID_FROM_NOTIFICATION = stringPreferencesKey("CHAT_ROOM_ID_FROM_NOTIFICATION")
     }
 
     fun getBooleanPreferenceFlow(

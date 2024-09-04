@@ -495,6 +495,8 @@ class ChatRoomFragment : Fragment() {
 
         val chatroom = args.chatroom
         val userdata = args.userdata
+        val isOpenFromNotification = args.isOpenFromNotification
+        if (isOpenFromNotification) _viewModel.resetIsOpenFromNotificationFlag()
         if (chatroom == null && userdata == null) {
             findNavController().navigateUp()
             return

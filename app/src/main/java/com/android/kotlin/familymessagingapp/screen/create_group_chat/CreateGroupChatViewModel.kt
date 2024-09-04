@@ -103,7 +103,7 @@ class CreateGroupChatViewModel @Inject constructor(
     }
 
     fun updateChatRoomName(chatRoomName: String?) {
-        _chatRoom.value = _chatRoom.value?.copy(chatroomName = chatRoomName)
+        _chatRoom.value = _chatRoom.value?.copy(chatRoomName = chatRoomName)
     }
 
     fun updateMember(contact: Contact) {
