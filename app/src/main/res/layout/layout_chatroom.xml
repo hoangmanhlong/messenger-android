@@ -63,14 +63,13 @@
                 android:singleLine="true"
                 android:text="@{chatroom.chatRoomName}"
                 android:textSize="16sp"
-                app:layout_constraintEnd_toStartOf="@id/tvLastMessageTime"
+                app:layout_constraintEnd_toStartOf="@id/tvLatestActiveTime"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Hoang Manh Long" />
 
             <TextView
-                android:id="@+id/tvLastMessage"
-                bindLastMessageOfChatroom="@{chatroom.lastMessage}"
+                android:id="@+id/tvLatestActivity"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -83,8 +82,7 @@
                 tools:text="@string/logout_message" />
 
             <TextView
-                android:id="@+id/tvLastMessageTime"
-                bindChatroomFormattedTime="@{chatroom.latestTime}"
+                android:id="@+id/tvLatestActiveTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="13sp"

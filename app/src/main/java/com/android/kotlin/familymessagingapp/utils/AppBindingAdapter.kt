@@ -92,22 +92,6 @@ fun <T> loadImageFollowImageViewSize(imageView: ImageView, image: T?) {
         .into(imageView)
 }
 
-
-@BindingAdapter("bindChatroomFormattedTime")
-fun bindChatroomFormattedTime(textView: TextView, time: Long) {
-    textView.text = StringUtils.formatTime(time, true)
-}
-
-@BindingAdapter("bindMessageFormattedTime")
-fun bindMessageFormattedTime(textView: TextView, time: Long) {
-    textView.text = StringUtils.formatTime(time, false)
-}
-
-@BindingAdapter("bindLastMessageOfChatroom")
-fun bindLastMessageOfChatroom(textView: TextView, message: Message?) {
-    textView.text = StringUtils.getFormattedLatestMessageOfChatRoom(textView.context, message)
-}
-
 @BindingAdapter("bindPinnedBy")
 fun bindPinnedBy(textView: TextView, pinnedMessage: PinnedMessage) {
     textView.text = textView.context.getString(
@@ -151,13 +135,6 @@ fun visibleViewDoubleChatRoom(view: View, chatRoomType: String?) {
 fun bindFormattedContentOfPinnedMessage(textView: TextView, pinnedMessage: PinnedMessage) {
     val pinnedMessageData = pinnedMessage.pinnedMessageData
     textView.text = StringUtils.showPinnedMessage(textView.context, pinnedMessageData)
-}
-
-@BindingAdapter("bindSenderNameOfMessage")
-fun bindSenderNameOfMessage(textView: TextView, message: Message) {
-    val senderName = message.senderData?.username
-    textView.text =
-        if (senderName.isNullOrEmpty()) textView.context.getString(R.string.app_user) else senderName
 }
 
 @BindingAdapter("bindChatRoomName")

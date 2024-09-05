@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutChatroomBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 
 class ChatRoomAdapter(
     private val onChatRoomClick: (ChatRoom) -> Unit,
@@ -18,6 +19,20 @@ class ChatRoomAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(chatRoom: ChatRoom) {
             binding.chatroom = chatRoom
+            binding.tvLatestActivity.text =
+                StringUtils.getFormattedMessageOfLatestActivityInChatRoom(
+                    binding.root.context,
+                    chatRoom
+                )
+
+            val latestActiveTime = chatRoom.chatRoomActivity?.latestActiveTime
+            if (latestActiveTime != null) {
+                binding.tvLatestActiveTime.text = StringUtils.formatTime(latestActiveTime, true)
+                binding.tvLatestActiveTime.visibility = ViewGroup.VISIBLE
+            } else {
+                binding.tvLatestActiveTime.visibility = ViewGroup.GONE
+            }
+
             binding.root.setOnClickListener {
                 onChatRoomClick(chatRoom)
             }

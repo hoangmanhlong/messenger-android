@@ -17,8 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentCreateGroupChatBinding
-import com.android.kotlin.familymessagingapp.model.InvalidChatRoomException
-import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -92,10 +90,10 @@ class CreateGroupChatFragment : Fragment() {
             binding.etSearch.text = null
         }
 
-        binding.etSearch.setOnEditorActionListener { v, actionId, event ->
+        binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 activity?.let { KeyBoardUtils.hideSoftKeyboard(it) }
-
+                viewModel.searchContact(binding.etSearch.text.toString())
             }
             false
         }
@@ -126,7 +124,7 @@ class CreateGroupChatFragment : Fragment() {
             binding.ivClearSearchInput.visibility = if (it) View.VISIBLE else View.GONE
         }
 
-        viewModel.contacts.observe(this.viewLifecycleOwner) {
+        viewModel.theListOfContactsIsBeingDisplayed.observe(this.viewLifecycleOwner) {
             it?.let {
                 binding.isEmptyContacts = it.isEmpty()
                 contactAdapter?.submitList(it)

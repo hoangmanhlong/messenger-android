@@ -293,21 +293,18 @@
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <LinearLayout
-                    android:padding="8dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/md_theme_surfaceContainer_mediumContrast"
+                    android:gravity="center_vertical"
+                    android:padding="8dp"
                     android:visibility="@{replyingMessage ? View.VISIBLE : View.GONE}">
 
-                    <View
-                        android:id="@+id/replyMessageView"
-                        android:layout_width="4dp"
-                        android:layout_height="match_parent"
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_rounded_corners_view"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        android:src="@drawable/ic_reply" />
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="0dp"
@@ -316,7 +313,6 @@
                         android:padding="8dp">
 
                         <ImageView
-                            android:layout_marginStart="8dp"
                             android:id="@+id/replyMessageImageView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -391,25 +387,25 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:padding="10dp"
                             android:id="@+id/ivAutoAwesome"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:padding="10dp"
                             android:src="@drawable/ic_auto_awesome"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
-                            android:paddingVertical="8dp"
                             android:id="@+id/tvAItext"
                             text="@{generatedText}"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
                             android:maxLines="2"
-                            android:textSize="16sp"
+                            android:paddingVertical="8dp"
                             android:textColor="@color/dark"
+                            android:textSize="16sp"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@id/tvCloseGeneratedText"
                             app:layout_constraintStart_toEndOf="@id/ivAutoAwesome"
@@ -417,13 +413,13 @@
                             tools:text="Hi, I am Hoang Manh Long, Android Developer" />
 
                         <ImageView
-                            android:padding="10dp"
                             android:id="@+id/tvCloseGeneratedText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_clear"
                             android:layout_marginEnd="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_clear"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
@@ -444,19 +440,18 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingVertical="8dp"
-                    android:paddingEnd="8dp">
+                    android:padding="8dp">
 
-                    <ImageView
-                        android:id="@+id/btMoreAction"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_add_circle"
-                        app:layout_constraintBottom_toBottomOf="@id/btSendMessageView"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="@id/btSendMessageView" />
+                    <!--                    <ImageView-->
+                    <!--                        android:id="@+id/btMoreAction"-->
+                    <!--                        android:layout_width="wrap_content"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:background="?attr/selectableItemBackgroundBorderless"-->
+                    <!--                        android:padding="10dp"-->
+                    <!--                        android:src="@drawable/ic_add_circle"-->
+                    <!--                        app:layout_constraintBottom_toBottomOf="@id/btSendMessageView"-->
+                    <!--                        app:layout_constraintStart_toStartOf="parent"-->
+                    <!--                        app:layout_constraintTop_toTopOf="@id/btSendMessageView" />-->
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/inputViewContainer"
@@ -467,7 +462,7 @@
                         app:cardCornerRadius="25dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/btSendMessageView"
-                        app:layout_constraintStart_toEndOf="@id/btMoreAction"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
 
                         <androidx.constraintlayout.widget.ConstraintLayout

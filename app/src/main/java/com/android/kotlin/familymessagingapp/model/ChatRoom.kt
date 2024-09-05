@@ -11,10 +11,12 @@ import kotlinx.parcelize.Parcelize
  * @property chatRoomId unique identifier of chat room
  * @property members store uid of users in chatroom
  * @property messages message list of chat room
- * @property lastMessage latest message
- * @property latestTime Last operating time
+ * @property pinnedMessages Pinned Messages List
+ * @property chatRoomType Type of chat room. include [ChatRoomType]
+ * @property chatRoomActivity - activity of chatroom: latest activity of chatroom
  * @property chatRoomImage - inference attribute: image of chatroom: get from user
- * @property chatRoomName - inference attribute: name of chatroom: get from usere
+ * @property chatRoomName - inference attribute: name of chatroom: get from user
+ * @property membersData - inference attribute: list of user data in chatroom
  */
 @Parcelize
 @IgnoreExtraProperties
@@ -22,11 +24,9 @@ data class ChatRoom(
     val chatRoomId: String? = null,
     val members: List<String>? = null,
     val messages: Map<String, Message>? = null,
-    val latestTime: Long? = null,
-    val isActive: Boolean? = null,
-    val lastMessage: Message? = null,
     val pinnedMessages: Map<String, PinnedMessage>? = null,
     val chatRoomType: String? = null,
+    var chatRoomActivity: ChatRoomActivity? = null,
     var chatRoomImage: String? = null,
     var chatRoomName: String? = null,
     @Exclude val membersData: List<UserData>? = null,
@@ -36,14 +36,11 @@ data class ChatRoom(
     companion object {
         const val CHAT_ROOM_ID = "chatRoomId"
         const val MESSAGES = "messages"
-        const val LAST_MESSAGE = "lastMessage"
-        const val LATEST_TIME = "latestTime"
         const val PINNED_MESSAGES = "pinnedMessages"
         const val CHAT_ROOM_IMAGE = "chatRoomImage"
         const val CHAT_ROOM_NAME = "chatRoomName"
-        const val MEMBERS_DATA = "membersData"
-        const val ACTIVE = "isActive"
         const val CHAT_ROOM_TYPE = "chatRoomType"
+        const val CHAT_ROOM_ACTIVITY = "chatRoomActivity"
     }
 
     @Exclude
@@ -108,10 +105,13 @@ data class ChatRoom(
     }
 
     @Exclude
-    fun getLatestMessageData() {
-        lastMessage?.let { message ->
-            message.senderData = membersData?.firstOrNull { it.uid == message.senderId }
+    fun getDataOfUserPerformingLatestActivity() {
+        chatRoomActivity?.let { activity ->
+            this.chatRoomActivity = this.chatRoomActivity!!.copy(
+                dataOfUserPerformingTheActivity = membersData?.firstOrNull { userData ->
+                    userData.uid == activity.performedByUser
+                }
+            )
         }
     }
-
 }

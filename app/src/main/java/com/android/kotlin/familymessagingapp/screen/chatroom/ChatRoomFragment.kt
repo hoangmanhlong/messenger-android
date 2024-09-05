@@ -28,7 +28,6 @@ import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
@@ -145,6 +144,10 @@ class ChatRoomFragment : Fragment() {
         )
 
         pinnedMessageRecyclerview = binding.pinnedMessageRecyclerview
+        (pinnedMessageRecyclerview?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations =
+            false
+
+        // Initialize your pinned message adapter with the scroll functionality
         pinnedMessageAdapter = PinnedMessageAdapter {
             if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
                 messageRecyclerview!!.scrollToPosition(messageAdapter!!.getPositionById(it.messageId))
@@ -205,16 +208,6 @@ class ChatRoomFragment : Fragment() {
 
         binding.ivOpenEmojiPicker.setOnClickListener { _viewModel.changeEmojiPickerVisibleStatus() }
 
-//        binding.messagesView.setOnClickListener {
-//            _viewModel.hideEmojiPicker()
-//        }
-
-//        binding.btVideoCall.setOnClickListener {
-//            val action = ChatRoomFragmentDirections
-//                .actionChatRoomFragmentToCallFragment(_viewModel.chatRoom.value)
-//            findNavController().navigate(action)
-//        }
-
         binding.aiGenerateView.setOnClickListener {
             binding.etMessage.text =
                 Editable.Factory.getInstance().newEditable(binding.tvAItext.text)
@@ -256,10 +249,6 @@ class ChatRoomFragment : Fragment() {
 
         binding.btInfo.setOnClickListener {
             findNavController().navigate(Screen.ChatRoomDetail.screenId)
-        }
-
-        binding.btMoreAction.setOnClickListener {
-
         }
 
         return binding.root

@@ -139,4 +139,6 @@
     <string name="camera_access_denied_title">Cần có sự cho phép của máy ảnh</string>
     <string name="camera_access_denied_message">Cần có quyền sử dụng máy ảnh để sử dụng tính năng này. Vui lòng cấp quyền trong cài đặt ứng dụng.</string>
     <string name="go_to_setting">Đi tới cài đặt</string>
+    <string name="user_update_chatroom_info">%s đã cập nhật thông tin phòng chat</string>
+    <string name="user_created_group_chat">%s đã tạo nhóm chat</string>
 </resources>

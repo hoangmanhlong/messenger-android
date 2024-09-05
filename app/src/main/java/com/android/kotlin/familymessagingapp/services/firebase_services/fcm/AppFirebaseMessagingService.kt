@@ -9,22 +9,12 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.WorkRequest
-import androidx.work.workDataOf
-import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.data.local.work.SaveFCMTokenToLocalAndSendToServerWorker
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
-import com.android.kotlin.familymessagingapp.model.Message
-import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
-import com.android.kotlin.familymessagingapp.utils.StringUtils
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,17 +51,16 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
-            Log.d(TAG, "Message data payload: ${remoteMessage.data}")
 
             val jsonPayload = JSONObject(remoteMessage.data as Map<*, *>)
-            // Lấy các giá trị từ JSON
-            val photo = jsonPayload.optString("photo", "")
-            val senderId = jsonPayload.optString("senderId", "")
-            val text = jsonPayload.optString("text", "")
-            val chatRoomId = jsonPayload.optString(ChatRoom.CHAT_ROOM_ID, "")
-            val senderName = jsonPayload.optString("senderName", "")
-            val chatRoomName = jsonPayload.optString(ChatRoom.CHAT_ROOM_NAME, "")
-            val chatRoomType = jsonPayload.optString(ChatRoom.CHAT_ROOM_TYPE, "")
+            // Get values from JSON payload
+            val photo = jsonPayload.optString("photo")
+            val senderId = jsonPayload.optString("senderId")
+            val text = jsonPayload.optString("text")
+            val chatRoomId = jsonPayload.optString(ChatRoom.CHAT_ROOM_ID)
+            val senderName = jsonPayload.optString("senderName")
+            val chatRoomName = jsonPayload.optString(ChatRoom.CHAT_ROOM_NAME)
+            val chatRoomType = jsonPayload.optString(ChatRoom.CHAT_ROOM_TYPE)
 
             CoroutineScope(Dispatchers.IO).launch {
                 appDataStore.saveString(
@@ -157,7 +146,6 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     companion object {
-
-        private const val TAG = "MyFirebaseMsgService"
+        private val TAG: String = AppFirebaseMessagingService::class.java.simpleName
     }
 }

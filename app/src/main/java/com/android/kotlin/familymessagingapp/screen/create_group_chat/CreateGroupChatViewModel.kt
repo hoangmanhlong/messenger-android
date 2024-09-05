@@ -38,16 +38,18 @@ class CreateGroupChatViewModel @Inject constructor(
 
     private var keyword: String? = null
 
-    private val privateUserData = firebaseServiceRepository
-        .firebaseRealtimeDatabaseService
-        .privateUserData
-
     private val publicUserData = firebaseServiceRepository
         .firebaseRealtimeDatabaseService
         .publicUserData
 
-    private val _createNewChatRoomStatus: MutableLiveData<CreateNewChatRoomStatus?> = MutableLiveData(null)
+    private val _createNewChatRoomStatus: MutableLiveData<CreateNewChatRoomStatus?> =
+        MutableLiveData(null)
     val createNewChatRoomStatus: LiveData<CreateNewChatRoomStatus?> = _createNewChatRoomStatus
+
+    private val _theListOfContactsIsBeingDisplayed: MutableLiveData<List<Contact>> =
+        MutableLiveData(emptyList())
+    val theListOfContactsIsBeingDisplayed: LiveData<List<Contact>> =
+        _theListOfContactsIsBeingDisplayed
 
     private var contactOfMe: Contact? = null
 
@@ -60,7 +62,6 @@ class CreateGroupChatViewModel @Inject constructor(
     val chatRoom: LiveData<ChatRoom> = _chatRoom
 
     private val _contacts: MutableLiveData<List<Contact>> = MutableLiveData(null)
-    val contacts: LiveData<List<Contact>> = _contacts
 
     private val _selectedImageUri = MutableLiveData<Uri?>(null)
     val selectedImageUri: LiveData<Uri?> = _selectedImageUri
@@ -77,6 +78,7 @@ class CreateGroupChatViewModel @Inject constructor(
         viewModelScope.launch {
             _contacts.value =
                 firebaseServiceRepository.firebaseRealtimeDatabaseService.getContacts()
+            _theListOfContactsIsBeingDisplayed.value = _contacts.value
         }
 
         publicUserData.observeForever {
@@ -117,6 +119,21 @@ class CreateGroupChatViewModel @Inject constructor(
         _createNewChatRoomStatus.value = status
     }
 
+    fun searchContact(keyword: String?) {
+        if (keyword.isNullOrEmpty()) {
+            _theListOfContactsIsBeingDisplayed.value = _contacts.value
+            return
+        }
+        viewModelScope.launch {
+            _theListOfContactsIsBeingDisplayed.value = _contacts.value?.filter { contact ->
+                contact.contactData?.email?.contains(keyword) == true
+                        || contact.contactData?.username?.contains(keyword) == true
+                        || contact.contactData?.phoneNumber?.contains(keyword) == true
+                        || contact.contactData?.uid == keyword
+            }
+        }
+    }
+
     /**
      * Chat room is valid when it has at least 2 members
      */
@@ -127,7 +144,8 @@ class CreateGroupChatViewModel @Inject constructor(
 
             // check chat room is valid. If not, show error popup
             if (_chatRoom.value == null || _selectedContacts.value == null || _selectedContacts.value!!.size < 2 || contactOfMe == null) {
-                _createNewChatRoomStatus.value = CreateNewChatRoomStatus.Fail(InvalidChatRoomException())
+                _createNewChatRoomStatus.value =
+                    CreateNewChatRoomStatus.Fail(InvalidChatRoomException())
                 return@launch
             }
 

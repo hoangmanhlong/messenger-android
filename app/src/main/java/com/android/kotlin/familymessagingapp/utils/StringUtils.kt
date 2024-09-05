@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.model.ChatActivityType
+import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.Message
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -63,22 +65,69 @@ object StringUtils {
         return regex.matches(url)
     }
 
-    fun getFormattedLatestMessageOfChatRoom(context: Context, message: Message?): String {
+    fun getFormattedMessageOfLatestActivityInChatRoom(
+        context: Context,
+        chatRoom: ChatRoom
+    ): String {
         var result = context.getString(R.string.connected)
-        if (message != null) {
-            result = if (!message.text.isNullOrEmpty() || !message.photo.isNullOrEmpty()) {
-                if (!message.text.isNullOrEmpty()) message.text else context.getString(R.string.photo_last_message)
-            } else {
-                result
-            }
-            val senderName = message.senderData?.username
-            if (senderName != null) {
-                result = if (message.senderId == Firebase.auth.uid) {
-                    context.getString(R.string.sender_you) + ": $result"
-                } else {
-                    "$senderName: $result"
+        val chatRoomActivity = chatRoom.chatRoomActivity
+        if (chatRoomActivity != null) {
+            when (chatRoomActivity.activityType) {
+                ChatActivityType.NEW_MESSAGE.value -> {
+                    val message = chatRoomActivity.newMessage ?: return result
+
+                    result = if (!message.text.isNullOrEmpty() || !message.photo.isNullOrEmpty()) {
+                        if (!message.text.isNullOrEmpty()) message.text else context.getString(R.string.photo_last_message)
+                    } else {
+                        result
+                    }
+                    val senderName = chatRoomActivity.dataOfUserPerformingTheActivity?.username
+                    if (senderName != null) {
+                        result = if (message.senderId == Firebase.auth.uid) {
+                            context.getString(R.string.sender_you) + ": $result"
+                        } else {
+                            "$senderName: $result"
+                        }
+                    }
+                }
+
+                ChatActivityType.LEAVE_CHATROOM.value -> {
+
+                }
+
+                ChatActivityType.PIN_MESSAGE.value -> {
+
+                }
+
+                ChatActivityType.REMOVE_MESSAGE.value -> {
+
+                }
+
+                ChatActivityType.JOIN_CHATROOM.value -> {
+
+                }
+
+                ChatActivityType.UPDATE_CHATROOM_INFO.value -> {
+
+                }
+
+                ChatActivityType.CREATE_CHATROOM.value -> {
+                    val senderName = chatRoomActivity.dataOfUserPerformingTheActivity?.username
+                    if (senderName != null) {
+                        result = context.getString(
+                            R.string.user_created_group_chat,
+                            if (chatRoomActivity.performedByUser == Firebase.auth.uid) context.getString(
+                                R.string.sender_you
+                            ) else senderName
+                        )
+                    }
+                }
+
+                else -> {
+
                 }
             }
+
         }
         return result
     }
@@ -110,5 +159,5 @@ object StringUtils {
         }
     }
 
-    fun getUidFromFormattedQrCode(text: String): String =text.split("___")[0]
+    fun getUidFromFormattedQrCode(text: String): String = text.split("___")[0]
 }

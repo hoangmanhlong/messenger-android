@@ -21,14 +21,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
-import com.android.kotlin.familymessagingapp.screen.home.HomeFragmentDirections
 import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
@@ -39,7 +38,6 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import okhttp3.internal.notifyAll
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -77,6 +75,8 @@ class MainActivity : AppCompatActivity() {
     private val binding get() = _binding!!
 
     private lateinit var navController: NavController
+
+    private lateinit var drawerLayout: DrawerLayout
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val activityResultLauncher =
@@ -147,17 +147,29 @@ class MainActivity : AppCompatActivity() {
 
             when (menuItem.itemId) {
                 R.id.createGroupChatMenu -> {
-                    navController.navigate(Screen.CreateGroupChat.screenId)
                     closeDrawer()
+                    navController.navigate(Screen.CreateGroupChat.screenId)
                     false
                 }
 
                 else -> false
             }
         }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            // Enable swipe to open the drawer only in HomeFragment. Disable swipe to open
+            // the drawer in other fragments
+            val updatedLockMode = if (destination.id == Screen.HomeScreen.screenId) {
+                DrawerLayout.LOCK_MODE_UNLOCKED
+            } else {
+                DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+            }
+            drawerLayout.setDrawerLockMode(updatedLockMode)
+        }
     }
 
     private fun navigationViewMapper() {
+        drawerLayout = binding.drawerLayout
         navigationView = binding.navigationView
         navigationViewHeader = navigationView.getHeaderView(0)
         userImageView = navigationViewHeader.findViewById(R.id.userAvatar)
@@ -165,8 +177,8 @@ class MainActivity : AppCompatActivity() {
         userEmailTextView = navigationViewHeader.findViewById(R.id.tvEmail)
         verifiedMaterialCardView = navigationViewHeader.findViewById(R.id.verifiedMaterialCardView)
         navigationViewHeader.setOnClickListener {
-            navController.navigate(Screen.ProfileScreen.screenId)
             closeDrawer()
+            navController.navigate(Screen.ProfileScreen.screenId)
         }
     }
 

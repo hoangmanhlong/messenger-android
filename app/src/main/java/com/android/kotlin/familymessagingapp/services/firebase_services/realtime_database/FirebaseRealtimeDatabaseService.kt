@@ -8,7 +8,9 @@ import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.remote.ServerCode
 import com.android.kotlin.familymessagingapp.data.remote.socket.CreateNewChatRoomSocketEvenBus
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
+import com.android.kotlin.familymessagingapp.model.ChatActivityType
 import com.android.kotlin.familymessagingapp.model.ChatRoom
+import com.android.kotlin.familymessagingapp.model.ChatRoomActivity
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Contact
 import com.android.kotlin.familymessagingapp.model.Message
@@ -179,7 +181,7 @@ class FirebaseRealtimeDatabaseService(
             combine(chatroomFlows) {
                 // Sort chat room list by latestTime
                 it.filterNotNull().toList()
-                    .sortedByDescending { chatroom -> chatroom.latestTime }
+                    .sortedByDescending { chatroom -> chatroom.chatRoomActivity?.latestActiveTime }
             }.collect {
                 _chatRooms.value = it
             }
@@ -271,7 +273,7 @@ class FirebaseRealtimeDatabaseService(
 //                                notificationHelper.updateShortcuts(membersData)
                                 chatroom?.getChatRoomNameAndImage()
                                 chatroom?.getSenderDataOfMessage()
-                                chatroom?.getLatestMessageData()
+                                chatroom?.getDataOfUserPerformingLatestActivity()
                                 trySend(chatroom).isSuccess
                             }
                         } else {
@@ -330,7 +332,7 @@ class FirebaseRealtimeDatabaseService(
 //                                notificationHelper.updateShortcuts(membersData)
                                 chatroom?.getChatRoomNameAndImage()
                                 chatroom?.getSenderDataOfMessage()
-                                chatroom?.getLatestMessageData()
+                                chatroom?.getDataOfUserPerformingLatestActivity()
                                 trySend(chatroom).isSuccess
                             }
                         } else {
@@ -583,11 +585,18 @@ class FirebaseRealtimeDatabaseService(
             try {
                 val newMessage = createNewMessage(message)
 
+                val chatRoomActivity = ChatRoomActivity(
+                    latestActiveTime = StringUtils.getCurrentTime(),
+                    activityType = ChatActivityType.NEW_MESSAGE.value,
+                    performedByUser = auth.uid,
+                    newMessage = newMessage,
+                    dataOfUserPerformingTheActivity = null
+                )
+
                 // Add new message, update latest message, latest active time to chat room
                 val chatRoomUpdates = mapOf(
                     "${ChatRoom.MESSAGES}/${newMessage.messageId}" to newMessage,
-                    ChatRoom.LAST_MESSAGE to newMessage,
-                    ChatRoom.LATEST_TIME to StringUtils.getCurrentTime()
+                    ChatRoom.CHAT_ROOM_ACTIVITY to chatRoomActivity
                 )
 
                 // Update chat room to Firebase Realtime Database
@@ -613,10 +622,18 @@ class FirebaseRealtimeDatabaseService(
                     )
                 }
 
+                val chatRoomActivity = ChatRoomActivity(
+                    latestActiveTime = StringUtils.getCurrentTime(),
+                    activityType = ChatActivityType.CREATE_CHATROOM.value,
+                    performedByUser = auth.uid,
+                    dataOfUserPerformingTheActivity = null,
+                    newMessage = null
+                )
+
                 // Add new message, update latest message, latest active time to chat room
                 val chatRoomUpdates = mapOf(
                     ChatRoom.CHAT_ROOM_IMAGE to chatRoomImage,
-                    ChatRoom.LATEST_TIME to StringUtils.getCurrentTime(),
+                    ChatRoom.CHAT_ROOM_ACTIVITY to chatRoomActivity,
                     ChatRoom.CHAT_ROOM_NAME to chatRoom.chatRoomName,
                 )
 
