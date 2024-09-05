@@ -100,6 +100,8 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         text: String,
         photo: String,
     ) {
+        if (text.isNullOrEmpty() && photo.isNullOrEmpty()) return
+
         val requestCode = System.currentTimeMillis().toInt()
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -110,11 +112,12 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
-        if (text.isNullOrEmpty() && photo.isNullOrEmpty()) return
+        var updatedChatRoomName = chatRoomName
 
         val formatContentMessage = if (chatRoomType == ChatRoomType.Group.type) {
             senderName + ": " + text.ifEmpty { applicationContext.getString(R.string.photo_last_message) }
         } else {
+            updatedChatRoomName = senderName
             text.ifEmpty { applicationContext.getString(R.string.photo_last_message) }
         }
 
@@ -122,7 +125,7 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_earth_notification)
-            .setContentTitle(chatRoomName)
+            .setContentTitle(updatedChatRoomName)
             .setContentText(formatContentMessage)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
