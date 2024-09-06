@@ -39,9 +39,11 @@ object KeyBoardUtils {
         }
     }
 
-    fun showKeyboard(view: View) {
-        val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+    fun showSoftKeyboard(view: View) {
+        if (view.requestFocus()) {
+            val imm = view.context.getSystemService(InputMethodManager::class.java)
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     fun copyTextToClipBoard(context: Context, text: String) {

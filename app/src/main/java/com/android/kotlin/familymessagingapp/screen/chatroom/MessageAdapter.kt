@@ -57,65 +57,56 @@ class MessageAdapter(
         @SuppressLint("UseCompatLoadingForDrawables")
         fun bind(message: Message) {
 
-            if (!message.isReplyMessageEmpty()) {
-                val replyMessage = message.replyMessage
-                if (replyMessage != null) {
-                    binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
-                    if (replyMessage.removedByIsEmpty()) {
-
-                        if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
-                            binding.tvTextReplyMessage.context?.let {
-                                binding.tvTextReplyMessage.text =
-                                    if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
-                            }
-                        }
-                        if (!replyMessage.photo.isNullOrEmpty()) {
-                            binding.replyMessageImageView.visibility = View.VISIBLE
-                            bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
-                        } else {
-                            binding.replyMessageImageView.visibility = View.GONE
-                        }
-                    } else {
-                        binding.replyMessageImageView.visibility = View.GONE
-                        binding.tvTextReplyMessage.text =
-                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
-                    }
-
-                    binding.replyMessageContainer.visibility = View.VISIBLE
-                    binding.textMessageContainer.background =
-                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_sender_text_message_has_reply_message)
-                    binding.removedMessageView.background =
-                        binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message_has_reply_message)
-
-                    binding.replyMessageContainer.setOnClickListener {
-                        onReplyMessageClick(replyMessage)
-                    }
-                } else {
-                    binding.replyMessageContainer.visibility = View.GONE
-                    binding.textMessageContainer.background =
-                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_sender_message_single)
-
-                    binding.removedMessageView.background =
-                        binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
-                }
-            } else {
-                binding.replyMessageContainer.visibility = View.GONE
-                binding.textMessageContainer.background =
-                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_sender_message_single)
-
-                binding.removedMessageView.background =
-                    binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
-            }
-
             if (!message.removedByIsEmpty()) {
                 binding.textMessageContainer.visibility = View.GONE
                 binding.imageMessageCardView.visibility = View.GONE
                 binding.reactionsRecyclerView.visibility = View.GONE
+                binding.replyMessageContainer.visibility = View.GONE
+                updateRemovedMessageOfSenderBackground(binding, message, bindingAdapterPosition)
                 binding.removedMessageView.visibility = View.VISIBLE
                 binding.removedMessageView.setOnClickListener {
                     handleTextMessageClick(bindingAdapterPosition)
                 }
             } else {
+
+                var isReplyMessageShown = false
+
+                if (!message.isReplyMessageEmpty()) {
+                    val replyMessage = message.replyMessage
+                    if (replyMessage != null) {
+                        binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
+                        if (replyMessage.removedByIsEmpty()) {
+
+                            if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
+                                binding.tvTextReplyMessage.context?.let {
+                                    binding.tvTextReplyMessage.text =
+                                        if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
+                                }
+                            }
+                            if (!replyMessage.photo.isNullOrEmpty()) {
+                                binding.replyMessageImageView.visibility = View.VISIBLE
+                                bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
+                            } else {
+                                binding.replyMessageImageView.visibility = View.GONE
+                            }
+                        } else {
+                            binding.replyMessageImageView.visibility = View.GONE
+                            binding.tvTextReplyMessage.text =
+                                binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                        }
+
+                        binding.replyMessageContainer.visibility = View.VISIBLE
+                        binding.replyMessageContainer.setOnClickListener {
+                            onReplyMessageClick(replyMessage)
+                        }
+                        isReplyMessageShown = true
+                    } else {
+                        binding.replyMessageContainer.visibility = View.GONE
+                    }
+                } else {
+                    binding.replyMessageContainer.visibility = View.GONE
+                }
+
                 binding.removedMessageView.visibility = View.GONE
                 val reactions = message.reactions?.entries?.map {
                     Reaction(it.key, it.value.entries.map { it.key })
@@ -124,8 +115,8 @@ class MessageAdapter(
                     if (reactions == null) View.GONE else View.VISIBLE
                 reactionsAdapter?.submitList(reactions)
                 if (!message.isTextEmpty()) {
-                    binding.textMessageContainer.visibility = View.VISIBLE
                     binding.messageText.text = message.text
+                    binding.textMessageContainer.visibility = View.VISIBLE
                     binding.textMessageContainer.setOnLongClickListener {
                         onMessageLongClick(true, message)
                         false
@@ -133,7 +124,7 @@ class MessageAdapter(
                     binding.textMessageContainer.setOnClickListener {
                         handleTextMessageClick(bindingAdapterPosition)
                     }
-                    updateTextMessageOfSenderBackground(binding, message, bindingAdapterPosition)
+                    updateTextMessageOfSenderBackground(binding, message, bindingAdapterPosition, isReplyMessageShown)
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
@@ -161,6 +152,61 @@ class MessageAdapter(
     private fun updateTextMessageOfSenderBackground(
         binding: LayoutSenderMessageBinding,
         message: Message,
+        bindingAdapterPosition: Int,
+        isReplyMessageShown: Boolean
+    ) {
+        // Get the previous and next messages
+        val previousMessage =
+            if (bindingAdapterPosition > 0) getItem(bindingAdapterPosition - 1) else null
+        val nextMessage =
+            if (bindingAdapterPosition < itemCount - 1) getItem(bindingAdapterPosition + 1) else null
+
+        // Determine if previous and next messages are from the same sender
+        val isPreviousSameSender = previousMessage?.senderId == message.senderId
+        val isNextSameSender = nextMessage?.senderId == message.senderId
+
+        var needToCheckBackgroundUpdateIfThereIsReplyMessage = false
+
+        var backgroundResId = when {
+            // First item in a series from the receiver
+            !isPreviousSameSender && isNextSameSender -> {
+                needToCheckBackgroundUpdateIfThereIsReplyMessage = true
+                R.drawable.bg_sender_message_first
+            }
+
+            // Middle item in a series from the receiver
+            isPreviousSameSender && isNextSameSender -> R.drawable.bg_sender_message_middle
+
+            // Last item in a series from the receiver
+            isPreviousSameSender && !isNextSameSender -> R.drawable.bg_sender_message_last
+
+            // Single isolated item
+            !isPreviousSameSender && !isNextSameSender -> {
+                needToCheckBackgroundUpdateIfThereIsReplyMessage = true
+                R.drawable.bg_sender_message_single
+            }
+
+            else -> { // Fallback
+                needToCheckBackgroundUpdateIfThereIsReplyMessage = true
+                R.drawable.bg_sender_message_single
+            }
+        }
+
+        if (needToCheckBackgroundUpdateIfThereIsReplyMessage && isReplyMessageShown){
+            backgroundResId = R.drawable.bg_sender_message_last
+        }
+
+        // Apply the determined background drawable
+        binding.textMessageContainer.background = binding
+            .textMessageContainer
+            .context
+            .getDrawable(backgroundResId)
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun updateRemovedMessageOfSenderBackground(
+        binding: LayoutSenderMessageBinding,
+        message: Message,
         bindingAdapterPosition: Int
     ) {
         // Get the previous and next messages
@@ -175,22 +221,61 @@ class MessageAdapter(
 
         val backgroundResId = when {
             // First item in a series from the receiver
-            !isPreviousSameSender && isNextSameSender -> R.drawable.bg_sender_message_first
+            !isPreviousSameSender && isNextSameSender -> R.drawable.bg_removed_message_first_of_sender
 
             // Middle item in a series from the receiver
-            isPreviousSameSender && isNextSameSender -> R.drawable.bg_sender_message_middle
+            isPreviousSameSender && isNextSameSender -> R.drawable.bg_removed_message_middle_of_sender
 
             // Last item in a series from the receiver
-            isPreviousSameSender && !isNextSameSender -> R.drawable.bg_sender_message_last
+            isPreviousSameSender && !isNextSameSender -> R.drawable.bg_removed_message_last_of_sender
 
             // Single isolated item
-            !isPreviousSameSender && !isNextSameSender -> R.drawable.bg_sender_message_single
+            !isPreviousSameSender && !isNextSameSender -> R.drawable.bg_removed_message_single
 
-            else -> R.drawable.bg_sender_message_single // Fallback
+            else -> R.drawable.bg_removed_message_single // Fallback
         }
 
         // Apply the determined background drawable
-        binding.textMessageContainer.background = binding
+        binding.removedMessageView.background = binding
+            .textMessageContainer
+            .context
+            .getDrawable(backgroundResId)
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun updateRemovedMessageOfReceiverBackground(
+        binding: LayoutReceiverMessageBinding,
+        message: Message,
+        bindingAdapterPosition: Int
+    ) {
+        // Get the previous and next messages
+        val previousMessage =
+            if (bindingAdapterPosition > 0) getItem(bindingAdapterPosition - 1) else null
+        val nextMessage =
+            if (bindingAdapterPosition < itemCount - 1) getItem(bindingAdapterPosition + 1) else null
+
+        // Determine if previous and next messages are from the same sender
+        val isPreviousSameSender = previousMessage?.senderId == message.senderId
+        val isNextSameSender = nextMessage?.senderId == message.senderId
+
+        val backgroundResId = when {
+            // First item in a series from the receiver
+            !isPreviousSameSender && isNextSameSender -> R.drawable.bg_removed_message_first_of_receiver
+
+            // Middle item in a series from the receiver
+            isPreviousSameSender && isNextSameSender -> R.drawable.bg_removed_message_middle_of_receiver
+
+            // Last item in a series from the receiver
+            isPreviousSameSender && !isNextSameSender -> R.drawable.bg_removed_message_last_of_receiver
+
+            // Single isolated item
+            !isPreviousSameSender && !isNextSameSender -> R.drawable.bg_removed_message_single
+
+            else -> R.drawable.bg_removed_message_single // Fallback
+        }
+
+        // Apply the determined background drawable
+        binding.removedMessageView.background = binding
             .textMessageContainer
             .context
             .getDrawable(backgroundResId)
@@ -214,73 +299,56 @@ class MessageAdapter(
 
             updateVisibilityReceiverNameAndImageMessage(binding, message, isFirstReceiverMessage)
 
-            if (!message.isReplyMessageEmpty()) {
-
-                val replyMessage = message.replyMessage
-                if (replyMessage != null) {
-
-                    binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
-
-                    if (replyMessage.removedByIsEmpty()) {
-
-                        if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
-                            binding.tvTextReplyMessage.context?.let {
-                                binding.tvTextReplyMessage.text =
-                                    if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
-                            }
-                        }
-                        if (!replyMessage.photo.isNullOrEmpty()) {
-                            binding.replyMessageImageView.visibility = View.VISIBLE
-                            bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
-                        } else {
-                            binding.replyMessageImageView.visibility = View.GONE
-                        }
-                    } else {
-                        binding.replyMessageImageView.visibility = View.GONE
-                        binding.tvTextReplyMessage.text =
-                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
-                    }
-
-                    binding.replyMessageContainer.visibility = View.VISIBLE
-                    binding.textMessageContainer.background = binding
-                        .textMessageContainer
-                        .context
-                        .getDrawable(R.drawable.bg_receiver_text_message_has_reply_message)
-
-                    binding.removedMessageView.background = binding
-                        .removedMessageView
-                        .context
-                        .getDrawable(R.drawable.bg_receiver_removed_message_has_reply_message)
-
-                    binding.replyMessageContainer.setOnClickListener {
-                        onReplyMessageClick(replyMessage)
-                    }
-                } else {
-                    binding.replyMessageContainer.visibility = View.GONE
-                    binding.textMessageContainer.background =
-                        binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message_single)
-
-                    binding.removedMessageView.background =
-                        binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
-                }
-            } else {
-                binding.replyMessageContainer.visibility = View.GONE
-                binding.textMessageContainer.background =
-                    binding.textMessageContainer.context.getDrawable(R.drawable.bg_receiver_message_single)
-
-                binding.removedMessageView.background =
-                    binding.removedMessageView.context.getDrawable(R.drawable.bg_removed_message)
-            }
-
             if (!message.removedByIsEmpty()) {
                 binding.textMessageContainer.visibility = View.GONE
                 binding.imageMessageCardView.visibility = View.GONE
                 binding.reactionsRecyclerView.visibility = View.GONE
+                binding.replyMessageContainer.visibility = View.GONE
+                updateRemovedMessageOfReceiverBackground(binding, message, bindingAdapterPosition)
                 binding.removedMessageView.visibility = View.VISIBLE
                 binding.removedMessageView.setOnClickListener {
                     handleTextMessageClick(bindingAdapterPosition)
                 }
             } else {
+
+                var isReplyMessageShown = false
+
+                if (!message.isReplyMessageEmpty()) {
+                    val replyMessage = message.replyMessage
+                    if (replyMessage != null) {
+                        binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
+                        if (replyMessage.removedByIsEmpty()) {
+
+                            if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
+                                binding.tvTextReplyMessage.context?.let {
+                                    binding.tvTextReplyMessage.text =
+                                        if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
+                                }
+                            }
+                            if (!replyMessage.photo.isNullOrEmpty()) {
+                                binding.replyMessageImageView.visibility = View.VISIBLE
+                                bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
+                            } else {
+                                binding.replyMessageImageView.visibility = View.GONE
+                            }
+                        } else {
+                            binding.replyMessageImageView.visibility = View.GONE
+                            binding.tvTextReplyMessage.text =
+                                binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                        }
+
+                        binding.replyMessageContainer.visibility = View.VISIBLE
+                        binding.replyMessageContainer.setOnClickListener {
+                            onReplyMessageClick(replyMessage)
+                        }
+                        isReplyMessageShown = true
+                    } else {
+                        binding.replyMessageContainer.visibility = View.GONE
+                    }
+                } else {
+                    binding.replyMessageContainer.visibility = View.GONE
+                }
+
                 binding.removedMessageView.visibility = View.GONE
                 val reactions = message.reactions?.entries?.map {
                     Reaction(it.key, it.value.entries.map { it.key })
@@ -300,7 +368,7 @@ class MessageAdapter(
                     binding.textMessageContainer.setOnClickListener {
                         handleTextMessageClick(bindingAdapterPosition)
                     }
-                    updateTextMessageOfReceiverBackground(binding, message, bindingAdapterPosition)
+                    updateTextMessageOfReceiverBackground(binding, message, bindingAdapterPosition, isReplyMessageShown)
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
@@ -330,7 +398,8 @@ class MessageAdapter(
     private fun updateTextMessageOfReceiverBackground(
         binding: LayoutReceiverMessageBinding,
         message: Message,
-        bindingAdapterPosition: Int
+        bindingAdapterPosition: Int,
+        isReplyMessageShown: Boolean
     ) {
         // Get the previous and next messages
         val previousMessage =
@@ -342,9 +411,14 @@ class MessageAdapter(
         val isPreviousSameSender = previousMessage?.senderId == message.senderId
         val isNextSameSender = nextMessage?.senderId == message.senderId
 
-        val backgroundResId = when {
+        var needToCheckBackgroundUpdateIfThereIsReplyMessage = false
+
+        var backgroundResId = when {
             // First item in a series from the receiver
-            !isPreviousSameSender && isNextSameSender -> R.drawable.bg_receiver_message_first
+            !isPreviousSameSender && isNextSameSender -> {
+                needToCheckBackgroundUpdateIfThereIsReplyMessage = true
+                R.drawable.bg_receiver_message_first
+            }
 
             // Middle item in a series from the receiver
             isPreviousSameSender && isNextSameSender -> R.drawable.bg_receiver_message_middle
@@ -353,9 +427,19 @@ class MessageAdapter(
             isPreviousSameSender && !isNextSameSender -> R.drawable.bg_receiver_message_last
 
             // Single isolated item
-            !isPreviousSameSender && !isNextSameSender -> R.drawable.bg_receiver_message_single
+            !isPreviousSameSender && !isNextSameSender -> {
+                needToCheckBackgroundUpdateIfThereIsReplyMessage = true
+                R.drawable.bg_receiver_message_single
+            }
 
-            else -> R.drawable.bg_receiver_message_single // Fallback
+            else -> {
+                needToCheckBackgroundUpdateIfThereIsReplyMessage = true
+                R.drawable.bg_receiver_message_single
+            } // Fallback
+        }
+
+        if (needToCheckBackgroundUpdateIfThereIsReplyMessage && isReplyMessageShown){
+            backgroundResId = R.drawable.bg_receiver_message_last
         }
 
         // Apply the determined background drawable
@@ -454,6 +538,15 @@ class MessageAdapter(
                 val isFirstReceiverMessage = position == 0 || getItem(position - 1).senderId != item.senderId
                 holder.bind(item, isFirstReceiverMessage)
             }
+
+            // Hiển thị thời gian của tin nhắn nếu là tin nhắn cuối cùng
+//            // Kiểm tra nếu là item cuối cùng
+//            if (position == itemCount - 1) {
+//                holder.itemView.findViewById<TextView>(R.id.tvMessageTime).visibility = View.VISIBLE
+//            } else if (position != expandedMessagePosition) {
+//                // Ẩn tvMessageTime nếu không phải là item cuối cùng và cũng không phải là item đã mở rộng
+//                holder.itemView.findViewById<TextView>(R.id.tvMessageTime).visibility = View.GONE
+//            }
         }
     }
 

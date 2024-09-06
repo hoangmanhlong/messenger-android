@@ -93,7 +93,7 @@
                         android:id="@+id/replyMessageView"
                         android:layout_width="4dp"
                         android:layout_height="match_parent"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginStart="4dp"
                         android:background="@drawable/bg_rounded_corners_view"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -102,13 +102,12 @@
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:padding="8dp">
+                        android:layout_marginStart="8dp">
 
                         <ImageView
                             android:id="@+id/replyMessageImageView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
                             android:adjustViewBounds="true"
                             android:maxHeight="40dp"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -129,20 +128,20 @@
 
                             <TextView
                                 android:id="@+id/tvSenderNameReplyMessage"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                tools:text="@string/author" />
+
+                            <TextView
+                                android:id="@+id/tvTextReplyMessage"
                                 style="@style/TextAppearance.AppCompat.Body1"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ellipsize="end"
                                 android:singleLine="true"
                                 android:textSize="16sp"
-                                tools:text="@string/author" />
-
-                            <TextView
-                                android:id="@+id/tvTextReplyMessage"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:ellipsize="end"
-                                android:singleLine="true"
                                 tools:text="@string/logout_message" />
 
                         </LinearLayout>
@@ -202,8 +201,7 @@
                     android:id="@+id/removedMessageView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="@drawable/bg_removed_message"
+                    android:background="@drawable/bg_removed_message_single"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="8dp"
                     android:visibility="gone"
@@ -216,7 +214,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/message_has_been_deleted"
+                        android:textColor="@color/md_theme_outline"
                         android:textSize="16sp"
+                        android:textStyle="italic"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />

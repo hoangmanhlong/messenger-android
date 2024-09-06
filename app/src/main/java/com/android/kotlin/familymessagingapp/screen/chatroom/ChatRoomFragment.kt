@@ -14,7 +14,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -71,14 +70,13 @@ class ChatRoomFragment : Fragment() {
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (binding.etMessage.hasFocus()) {
+                binding.etMessage.clearFocus()
+                hideKeyboard()
+            }
             if (context != null && uri != null) {
                 if (MediaUtils.isValidMediaFileSize(requireContext(), uri)) {
                     _viewModel.setImageUri(uri)
-                    if (Lifecycle.State.STARTED == lifecycle.currentState) {
-                        if (binding.etMessage.hasFocus()) {
-                            KeyBoardUtils.showKeyboard(binding.etMessage)
-                        }
-                    }
                 } else {
                     Snackbar.make(
                         requireContext(),
@@ -183,6 +181,7 @@ class ChatRoomFragment : Fragment() {
         }
 
         binding.btSelectPhoto.setOnClickListener {
+            hideKeyboard()
             // Launch the photo picker and let the user choose only images.
             pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             _viewModel.hideEmojiPicker()
