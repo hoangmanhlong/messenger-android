@@ -155,4 +155,8 @@
     <string name="go_to_setting">Go to setting</string>
     <string name="user_update_chatroom_info">%s has updated the chat room information</string>
     <string name="user_created_group_chat">%s created group chat</string>
+
+    <string name="photo">Photo</string>
+    <string name="camera">Camera</string>
+    <string name="file">File</string>
 </resources>

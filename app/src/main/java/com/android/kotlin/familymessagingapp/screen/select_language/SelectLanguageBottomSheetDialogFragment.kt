@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
-import com.android.kotlin.familymessagingapp.activity.MainActivity
+import androidx.fragment.app.activityViewModels
+import com.android.kotlin.familymessagingapp.activity.MainViewModel
 import com.android.kotlin.familymessagingapp.databinding.FragmentSwitchLanguageBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,7 +17,7 @@ class SelectLanguageBottomSheetDialogFragment : BottomSheetDialogFragment() {
         val TAG: String = SelectLanguageBottomSheetDialogFragment::class.java.simpleName
     }
 
-    private val _viewModel: SelectLanguageViewModel by viewModels()
+    private val _viewModel: MainViewModel by activityViewModels()
 
     private var _binding: FragmentSwitchLanguageBinding? = null
 
@@ -37,7 +37,7 @@ class SelectLanguageBottomSheetDialogFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) { isTheEnglishLanguageDisplayed ->
             isTheEnglishLanguageDisplayed?.let {
-                (activity as MainActivity).isTheEnglishLanguageSelected(it)
+                _viewModel.isTheEnglishLanguageSelected(it)
                 binding.englishMaterialRadioButton.isChecked = it
                 binding.vietnameseMaterialRadioButton.isChecked = !it
             }
@@ -45,12 +45,12 @@ class SelectLanguageBottomSheetDialogFragment : BottomSheetDialogFragment() {
     }
 
     fun onSaveButtonClick() {
-        (activity as MainActivity).changeLanguage()
+        _viewModel.changeLanguage()
         this.dismiss()
     }
 
     fun isTheEnglishLanguageSelected(isTheEnglishLanguageSelected: Boolean) {
-        (activity as MainActivity).isTheEnglishLanguageSelected(isTheEnglishLanguageSelected)
+        _viewModel.isTheEnglishLanguageSelected(isTheEnglishLanguageSelected)
     }
 
     override fun onDestroyView() {

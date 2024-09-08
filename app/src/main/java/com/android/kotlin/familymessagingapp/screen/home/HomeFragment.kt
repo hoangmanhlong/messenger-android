@@ -97,14 +97,8 @@ class HomeFragment : Fragment() {
         chatRoomsRecyclerView = binding.chatroomRecyclerView
         (chatRoomsRecyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         chatroomAdapter = ChatRoomAdapter(
-            onChatRoomClick = {
-                // Because information about the chat room other than messages
-                // usually does not change, all this information is transmitted to Chat Room Details
-                navigateToChatRoom(it, null)
-            },
-            onChatRoomLongClick = {
-
-            }
+            onChatRoomClick = { chatroom -> navigateToChatRoom(chatRoom = chatroom) },
+            onChatRoomLongClick = {}
         )
         chatRoomsRecyclerView?.adapter = chatroomAdapter
 
@@ -114,7 +108,7 @@ class HomeFragment : Fragment() {
             onDeleteItem = { removeSearchHistory(it, false) },
             onItemClicked = {
                 searchViewEditText?.text = Editable.Factory.getInstance().newEditable(it.text)
-                onActionSearch(it.text, false)
+                onActionSearch(it.text)
             },
             onPushItem = {
                 searchViewEditText?.text = Editable.Factory.getInstance().newEditable(it.text)
@@ -124,9 +118,7 @@ class HomeFragment : Fragment() {
         searchHistoriesRecyclerView?.adapter = searchHistoryAdapter
 
         usersRecyclerView = binding.searchResultRecyclerView
-        userAdapter = UserAdapter(false) {
-            navigateToChatRoom(null, it)
-        }
+        userAdapter = UserAdapter { userData -> navigateToChatRoom(userData = userData) }
         usersRecyclerView?.adapter = userAdapter
 
         searchBar?.setOnMenuItemClickListener {
@@ -145,9 +137,7 @@ class HomeFragment : Fragment() {
             }
         }
 
-        searchBar?.setNavigationOnClickListener {
-            (activity as MainActivity).openDrawer()
-        }
+        searchBar?.setNavigationOnClickListener { (activity as MainActivity).openDrawer() }
 
         searchView!!.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -162,7 +152,7 @@ class HomeFragment : Fragment() {
 
         searchViewEditText?.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) onActionSearch(
-                searchViewEditText?.text.toString().trim(), false
+                searchViewEditText?.text.toString().trim()
             )
             false
         }
@@ -196,12 +186,12 @@ class HomeFragment : Fragment() {
             .currentBackStackEntry
             ?.savedStateHandle
             ?.getLiveData<UserData>(Constant.USER_DATA_KEY)
-            ?.observe(viewLifecycleOwner) {
+            ?.observe(viewLifecycleOwner) { userData ->
                 findNavController()
                     .currentBackStackEntry
                     ?.savedStateHandle
                     ?.remove<UserData>(Constant.USER_DATA_KEY)
-                navigateToChatRoom(null, it)
+                navigateToChatRoom(userData = userData)
             }
 
         // Khi nhấn nút back trên thiết bị nếu đang show Image Detail thì đóng Image Detail View
@@ -276,9 +266,13 @@ class HomeFragment : Fragment() {
                                 // Safely handle the chatRoomIdFromNotification value
                                 val chatRoomId = viewModel.chatRoomIdFromNotification.value
                                 if (!chatRoomId.isNullOrEmpty()) {
-                                    val chatRoom = chatRoomsList.firstOrNull { it.chatRoomId == chatRoomId }
+                                    val chatRoom =
+                                        chatRoomsList.firstOrNull { it.chatRoomId == chatRoomId }
                                     if (chatRoom != null) {
-                                        navigateToChatRoom(chatRoom, null, true)
+                                        navigateToChatRoom(
+                                            chatRoom = chatRoom,
+                                            isOpenedFromNotification = true
+                                        )
                                     }
                                 }
                             }
@@ -339,20 +333,25 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun navigateToChatRoom(chatroom: ChatRoom?, userdata: UserData?, isOpenedFromNotification: Boolean = false) {
+    private fun navigateToChatRoom(
+        chatRoom: ChatRoom? = null,
+        userData: UserData? = null,
+        isOpenedFromNotification: Boolean = false
+    ) {
+        if (chatRoom == null && userData == null) return
         val action = HomeFragmentDirections.actionHomeFragmentToChatRoomFragment(
-            chatroom = chatroom,
-            userdata = userdata,
+            chatroom = chatRoom,
+            userdata = userData,
             isOpenFromNotification = isOpenedFromNotification
         )
         findNavController().navigate(action)
     }
 
-    private fun onActionSearch(keyword: String, isQRString: Boolean) {
+    private fun onActionSearch(keyword: String) {
         activity?.let {
             NetworkChecker.checkNetwork(it) {
                 searchViewEditText?.setSelection(keyword.length)
-                viewModel.searchKeyword(keyword, isQRString)
+                viewModel.searchKeyword(keyword)
             }
         }
     }

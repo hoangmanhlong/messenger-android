@@ -48,7 +48,6 @@
                     app:menu="@menu/menu_search_bar"
                     app:navigationContentDescription="@string/menu"
                     app:navigationIcon="@drawable/ic_menu" />
-                <!--                app:navigationIcon="@drawable/ic_menu" -->
 
             </com.google.android.material.appbar.AppBarLayout>
 
@@ -56,18 +55,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/storyRecyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="196dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:orientation="horizontal"
-                    android:visibility="gone"
-                    app:carousel_alignment="center"
-                    app:layoutManager="com.google.android.material.carousel.CarouselLayoutManager"
-                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/tvConversationEmpty"
@@ -87,10 +74,9 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:clipToPadding="false"
-                    android:padding="8dp"
                     android:visibility="@{isConversationEmpty ? View.GONE : View.VISIBLE}"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    app:layout_constraintTop_toBottomOf="@id/storyRecyclerView"
+                    app:layout_constraintTop_toTopOf="parent"
                     tools:itemCount="10"
                     tools:listitem="@layout/layout_chatroom" />
 
@@ -104,11 +90,11 @@
                         android:id="@+id/progressBar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:trackCornerRadius="2dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:trackCornerRadius="2dp" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 

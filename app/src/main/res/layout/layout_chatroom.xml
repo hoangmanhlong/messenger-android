@@ -16,9 +16,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
+        android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="@dimen/chatroom_size"

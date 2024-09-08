@@ -440,29 +440,31 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp">
+                    android:paddingVertical="8dp"
+                    android:paddingEnd="8dp">
 
-                    <!--                    <ImageView-->
-                    <!--                        android:id="@+id/btMoreAction"-->
-                    <!--                        android:layout_width="wrap_content"-->
-                    <!--                        android:layout_height="wrap_content"-->
-                    <!--                        android:background="?attr/selectableItemBackgroundBorderless"-->
-                    <!--                        android:padding="10dp"-->
-                    <!--                        android:src="@drawable/ic_add_circle"-->
-                    <!--                        app:layout_constraintBottom_toBottomOf="@id/btSendMessageView"-->
-                    <!--                        app:layout_constraintStart_toStartOf="parent"-->
-                    <!--                        app:layout_constraintTop_toTopOf="@id/btSendMessageView" />-->
+                    <ImageView
+                        android:id="@+id/btMoreAction"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_add_circle"
+                        app:layout_constraintBottom_toBottomOf="@id/btSendMessageView"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/btSendMessageView" />
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/inputViewContainer"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:minHeight="50dp"
                         android:layout_marginEnd="8dp"
                         app:cardBackgroundColor="@android:color/transparent"
                         app:cardCornerRadius="25dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/btSendMessageView"
-                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/btMoreAction"
                         app:layout_constraintTop_toTopOf="parent">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
@@ -482,29 +484,20 @@
                                 android:background="@android:color/transparent"
                                 android:hint="@string/message"
                                 android:maxLines="4"
-                                android:paddingVertical="10dp"
-                                android:paddingStart="10dp"
+                                android:paddingVertical="12dp"
+                                android:layout_marginStart="10dp"
                                 app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toStartOf="@id/btSelectPhoto"
+                                app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent" />
-
-                            <ImageView
-                                android:id="@+id/btSelectPhoto"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:padding="10dp"
-                                android:src="@drawable/ic_outline_insert_photo"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toStartOf="@id/ivOpenEmojiPicker" />
 
                             <ImageView
                                 android:id="@+id/ivOpenEmojiPicker"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:background="?attr/selectableItemBackgroundBorderless"
-                                android:padding="10dp"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="13dp"
                                 android:src="@drawable/ic_mood"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent" />
@@ -565,7 +558,7 @@
             android:background="@color/md_theme_background"
             android:orientation="vertical"
             android:visibility="@{imageDetailShown ? View.VISIBLE : View.GONE}"
-            tools:context=".screen.image_message_detail.ImageMessageDetailFragment">
+            tools:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"

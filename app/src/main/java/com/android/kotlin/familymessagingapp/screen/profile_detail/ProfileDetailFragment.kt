@@ -26,6 +26,7 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage

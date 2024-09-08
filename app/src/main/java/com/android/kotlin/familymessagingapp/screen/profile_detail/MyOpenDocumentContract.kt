@@ -11,3 +11,12 @@ class MyOpenDocumentContract : ActivityResultContracts.OpenDocument() {
         return intent
     }
 }
+
+class AppOpenMultipleDocuments : ActivityResultContracts.OpenMultipleDocuments() {
+    override fun createIntent(context: Context, input: Array<String>): Intent {
+        return super.createIntent(context, input).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        }
+    }
+}

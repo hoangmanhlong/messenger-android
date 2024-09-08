@@ -201,6 +201,15 @@ object MediaUtils {
         return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     }
 
+    fun createImageUri(context: Context): Uri? {
+        val contentResolver = context.contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        }
+        return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+    }
+
     fun getQRCodeBitmapFromString(string: String): Bitmap? {
         return try {
             val formattedQRString = StringUtils.generateFormattedQrCode(string)

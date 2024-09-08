@@ -358,9 +358,8 @@ class MessageAdapter(
                 reactionsAdapter?.submitList(reactions)
 
                 if (!message.isTextEmpty()) {
-                    binding.textMessageContainer.visibility = View.VISIBLE
-
                     binding.messageText.text = message.text
+                    binding.textMessageContainer.visibility = View.VISIBLE
                     binding.textMessageContainer.setOnLongClickListener {
                         onMessageLongClick(false, message)
                         false

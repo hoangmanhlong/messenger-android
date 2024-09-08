@@ -1,6 +1,10 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -12,6 +16,10 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -26,7 +34,9 @@ import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.screen.Screen
+import com.android.kotlin.familymessagingapp.screen.profile_detail.AppOpenMultipleDocuments
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
@@ -58,6 +68,7 @@ class ChatRoomFragment : Fragment() {
 
     companion object {
         val TAG: String = ChatRoomFragment::class.java.simpleName
+        val CAMERA_PERMISSION = mutableListOf(Manifest.permission.CAMERA).toTypedArray()
     }
 
     // Use the 'by activityViewModels()' Kotlin property delegate from the fragment-ktx artifact
@@ -91,6 +102,38 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
+    private val openDocument = registerForActivityResult(AppOpenMultipleDocuments()) {
+        if (it == null) return@registerForActivityResult
+        Toast.makeText(requireContext(), it.size.toString(), Toast.LENGTH_SHORT).show()
+    }
+
+    private val takePicture =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                // Photo taken and saved successfully
+                if (_viewModel.uriOfTheImageBeingCapturedByTheCamera != null) {
+                    // TODO: Handle taken photo
+                }
+            } else {
+                // User cancelled or error occurred
+                if (context != null) {
+                    // Delete Uri if photo is not taken
+                    _viewModel.deleteUriOfTheImageBeingCapturedByTheCamera(requireContext())
+                }
+            }
+        }
+
+    private val cameraLaunch =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            // Handle Permission granted/rejected
+            var permissionGranted = true
+            permissions.entries.forEach {
+                if (it.key in CAMERA_PERMISSION && !it.value)
+                    permissionGranted = false
+            }
+            if (permissionGranted) takePhoto()
+        }
+
     private val binding get() = _binding!!
 
     private val args: ChatRoomFragmentArgs by navArgs()
@@ -104,6 +147,10 @@ class ChatRoomFragment : Fragment() {
     private var pinnedMessageAdapter: PinnedMessageAdapter? = null
 
     private var pinnedMessageRecyclerview: RecyclerView? = null
+
+    private var sendOptionsFragment: SendOptionsFragment? = null
+
+    private var cameraPermissionRequiredDialog: AlertDialog? = null
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
@@ -180,20 +227,12 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
-        binding.btSelectPhoto.setOnClickListener {
-            hideKeyboard()
-            // Launch the photo picker and let the user choose only images.
-            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            _viewModel.hideEmojiPicker()
-        }
-
         binding.etMessage.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
 
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                _viewModel.setSelectPhotoVisibleStatus(s.isNullOrBlank())
                 _viewModel.setTextMessage(s.toString().trim())
                 _viewModel.clearEditText(false)
             }
@@ -250,9 +289,16 @@ class ChatRoomFragment : Fragment() {
             findNavController().navigate(Screen.ChatRoomDetail.screenId)
         }
 
+        binding.btMoreAction.setOnClickListener {
+            if (sendOptionsFragment == null) sendOptionsFragment = SendOptionsFragment()
+            sendOptionsFragment?.show(childFragmentManager, SendOptionsFragment.TAG)
+        }
+
         return binding.root
     }
 
+    @SuppressLint("IntentReset")
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         getSharedData()
@@ -282,10 +328,6 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             binding.isLoading = it
-        }
-
-        _viewModel.selectPhotoVisibleStatus.observe(this.viewLifecycleOwner) {
-            binding.btSelectPhoto.visibility = if (it) View.VISIBLE else View.GONE
         }
 
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
@@ -441,6 +483,83 @@ class ChatRoomFragment : Fragment() {
                 _viewModel.setSavingImageState(null)
             }
         }
+
+        _viewModel.openPhotoPicker.observe(this.viewLifecycleOwner) {
+            if (it == true) {
+                pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                _viewModel.hideEmojiPicker()
+                _viewModel.openPhotoPicker(false)
+            }
+        }
+
+        _viewModel.openUploadFile.observe(this.viewLifecycleOwner) {
+            if (it == true) {
+                openDocument.launch(arrayOf("*/*"))
+                _viewModel.hideEmojiPicker()
+                _viewModel.openUploadFile(false)
+            }
+        }
+
+        _viewModel.openTakePhoto.observe(this.viewLifecycleOwner) {
+            if (it == true && context != null) takePhoto()
+        }
+    }
+
+    private fun takePhoto() {
+        _viewModel.openTakePhoto(false)
+        if (allPermissionsGranted()) {
+            openCamera(requireContext())
+            _viewModel.hideEmojiPicker()
+        } else {
+            requestPermissions()
+        }
+    }
+
+    private fun requestPermissions() {
+        val permissionsDenied = arrayOf(Manifest.permission.CAMERA).filter {
+            ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), it).not()
+        }
+
+        if (permissionsDenied.isNotEmpty()) {
+            showPermissionDeniedDialog()
+            return
+        }
+
+        cameraLaunch.launch(CAMERA_PERMISSION)
+    }
+
+    private fun showPermissionDeniedDialog() {
+        if (cameraPermissionRequiredDialog == null && context != null) {
+            cameraPermissionRequiredDialog = DialogUtils.cameraPermissionRequiredDialog(
+                context = requireContext(),
+                onPositiveClick = {
+                    if (cameraPermissionRequiredDialog != null) cameraPermissionRequiredDialog?.dismiss()
+                    goToSetting()
+                },
+                onNegativeClick = {
+                    if (cameraPermissionRequiredDialog != null) cameraPermissionRequiredDialog?.dismiss()
+                }
+            )
+        }
+        cameraPermissionRequiredDialog?.show()
+    }
+
+    private fun allPermissionsGranted() = CAMERA_PERMISSION.all {
+        if (context == null) return false
+        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun openCamera(context: Context) {
+        // Create Uri where to save image
+        val photoUri = _viewModel.createUriOfTheImageBeingCapturedByTheCamera(context)
+
+        // Open camera to take photo and save to created Uri
+        takePicture.launch(photoUri)
+    }
+
+    private fun goToSetting() {
+        if (context == null) return
+        DeviceUtils.openApplicationInfo(requireContext())
     }
 
 //    private fun loadMoreItems() {
@@ -512,6 +631,14 @@ class ChatRoomFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        messageAdapter = null
+        messageRecyclerview = null
+        selectedItemAdapter = null
+        selectedItemsRecyclerview = null
+        pinnedMessageAdapter = null
+        pinnedMessageRecyclerview = null
+        sendOptionsFragment = null
+        cameraPermissionRequiredDialog = null
         _viewModel.setPinMessageStatus(null)
 //        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)

@@ -1,6 +1,5 @@
 package com.android.kotlin.familymessagingapp.screen.home
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,7 +13,6 @@ import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepositor
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -76,10 +74,6 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
-
-        chatRoomIdFromNotification.observeForever {
-            Log.d(TAG, "chatRoomIdFromNotification: ${it ?: "Null"}")
-        }
     }
 
     fun setIsLoadingStatus(value: Boolean) {
@@ -90,13 +84,13 @@ class HomeViewModel @Inject constructor(
         _searchViewStatus.value = status
     }
 
-    fun searchKeyword(keyword: String, searchByUid: Boolean) {
+    fun searchKeyword(keyword: String) {
         viewModelScope.launch {
             if (keyword.isEmpty()) {
                 _searchResultList.value = emptyList()
             } else {
 
-                if (!searchByUid) localDatabaseRepository.saveSearchHistory(keyword)
+                localDatabaseRepository.saveSearchHistory(keyword)
 
                 // if new keyword and old keyword is same then skip
                 if (currentKeyword != keyword) {
@@ -105,8 +99,8 @@ class HomeViewModel @Inject constructor(
 
                     _searchResultList.value =
                         firebaseServiceRepository.firebaseRealtimeDatabaseService.search(
-                            keyword,
-                            searchByUid
+                            keyword = keyword,
+                            searchByUid = false
                         )
 
                 } else {

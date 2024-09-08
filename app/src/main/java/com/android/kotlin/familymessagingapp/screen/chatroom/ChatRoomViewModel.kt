@@ -27,6 +27,7 @@ import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -69,9 +70,6 @@ class ChatRoomViewModel @Inject constructor(
 
     private val _imageDetailShown = MutableLiveData(false)
     val imageDetailShown: LiveData<Boolean> = _imageDetailShown
-
-    private val _selectPhotoVisibleStatus: MutableLiveData<Boolean> = MutableLiveData(true)
-    val selectPhotoVisibleStatus: LiveData<Boolean> = _selectPhotoVisibleStatus
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -122,9 +120,17 @@ class ChatRoomViewModel @Inject constructor(
     private val _replying = MutableLiveData(false)
     val replying: LiveData<Boolean> = _replying
 
-    fun setSelectPhotoVisibleStatus(visible: Boolean) {
-        _selectPhotoVisibleStatus.value = visible
-    }
+    private val _openPhotoPicker = MutableLiveData(false)
+    val openPhotoPicker: LiveData<Boolean> = _openPhotoPicker
+
+    private val _openUploadFile = MutableLiveData(false)
+    val openUploadFile: LiveData<Boolean> = _openUploadFile
+
+    private val _openTakePhoto = MutableLiveData(false)
+    val openTakePhoto: LiveData<Boolean> = _openTakePhoto
+
+    var uriOfTheImageBeingCapturedByTheCamera: Uri? = null
+        private set
 
     fun resetIsOpenFromNotificationFlag() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -135,6 +141,17 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
+    fun createUriOfTheImageBeingCapturedByTheCamera(context: Context): Uri {
+        uriOfTheImageBeingCapturedByTheCamera = MediaUtils.createImageUri(context)
+        return uriOfTheImageBeingCapturedByTheCamera!!
+    }
+
+    fun deleteUriOfTheImageBeingCapturedByTheCamera(context: Context) {
+        if (uriOfTheImageBeingCapturedByTheCamera == null) return
+        context.contentResolver.delete(uriOfTheImageBeingCapturedByTheCamera!!, null, null)
+        uriOfTheImageBeingCapturedByTheCamera = null
+    }
+
     fun resetState() {
         firebaseServiceRepository.firebaseRealtimeDatabaseService.removeCurrentChatRoomListener()
         chatroomLiveData = null
@@ -143,7 +160,6 @@ class ChatRoomViewModel @Inject constructor(
         selectedMessageIsMessageOfMe = null
         _isExpandPinnedMessage.value = false
         _imageDetailShown.value = false
-        _selectPhotoVisibleStatus.value = true
         _isLoading.value = false
         _pinMessageStatus.value = null
         _emojiPickerVisible.value = false
@@ -161,6 +177,22 @@ class ChatRoomViewModel @Inject constructor(
         _replying.value = false
         message = Message()
         _replyingMessage.value = null
+        _openPhotoPicker.value = false
+        _openUploadFile.value = false
+        _openTakePhoto.value = false
+        uriOfTheImageBeingCapturedByTheCamera = null
+    }
+
+    fun openPhotoPicker(isOpen: Boolean) {
+        _openPhotoPicker.value = isOpen
+    }
+
+    fun openUploadFile(isOpen: Boolean) {
+        _openUploadFile.value = isOpen
+    }
+
+    fun openTakePhoto(isOpen: Boolean) {
+        _openTakePhoto.value = isOpen
     }
 
     fun changeEmojiPickerVisibleStatus() {

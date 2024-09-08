@@ -2,10 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:icon="@drawable/ic_camera_white"
-        android:title="Camera" />
-
-    <item
         android:icon="@drawable/ic_clear"
         android:title="close" />
     <item
