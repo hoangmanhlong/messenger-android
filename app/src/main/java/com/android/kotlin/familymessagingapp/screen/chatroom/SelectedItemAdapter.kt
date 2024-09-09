@@ -2,11 +2,14 @@ package com.android.kotlin.familymessagingapp.screen.chatroom
 
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutSelectedPhotoBinding
+import com.android.kotlin.familymessagingapp.utils.FileType
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
 
 class SelectedItemAdapter(
@@ -17,7 +20,33 @@ class SelectedItemAdapter(
         val binding: LayoutSelectedPhotoBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Uri) {
-            loadImageFollowImageViewSize(binding.ivImage, item)
+            val fileType = MediaUtils.getFileType(binding.root.context, item)
+            var isImage = false
+            when(fileType) {
+                FileType.IMAGE -> isImage = true
+                FileType.PDF -> {}
+                FileType.DOC -> {}
+                FileType.TEXT -> {}
+                FileType.UNKNOWN -> {}
+            }
+
+            if (isImage) {
+                binding.fileContainerView.visibility = View.GONE
+                binding.photoView.visibility = View.VISIBLE
+                loadImageFollowImageViewSize(binding.ivImage, item)
+            } else {
+                val fileName = MediaUtils.getFileName(binding.root.context, item)
+                if (fileName.isNullOrEmpty() && fileType == FileType.UNKNOWN) return
+
+                binding.tvFileName.text = fileName
+
+                binding.fileContainerView.visibility = View.VISIBLE
+                binding.photoView.visibility = View.GONE
+            }
+
+            binding.btClearItem.setOnClickListener {
+                onItemRemove(item)
+            }
         }
     }
 
@@ -39,10 +68,6 @@ class SelectedItemAdapter(
     }
 
     override fun onBindViewHolder(holder: SelectedItemViewHolder, position: Int) {
-        val item = getItem(position)
-        holder.binding.btClearImage.setOnClickListener {
-            onItemRemove(item)
-        }
-        holder.bind(item)
+        holder.bind(getItem(position))
     }
 }

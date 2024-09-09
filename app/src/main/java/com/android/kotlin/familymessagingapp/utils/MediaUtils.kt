@@ -3,6 +3,7 @@ package com.android.kotlin.familymessagingapp.utils
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
@@ -12,6 +13,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
+import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
@@ -31,6 +33,14 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.UUID
 
+
+enum class FileType {
+    PDF,
+    DOC,
+    TEXT,
+    IMAGE,
+    UNKNOWN
+}
 object MediaUtils {
 
     fun <T> loadImageWithListener(
@@ -277,5 +287,49 @@ object MediaUtils {
             it.moveToFirst()
             it.getLong(sizeIndex)
         } ?: 0
+    }
+
+    fun getFileType(context: Context, uri: Uri): FileType {
+        val mimeType = getMimeType(context, uri)
+        return when(mimeType) {
+            "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/jpg" -> FileType.IMAGE
+            "application/pdf" -> FileType.PDF
+            "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> FileType.DOC
+            "text/plain" -> FileType.TEXT
+            else -> FileType.UNKNOWN
+        }
+    }
+
+    private fun getMimeType(context: Context, uri: Uri): String? {
+        return context.contentResolver.getType(uri) ?: getMimeTypeFromExtension(uri)
+    }
+
+    private fun getMimeTypeFromExtension(uri: Uri): String? {
+        val extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
+        return if (extension != null) {
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        } else {
+            null
+        }
+    }
+
+    fun getFileName(context: Context, uri: Uri): String? {
+        var fileName: String? = null
+        if (uri.scheme == "content") {
+            val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    fileName = it.getString(it.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                }
+            }
+        }
+        if (fileName == null) {
+            fileName = uri.path
+            val cut = fileName?.lastIndexOf('/')
+            if (cut != -1 && cut != null) {
+                fileName = fileName?.substring(cut + 1)
+            }
+        }
+        return fileName
     }
 }

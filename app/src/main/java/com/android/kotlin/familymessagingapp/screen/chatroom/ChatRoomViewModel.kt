@@ -428,10 +428,28 @@ class ChatRoomViewModel @Inject constructor(
         _isInputValid.value = isInputValid()
     }
 
-    fun setImageUri(uri: Uri?) {
-        _selectedItems.value = uri?.let { listOf(it) }
-        message = message.copy(photo = uri?.toString())
+    fun addSelectedItems(items: List<Uri>) {
+        val currentItems = _selectedItems.value?.toMutableList() ?: mutableListOf()
+
+        // Add only new items to the list
+        val newItems = items.filterNot { currentItems.contains(it) }
+
+        // If there are any new items, add them to the list and update LiveData
+        if (newItems.isNotEmpty()) {
+            currentItems.addAll(newItems)
+            _selectedItems.value = currentItems
+        }
         _isInputValid.value = isInputValid()
+    }
+
+    fun removeItemInSelectedItems(item: Uri) {
+        _selectedItems.value = _selectedItems.value?.toMutableList()?.apply { remove(item) }
+        _isInputValid.value = isInputValid()
+    }
+
+    fun addUriOfTheImageBeingCapturedByTheCameraInSelectedItems() {
+        if (uriOfTheImageBeingCapturedByTheCamera == null) return
+        addSelectedItems(listOf(uriOfTheImageBeingCapturedByTheCamera!!))
     }
 
     private fun isInputValid(): Boolean =
@@ -482,7 +500,7 @@ class ChatRoomViewModel @Inject constructor(
 
     private fun clearInput() {
         clearEditText(true)
-        setImageUri(null)
+
         setReplyingMessage(false)
     }
 

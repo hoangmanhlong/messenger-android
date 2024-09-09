@@ -80,40 +80,37 @@ class ChatRoomFragment : Fragment() {
 
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { list ->
             if (binding.etMessage.hasFocus()) {
                 binding.etMessage.clearFocus()
                 hideKeyboard()
             }
-            if (context != null && uri != null) {
-                if (MediaUtils.isValidMediaFileSize(requireContext(), uri)) {
-                    _viewModel.setImageUri(uri)
-                } else {
-                    Snackbar.make(
-                        requireContext(),
-                        binding.inputViewContainer,
-                        requireContext().getString(
-                            R.string.file_size_exceed_limit,
-                            Constant.MAXIMUM_FILE_SIZE_MB.toString()
-                        ),
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                }
+            if (context != null && !list.isNullOrEmpty()) {
+                _viewModel.addSelectedItems(list)
+//                } else {
+//                    Snackbar.make(
+//                        requireContext(),
+//                        binding.inputViewContainer,
+//                        requireContext().getString(
+//                            R.string.file_size_exceed_limit,
+//                            Constant.MAXIMUM_FILE_SIZE_MB.toString()
+//                        ),
+//                        Snackbar.LENGTH_SHORT
+//                    ).show()
+//                }
             }
         }
 
     private val openDocument = registerForActivityResult(AppOpenMultipleDocuments()) {
         if (it == null) return@registerForActivityResult
-        Toast.makeText(requireContext(), it.size.toString(), Toast.LENGTH_SHORT).show()
+        _viewModel.addSelectedItems(it)
     }
 
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
                 // Photo taken and saved successfully
-                if (_viewModel.uriOfTheImageBeingCapturedByTheCamera != null) {
-                    // TODO: Handle taken photo
-                }
+                _viewModel.addUriOfTheImageBeingCapturedByTheCameraInSelectedItems()
             } else {
                 // User cancelled or error occurred
                 if (context != null) {
@@ -211,7 +208,7 @@ class ChatRoomFragment : Fragment() {
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter {
-            _viewModel.setImageUri(null)
+            _viewModel.removeItemInSelectedItems(it)
         }
 
         selectedItemsRecyclerview = binding.selectedItemsRecyclerview
