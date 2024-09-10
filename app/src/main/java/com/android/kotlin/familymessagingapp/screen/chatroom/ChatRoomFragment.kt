@@ -85,7 +85,7 @@ class ChatRoomFragment : Fragment() {
                 hideKeyboard()
             }
             if (context != null && !list.isNullOrEmpty()) {
-                _viewModel.addSelectedItems(list)
+                _viewModel.addSelectedItems(requireContext(), list)
 //                } else {
 //                    Snackbar.make(
 //                        requireContext(),
@@ -101,8 +101,8 @@ class ChatRoomFragment : Fragment() {
         }
 
     private val openDocument = registerForActivityResult(AppOpenMultipleDocuments()) {
-        if (it == null) return@registerForActivityResult
-        _viewModel.addSelectedItems(it)
+        if (it == null && context != null) return@registerForActivityResult
+        _viewModel.addSelectedItems(requireContext(), it)
     }
 
     private val takePicture =
@@ -549,6 +549,7 @@ class ChatRoomFragment : Fragment() {
     private fun openCamera(context: Context) {
         // Create Uri where to save image
         val photoUri = _viewModel.createUriOfTheImageBeingCapturedByTheCamera(context)
+        if (photoUri == null) return
 
         // Open camera to take photo and save to created Uri
         takePicture.launch(photoUri)
@@ -558,29 +559,6 @@ class ChatRoomFragment : Fragment() {
         if (context == null) return
         DeviceUtils.openApplicationInfo(requireContext())
     }
-
-//    private fun loadMoreItems() {
-//        isLoading = true
-//
-//        // Giả lập việc load thêm dữ liệu
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            val currentList = messageAdapter?.currentList?.toMutableList() ?: return@postDelayed
-//            val nextData = getData(currentList.size, 20)
-//            currentList.addAll(nextData)
-//            messageAdapter?.submitList(currentList)
-//            isLoading = false
-//        }, 2000)
-//    }
-//
-//    private fun getData(startIndex: Int, count: Int): List<Message> {
-//        // Giả lập việc lấy dữ liệu từ startIndex, với số lượng count
-//        // Thay thế bằng việc lấy dữ liệu thật từ server hoặc database
-//        val items = mutableListOf<Message>()
-//        for (i in startIndex until startIndex + count) {
-//            items.add(_viewModel.chatRoom.value?.messages?.values?.elementAt(i)!!)
-//        }
-//        return items
-//    }
 
     private fun hideKeyboard() {
         activity?.let { KeyBoardUtils.hideSoftKeyboard(requireActivity()) }

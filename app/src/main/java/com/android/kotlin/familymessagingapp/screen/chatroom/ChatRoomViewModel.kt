@@ -17,6 +17,7 @@ import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.CountExceededException
+import com.android.kotlin.familymessagingapp.model.FileData
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
@@ -26,6 +27,7 @@ import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepositor
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
+import com.android.kotlin.familymessagingapp.utils.FileType
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
@@ -111,8 +113,8 @@ class ChatRoomViewModel @Inject constructor(
     private val _isInputValid = MutableLiveData(isInputValid())
     val isInputValid: LiveData<Boolean> = _isInputValid
 
-    private val _selectedItems = MutableLiveData<List<Uri>>(emptyList())
-    val selectedItems: LiveData<List<Uri>> = _selectedItems
+    private val _selectedItems = MutableLiveData<List<FileData>>(emptyList())
+    val selectedItems: LiveData<List<FileData>> = _selectedItems
 
     private val _clearEdiText = MutableLiveData(false)
     val clearEdiText: LiveData<Boolean> = _clearEdiText
@@ -132,6 +134,8 @@ class ChatRoomViewModel @Inject constructor(
     var uriOfTheImageBeingCapturedByTheCamera: Uri? = null
         private set
 
+    private var takenPhotoFromCamera = FileData(type = FileType.IMAGE)
+
     fun resetIsOpenFromNotificationFlag() {
         viewModelScope.launch(Dispatchers.IO) {
             localDatabaseRepository.appDataStore.saveString(
@@ -141,15 +145,17 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
-    fun createUriOfTheImageBeingCapturedByTheCamera(context: Context): Uri {
-        uriOfTheImageBeingCapturedByTheCamera = MediaUtils.createTempImageFile(context)
-        return uriOfTheImageBeingCapturedByTheCamera!!
+    fun createUriOfTheImageBeingCapturedByTheCamera(context: Context): Uri? {
+        return MediaUtils.createTempImageFile(context).also {
+            takenPhotoFromCamera = takenPhotoFromCamera.copy(uri = it)
+        }
     }
 
     fun deleteUriOfTheImageBeingCapturedByTheCamera(context: Context) {
-        if (uriOfTheImageBeingCapturedByTheCamera == null) return
-        context.contentResolver.delete(uriOfTheImageBeingCapturedByTheCamera!!, null, null)
-        uriOfTheImageBeingCapturedByTheCamera = null
+        takenPhotoFromCamera.uri?.let {
+            context.contentResolver.delete(it, null, null)
+            takenPhotoFromCamera = takenPhotoFromCamera.copy(uri = null)
+        }
     }
 
     fun resetState() {
@@ -180,7 +186,7 @@ class ChatRoomViewModel @Inject constructor(
         _openPhotoPicker.value = false
         _openUploadFile.value = false
         _openTakePhoto.value = false
-        uriOfTheImageBeingCapturedByTheCamera = null
+        takenPhotoFromCamera = FileData(type = FileType.IMAGE)
     }
 
     fun openPhotoPicker(isOpen: Boolean) {
@@ -427,7 +433,7 @@ class ChatRoomViewModel @Inject constructor(
         _isInputValid.value = isInputValid()
     }
 
-    fun addSelectedItems(items: List<Uri>) {
+    private fun addSelectedItems(items: List<FileData>) {
         val currentItems = _selectedItems.value?.toMutableList() ?: mutableListOf()
 
         // Add only new items to the list
@@ -438,27 +444,37 @@ class ChatRoomViewModel @Inject constructor(
             currentItems.addAll(newItems)
             _selectedItems.value = currentItems
         }
+        message = message.copy(fileDataList = _selectedItems.value)
         _isInputValid.value = isInputValid()
     }
 
-    fun removeItemInSelectedItems(item: Uri, context: Context?) {
+    fun addSelectedItems(context: Context, items: List<Uri>) {
+        val newItems = mutableListOf<FileData>()
 
+        // Add only new items to the list
+        items.forEach {
+            val fileType = MediaUtils.getFileType(context, it)
+            val fileName = MediaUtils.getFileName(context, it)
+            newItems.add(FileData(it, fileType, fileName))
+        }
+
+        addSelectedItems(newItems)
+    }
+
+    fun removeItemInSelectedItems(fileData: FileData, context: Context?) {
         // Delete taken photo from device when user remove it from selected items
-        if (item == uriOfTheImageBeingCapturedByTheCamera && context != null) deleteUriOfTheImageBeingCapturedByTheCamera(context)
-        _selectedItems.value = _selectedItems.value?.toMutableList()?.apply { remove(item) }
+        if (fileData.uri == takenPhotoFromCamera.uri && context != null) deleteUriOfTheImageBeingCapturedByTheCamera(context)
+        _selectedItems.value = _selectedItems.value?.toMutableList()?.apply { remove(fileData) }
         _isInputValid.value = isInputValid()
     }
 
     fun addUriOfTheImageBeingCapturedByTheCameraInSelectedItems() {
-        if (uriOfTheImageBeingCapturedByTheCamera == null) return
-        addSelectedItems(listOf(uriOfTheImageBeingCapturedByTheCamera!!))
+        takenPhotoFromCamera.uri?.let {
+            addSelectedItems(listOf(takenPhotoFromCamera))
+        }
     }
 
-    private fun isInputValid(): Boolean =
-        !message.text.isNullOrEmpty()
-                || !message.photo.isNullOrEmpty()
-                || !message.audio.isNullOrEmpty()
-                || !message.video.isNullOrEmpty()
+    private fun isInputValid(): Boolean = !message.text.isNullOrEmpty() || !message.fileDataList.isNullOrEmpty()
 
     fun clearEditText(clear: Boolean) {
         _clearEdiText.value = clear
@@ -469,7 +485,7 @@ class ChatRoomViewModel @Inject constructor(
             _sendMessageStatus.value = SendMessageStatus.Sending
             val sendMessage = Message().copy(
                 text = message.text,
-                photo = message.photo,
+                fileDataList = message.fileDataList,
                 replyMessageId = message.replyMessageId
             )
             clearInput()
@@ -541,4 +557,8 @@ class ChatRoomViewModel @Inject constructor(
         EventBus.getDefault().unregister(this@ChatRoomViewModel)
         EventBus.getDefault().removeStickyEvent(newChatRoomEventBus)
     }
+}
+
+private fun <T> MutableLiveData<List<T>>.getCurrentItems(): MutableList<T> {
+    return this.value?.toMutableList() ?: mutableListOf()
 }

@@ -1,7 +1,6 @@
 package com.android.kotlin.familymessagingapp.services.gemini
 
 import android.app.Application
-import android.graphics.Bitmap
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.Message
 import com.google.ai.client.generativeai.GenerativeModel
@@ -33,18 +32,9 @@ class GeminiModel(private val application: Application) {
     suspend fun generateContent(message: Message): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val photoUrl = message.photo
                 val text = message.text
-                var photoBitmap: Bitmap? = null
-//                if (photoUrl != null)
-//                    photoBitmap = AppImageUtils.convertImageUrlToBitmap(application, photoUrl)
-                if (photoBitmap == null && text.isNullOrEmpty()) return@withContext null
-                val content = content {
-//                    if (photoBitmap != null) {
-//                        image(photoBitmap)
-//                    }
-                    if (!text.isNullOrEmpty()) text(text)
-                }
+                if (text.isNullOrEmpty()) return@withContext null
+                val content = content { text(text) }
                 // Assuming a method generate exists that takes a map and returns a response
                 val response = model.generateContent(content)
                 response.text // Assuming the response contains generatedText

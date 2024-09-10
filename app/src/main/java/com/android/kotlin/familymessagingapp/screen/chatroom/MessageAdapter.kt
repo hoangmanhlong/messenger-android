@@ -128,7 +128,7 @@ class MessageAdapter(
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
-                if (!message.isPhotoEmpty()) {
+                if (!message.medias.isNullOrEmpty()) {
                     bindPhotoMessage(binding.image, message.photo)
                     binding.imageMessageCardView.visibility = View.VISIBLE
                     binding.imageMessageCardView.setOnClickListener {
@@ -372,7 +372,7 @@ class MessageAdapter(
                     binding.textMessageContainer.visibility = View.GONE
                 }
 
-                if (!message.isPhotoEmpty()) {
+                if (!message.medias.isNullOrEmpty()) {
                     bindPhotoMessage(binding.image, message.photo)
                     binding.imageMessageCardView.visibility = View.VISIBLE
                     binding.imageMessageCardView.setOnClickListener {

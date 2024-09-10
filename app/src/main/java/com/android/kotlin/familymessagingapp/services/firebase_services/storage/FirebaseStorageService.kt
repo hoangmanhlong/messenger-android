@@ -49,13 +49,13 @@ class FirebaseStorageService(private val application: Application) {
         }
     }
 
-    suspend fun putImageUriToStorage(
-        imageUri: Uri,
+    suspend fun putUriToStorage(
+        uri: Uri,
         storageRef: StorageReference
     ): String? {
         return withContext(Dispatchers.IO) {
             try {
-                storageRef.putFile(imageUri).await()
+                storageRef.putFile(uri).await()
                 storageRef.downloadUrl.await().toString()
             } catch (e: Exception) {
                 null

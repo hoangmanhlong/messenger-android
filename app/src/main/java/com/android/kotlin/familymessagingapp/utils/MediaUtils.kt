@@ -52,8 +52,6 @@ enum class FileType(val value: String) {
 
 object MediaUtils {
 
-    val MAX_FILE_SIZE = 20
-
     fun <T> loadImageWithListener(
         context: Context,
         photo: T,

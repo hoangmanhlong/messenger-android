@@ -13,6 +13,8 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomActivity
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Contact
+import com.android.kotlin.familymessagingapp.model.FileData
+import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.MobileConfig
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
@@ -35,6 +37,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -423,7 +426,7 @@ class FirebaseRealtimeDatabaseService(
             try {
                 var updatedUserData = userData
                 if (imageUri != null) {
-                    val downloadUrl = firebaseStorageService.putImageUriToStorage(
+                    val downloadUrl = firebaseStorageService.putUriToStorage(
                         imageUri,
                         firebaseStorageService.userAvatarRef.child(userData.uid!!)
                     )
@@ -553,23 +556,48 @@ class FirebaseRealtimeDatabaseService(
      *
      * @param message The message object consists only of content fields such as [Message.text, Message.audio, Message.photo, Message.video]
      */
-    private suspend fun createNewMessage(message: Message): Message {
-        // Upload photo if it exists
-        val photoUrl = uploadPhotoMessageToStorage(message.photo)
+    private suspend fun createNewMessage(chatroomId: String, message: Message): Message {
+        return withContext(Dispatchers.IO) {
 
-        val currentTimestamp = StringUtils.getCurrentTime()
+            val currentTimestamp = StringUtils.getCurrentTime()
 
-        return message.copy(
-            messageId = currentTimestamp.toString(),
-            timestamp = currentTimestamp,
-            photo = photoUrl,
-            text = message.text,
-            audio = message.audio,
-            senderId = auth.uid,
-            video = message.video,
-            reactions = message.reactions,
-            replyMessageId = message.replyMessageId
-        )
+            val updatedMessage = Message().copy(
+                messageId = currentTimestamp.toString(),
+                timestamp = currentTimestamp,
+                text = message.text,
+                senderId = auth.uid,
+                reactions = message.reactions,
+                replyMessageId = message.replyMessageId
+            )
+
+            val medias = mutableListOf<MediaData>()
+            val fileDataList = message.fileDataList
+            if (!fileDataList.isNullOrEmpty()) {
+                // Tạo danh sách các deferred coroutines để xử lý tải lên đồng thời
+                val uploadJobs = fileDataList.map { fileData ->
+                    async {
+                        val storageRef = firebaseStorageService
+                            .chatRoomRef
+                            .child(chatroomId)
+                            .child("message_images")
+                            .child("${updatedMessage.senderId}_${System.currentTimeMillis()}")
+
+                        val fileUrl = fileData.uri?.let { uri ->
+                            firebaseStorageService.putUriToStorage(uri, storageRef)
+                        }
+
+                        fileUrl?.let {
+                            MediaData(type = fileData.type?.value, url = it, fileName = fileData.fileName)
+                        }
+                    }
+                }
+
+                // Chờ tất cả các tác vụ upload hoàn thành và lọc bỏ null
+                medias.addAll(uploadJobs.awaitAll().filterNotNull())
+            }
+
+            updatedMessage.copy(medias = medias)
+        }
     }
 
     /**
@@ -581,7 +609,7 @@ class FirebaseRealtimeDatabaseService(
     suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val newMessage = createNewMessage(message)
+                val newMessage = createNewMessage(chatRoom.chatRoomId!!, message)
 
                 val chatRoomActivity = ChatRoomActivity(
                     latestActiveTime = StringUtils.getCurrentTime(),
@@ -614,7 +642,7 @@ class FirebaseRealtimeDatabaseService(
             try {
                 var chatRoomImage = chatRoom.chatRoomImage
                 if (!chatRoomImage.isNullOrEmpty()) {
-                    chatRoomImage = firebaseStorageService.putImageUriToStorage(
+                    chatRoomImage = firebaseStorageService.putUriToStorage(
                         chatRoom.chatRoomImage!!.toUri(),
                         firebaseStorageService.initializeChatRoomImageRefInStorage(chatRoom.chatRoomId!!)
                     )
@@ -716,17 +744,6 @@ class FirebaseRealtimeDatabaseService(
             this@FirebaseRealtimeDatabaseService.chatRoomSentWhenCreatingDoubleChatRoom = null
             EventBus.getDefault().unregister(this@FirebaseRealtimeDatabaseService)
             EventBus.getDefault().removeStickyEvent(createNewChatRoomSocketEvenBus)
-        }
-    }
-
-    private suspend fun uploadPhotoMessageToStorage(photo: String?): String? {
-        return photo?.let {
-            firebaseStorageService.putImageUriToStorage(
-                imageUri = it.toUri(),
-                storageRef = firebaseStorageService.chatroomMessageRef.child(
-                    StringUtils.getCurrentTime().toString()
-                )
-            )
         }
     }
 
@@ -860,18 +877,10 @@ class FirebaseRealtimeDatabaseService(
         withContext(Dispatchers.IO) {
             try {
                 val messageId = message.messageId!!
-                val deleteMessage = message.copy(
+                val deleteMessage = Message().copy(
                     messageId = messageId,
                     senderId = message.senderId,
-                    text = null,
-                    photo = null,
-                    video = null,
-                    audio = null,
                     timestamp = message.timestamp,
-                    senderData = null,
-                    pinned = null,
-                    replyMessage = null,
-                    reactions = null,
                     replyMessageId = message.replyMessageId,
                     removedBy = Firebase.auth.uid,
                 )

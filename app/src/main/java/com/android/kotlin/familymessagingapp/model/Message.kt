@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEvent
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -16,41 +17,31 @@ data class Reaction(
 @Parcelize
 @Serializable
 data class MediaData(
-    val type: String,
-    val url: String
+    val type: String? = null,
+    val url: String? = null,
+    val fileName: String? = null,
 ) : Parcelable
 
 @Parcelize
-@Serializable
 @IgnoreExtraProperties
 data class Message(
     val messageId: String? = null,
     val senderId: String? = null,
     val text: String? = null,
     val photo: String? = null,
-    val video: String? = null,
-    val audio: String? = null,
     val timestamp: Long? = null,
     val reactions: Map<String, Map<String, Boolean>>? = null,
     val replyMessageId: String? = null,
     val removedBy: String? = null,
-//    val medias: Map<String, MediaData>? = null,
+    val medias: List<MediaData>? = null,
     @Exclude var pinned: Boolean? = null,
     @Exclude var replyMessage: Message? = null,
-    @Exclude @Contextual var senderData: UserData? = null
+    @Exclude @Contextual var senderData: UserData? = null,
+    @Exclude var fileDataList: List<FileData>? = null
 ) : Parcelable {
 
     @Exclude
-    fun isEmoticonEmpty(): Boolean = reactions.isNullOrEmpty()
-
-    @Exclude
-    fun isPhotoEmpty(): Boolean = photo.isNullOrEmpty()
-
-    @Exclude
     fun isTextEmpty(): Boolean = text.isNullOrEmpty()
-
-    @Exclude
-    fun isPinned(): Boolean = pinned ?: false
 
     @Exclude
     fun isReplyMessageEmpty(): Boolean = replyMessageId.isNullOrEmpty()
@@ -68,8 +59,6 @@ fun Message.toMessageSocketEvent(): BackendEvent.Message = BackendEvent.Message(
     senderId = senderId,
     text = text,
     photo = photo,
-    video = video,
-    audio = audio,
     timestamp = timestamp.toString(),
     senderName = senderData?.username
 )
