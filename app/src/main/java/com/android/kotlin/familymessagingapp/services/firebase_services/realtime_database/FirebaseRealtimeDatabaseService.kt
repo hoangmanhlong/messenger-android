@@ -567,8 +567,6 @@ class FirebaseRealtimeDatabaseService(
             audio = message.audio,
             senderId = auth.uid,
             video = message.video,
-            type = message.type,
-            status = message.status,
             reactions = message.reactions,
             replyMessageId = message.replyMessageId
         )
@@ -870,8 +868,6 @@ class FirebaseRealtimeDatabaseService(
                     video = null,
                     audio = null,
                     timestamp = message.timestamp,
-                    status = null,
-                    type = null,
                     senderData = null,
                     pinned = null,
                     replyMessage = null,

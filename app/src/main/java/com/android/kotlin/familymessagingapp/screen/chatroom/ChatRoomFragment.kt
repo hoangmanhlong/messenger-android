@@ -39,7 +39,6 @@ import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
-import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.snackbar.Snackbar
@@ -207,9 +206,10 @@ class ChatRoomFragment : Fragment() {
 
         messageRecyclerview?.adapter = messageAdapter
 
-        selectedItemAdapter = SelectedItemAdapter {
-            _viewModel.removeItemInSelectedItems(it)
-        }
+        selectedItemAdapter = SelectedItemAdapter(
+            onItemRemove = { _viewModel.removeItemInSelectedItems(it, context) },
+            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it) }
+        )
 
         selectedItemsRecyclerview = binding.selectedItemsRecyclerview
         selectedItemsRecyclerview?.adapter = selectedItemAdapter

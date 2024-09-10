@@ -89,10 +89,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDataMemoryRepository(
+        application: Application,
         appDataStore: AppDataStore,
         appDatabase: AppDatabase
     ): LocalDatabaseRepository =
-        LocalDatabaseRepository(appDataStore, appDatabase)
+        LocalDatabaseRepository(application, appDataStore, appDatabase)
 
     @Provides
     @Singleton

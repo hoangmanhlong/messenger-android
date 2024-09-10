@@ -142,7 +142,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun createUriOfTheImageBeingCapturedByTheCamera(context: Context): Uri {
-        uriOfTheImageBeingCapturedByTheCamera = MediaUtils.createImageUri(context)
+        uriOfTheImageBeingCapturedByTheCamera = MediaUtils.createTempImageFile(context)
         return uriOfTheImageBeingCapturedByTheCamera!!
     }
 
@@ -200,7 +200,6 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun setReplyingMessage(isReplying: Boolean) {
-        Log.d(TAG, "setReplyingMessage: $isReplying")
         _replyingMessage.value = if (isReplying) _selectedMessage.value else null
         _replying.value = isReplying
         message = message.copy(replyMessageId = _replyingMessage.value?.messageId)
@@ -442,7 +441,10 @@ class ChatRoomViewModel @Inject constructor(
         _isInputValid.value = isInputValid()
     }
 
-    fun removeItemInSelectedItems(item: Uri) {
+    fun removeItemInSelectedItems(item: Uri, context: Context?) {
+
+        // Delete taken photo from device when user remove it from selected items
+        if (item == uriOfTheImageBeingCapturedByTheCamera && context != null) deleteUriOfTheImageBeingCapturedByTheCamera(context)
         _selectedItems.value = _selectedItems.value?.toMutableList()?.apply { remove(item) }
         _isInputValid.value = isInputValid()
     }

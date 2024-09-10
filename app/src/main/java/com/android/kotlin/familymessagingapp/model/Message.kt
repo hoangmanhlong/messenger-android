@@ -15,6 +15,13 @@ data class Reaction(
 
 @Parcelize
 @Serializable
+data class MediaData(
+    val type: String,
+    val url: String
+) : Parcelable
+
+@Parcelize
+@Serializable
 @IgnoreExtraProperties
 data class Message(
     val messageId: String? = null,
@@ -24,11 +31,10 @@ data class Message(
     val video: String? = null,
     val audio: String? = null,
     val timestamp: Long? = null,
-    val status: Int? = null,
-    val type: Int? = null,
     val reactions: Map<String, Map<String, Boolean>>? = null,
     val replyMessageId: String? = null,
     val removedBy: String? = null,
+//    val medias: Map<String, MediaData>? = null,
     @Exclude var pinned: Boolean? = null,
     @Exclude var replyMessage: Message? = null,
     @Exclude @Contextual var senderData: UserData? = null

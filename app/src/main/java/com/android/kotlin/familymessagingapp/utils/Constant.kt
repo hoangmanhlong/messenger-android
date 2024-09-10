@@ -4,7 +4,7 @@ import com.android.kotlin.familymessagingapp.BuildConfig
 
 object Constant {
 
-    const val MAXIMUM_FILE_SIZE_MB = 3
+    const val MAXIMUM_FILE_SIZE_MB = 20
 
     const val USER_DATA_KEY = "USER_DATA_KEY"
 
@@ -104,6 +104,10 @@ object Constant {
     fun getAppUrl(endpoint: String): String = "$APP_BASE_URI$endpoint"
 
     const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME = "chat_room_images"
+
+    const val PHOTO_TAKEN_FROM_CAMERA_NAME = "PHOTO_TAKEN_FROM_CAMERA"
+
+    const val PHOTO_SHARED_TO_OTHER_APPS_NAME = "PHOTO_SHARED_TO_OTHER_APPS"
 }
 
 

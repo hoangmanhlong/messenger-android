@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.webkit.MimeTypeMap
+import androidx.annotation.DrawableRes
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
@@ -34,14 +35,24 @@ import java.io.OutputStream
 import java.util.UUID
 
 
-enum class FileType {
-    PDF,
-    DOC,
-    TEXT,
-    IMAGE,
-    UNKNOWN
+enum class FileType(val value: String) {
+    TEXT("0"),
+    IMAGE("1"),
+    PDF("2"),
+    DOC("3"),
+    EXCEL("4"),
+    PRESENTATION("5"),
+    AUDIO("6"),
+    VIDEO("7"),
+    COMPRESSED("8"),
+    SCRIPT("9"),
+    FONT("10"),
+    UNKNOWN("11"),
 }
+
 object MediaUtils {
+
+    val MAX_FILE_SIZE = 20
 
     fun <T> loadImageWithListener(
         context: Context,
@@ -274,10 +285,45 @@ object MediaUtils {
         }
     }
 
+    fun createTempImageFile(context: Context): Uri? {
+        var file: File? = null
+        return try {
+            // Create an image file name
+            val storageDir = context.cacheDir
+
+            // Create a temporary file in the cache directory
+            file = File.createTempFile(Constant.PHOTO_TAKEN_FROM_CAMERA_NAME, ".jpg", storageDir)
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider", // Đảm bảo bạn đã khai báo trong AndroidManifest.xml
+                file
+            )
+        } catch (ex: IOException) {
+            file?.delete()
+            null
+        }
+    }
+
+    suspend fun clearCache(context: Context) {
+        withContext(Dispatchers.IO) {
+            try {
+                val cacheDir = context.cacheDir
+                if (cacheDir.isDirectory) {
+                    val children = cacheDir.list()
+                    for (child in children!!) {
+                        File(cacheDir, child).delete()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun isValidMediaFileSize(context: Context, uri: Uri): Boolean {
         val fileSizeInBytes = getFileSize(context, uri)
         val fileSizeInMB = fileSizeInBytes / (1024 * 1024)
-        return fileSizeInMB < Constant.MAXIMUM_FILE_SIZE_MB
+        return fileSizeInMB <= Constant.MAXIMUM_FILE_SIZE_MB
     }
 
     private fun getFileSize(context: Context, uri: Uri): Long {
@@ -291,12 +337,37 @@ object MediaUtils {
 
     fun getFileType(context: Context, uri: Uri): FileType {
         val mimeType = getMimeType(context, uri)
-        return when(mimeType) {
+        return when (mimeType) {
             "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/jpg" -> FileType.IMAGE
             "application/pdf" -> FileType.PDF
             "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> FileType.DOC
             "text/plain" -> FileType.TEXT
+            "application/zip", "application/x-7z-compressed", "application/x-rar-compressed", "application/gzip" -> FileType.COMPRESSED
+            "application/x-sh", "application/x-python", "application/javascript", "application/x-java-source" -> FileType.SCRIPT
+            "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation" -> FileType.PRESENTATION
+            "audio/mpeg", "audio/x-wav", "audio/ogg", "audio/flac", "audio/aac", "audio/x-ms-wma" -> FileType.AUDIO
+            "font/ttf", "font/otf", "application/x-font-ttf", "application/x-font-opentype" -> FileType.FONT
+            "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> FileType.EXCEL
+            "video/mp4", "video/x-matroska", "video/x-msvideo", "video/quicktime", "video/x-ms-wmv" -> FileType.VIDEO
             else -> FileType.UNKNOWN
+        }
+    }
+
+    @DrawableRes
+    fun getFileDrawableRes(fileType: FileType): Int {
+        return when (fileType) {
+            FileType.IMAGE -> R.drawable.mc_file_image
+            FileType.PDF -> R.drawable.mc_file_pdf
+            FileType.DOC -> R.drawable.mc_file_document
+            FileType.TEXT -> R.drawable.mc_file_text
+            FileType.COMPRESSED -> R.drawable.mc_file_pack
+            FileType.PRESENTATION -> R.drawable.mc_file_presentation
+            FileType.SCRIPT -> R.drawable.mc_file_script
+            FileType.AUDIO -> R.drawable.mc_file_audio
+            FileType.EXCEL -> R.drawable.mc_file_spreadsheet
+            FileType.VIDEO -> R.drawable.mc_file_video
+            FileType.FONT -> R.drawable.mc_file_font
+            FileType.UNKNOWN -> R.drawable.mc_file_unknown
         }
     }
 
