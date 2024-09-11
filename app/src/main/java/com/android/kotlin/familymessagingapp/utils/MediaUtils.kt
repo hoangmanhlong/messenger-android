@@ -18,6 +18,7 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.model.FileType
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -33,22 +34,6 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import java.util.UUID
-
-
-enum class FileType(val value: String) {
-    TEXT("0"),
-    IMAGE("1"),
-    PDF("2"),
-    DOC("3"),
-    EXCEL("4"),
-    PRESENTATION("5"),
-    AUDIO("6"),
-    VIDEO("7"),
-    COMPRESSED("8"),
-    SCRIPT("9"),
-    FONT("10"),
-    UNKNOWN("11"),
-}
 
 object MediaUtils {
 
@@ -333,6 +318,20 @@ object MediaUtils {
         } ?: 0
     }
 
+    // Function to format file size
+    fun formatFileSize(sizeInBytes: Long): String {
+        val sizeInKB = sizeInBytes / 1024.0
+        val sizeInMB = sizeInKB / 1024.0
+        val sizeInGB = sizeInMB / 1024.0
+
+        return when {
+            sizeInGB >= 1 -> String.format("%.2f GB", sizeInGB)
+            sizeInMB >= 1 -> String.format("%.2f MB", sizeInMB)
+            sizeInKB >= 1 -> String.format("%.2f KB", sizeInKB)
+            else -> "$sizeInBytes Bytes"
+        }
+    }
+
     fun getFileType(context: Context, uri: Uri): FileType {
         val mimeType = getMimeType(context, uri)
         return when (mimeType) {
@@ -348,24 +347,6 @@ object MediaUtils {
             "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> FileType.EXCEL
             "video/mp4", "video/x-matroska", "video/x-msvideo", "video/quicktime", "video/x-ms-wmv" -> FileType.VIDEO
             else -> FileType.UNKNOWN
-        }
-    }
-
-    @DrawableRes
-    fun getFileDrawableRes(fileType: FileType): Int {
-        return when (fileType) {
-            FileType.IMAGE -> R.drawable.mc_file_image
-            FileType.PDF -> R.drawable.mc_file_pdf
-            FileType.DOC -> R.drawable.mc_file_document
-            FileType.TEXT -> R.drawable.mc_file_text
-            FileType.COMPRESSED -> R.drawable.mc_file_pack
-            FileType.PRESENTATION -> R.drawable.mc_file_presentation
-            FileType.SCRIPT -> R.drawable.mc_file_script
-            FileType.AUDIO -> R.drawable.mc_file_audio
-            FileType.EXCEL -> R.drawable.mc_file_spreadsheet
-            FileType.VIDEO -> R.drawable.mc_file_video
-            FileType.FONT -> R.drawable.mc_file_font
-            FileType.UNKNOWN -> R.drawable.mc_file_unknown
         }
     }
 

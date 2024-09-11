@@ -10,9 +10,11 @@
         tools:layout_gravity="end"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="4dp">
+        android:layout_marginVertical="2dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
+            android:layout_gravity="center_vertical"
+            android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="16dp">
@@ -26,29 +28,38 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:src="@drawable/mc_file_document" />
 
-            <TextView
-                android:textStyle="bold"
-                android:id="@+id/tvFileName"
-                android:layout_width="wrap_content"
-                android:layout_marginStart="16dp"
-                android:textSize="16sp"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                app:layout_constraintStart_toEndOf="@id/ivFile"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:singleLine="true"
-                tools:text="Hoang Manh Long.docx" />
-
-            <TextView
-                android:id="@+id/tvFileDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/tvFileName"
                 app:layout_constraintStart_toEndOf="@id/ivFile"
-                android:layout_marginStart="16dp"
-                tools:text="100GB • DOCX" />
+                app:layout_constraintTop_toTopOf="parent"
+                android:orientation="vertical">
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:maxWidth="200dp"
+                    android:minWidth="100dp"
+                    android:id="@+id/tvFileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:textStyle="bold"
+                    tools:text="Hoang Manh Long.docx" />
+
+                <TextView
+                    android:id="@+id/tvFileDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    tools:text="100GB • DOCX" />
+            </LinearLayout>
+
+
+
+        </LinearLayout>
 
 
     </com.google.android.material.card.MaterialCardView>

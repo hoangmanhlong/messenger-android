@@ -14,12 +14,13 @@ import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBind
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Reaction
-import com.android.kotlin.familymessagingapp.utils.FileType
+import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlin.math.truncate
 
 class MessageAdapter(
     private val onMessageContentViewClick: () -> Unit,
@@ -49,6 +50,8 @@ class MessageAdapter(
         private var reactionsAdapter: ReactionsAdapter? = null
 
         private var fileAdapter: FileAdapter? = null
+
+        private var imageMessageAdapter: ImageMessageAdapter? = null
 
         init {
             reactionsAdapter = ReactionsAdapter {
@@ -139,19 +142,42 @@ class MessageAdapter(
                     val (images, files) = message.medias.partition { it.type == FileType.IMAGE.value }
 
                     if (images.isNotEmpty()) {
-
-                    } else {
+                        if (images.size == 1) {
+                            binding.imageRecyclerView.visibility = View.GONE
+                            bindPhotoMessage(binding.image, images[0].url)
+                            binding.image.visibility = View.VISIBLE
+                            binding.image.setOnClickListener {
+                                onImageMessageClick(binding.image.drawable, message)
+                            }
+                            binding.imageMessageCardView.setOnLongClickListener {
+                                onMessageLongClick(false, message)
+                                false
+                            }
+                        } else {
+                            binding.image.visibility = View.GONE
+                            if (imageMessageAdapter == null) {
+                                imageMessageAdapter = ImageMessageAdapter()
+                                binding.imageRecyclerView.adapter = imageMessageAdapter
+                            }
+                            imageMessageAdapter?.submitList(images)
+                            binding.imageRecyclerView.visibility = View.VISIBLE
+                        }
                         binding.imageMessageCardView.visibility = View.VISIBLE
+                    } else {
+                        binding.imageRecyclerView.visibility = View.GONE
+                        binding.imageMessageCardView.visibility = View.GONE
                     }
 
                     if (files.isNotEmpty()) {
-                        if (fileAdapter == null) fileAdapter = FileAdapter(isSender = true)
-                        binding.fileRecyclerView.visibility = View.VISIBLE
+                        if (fileAdapter == null) {
+                            fileAdapter = FileAdapter(isSender = true)
+                            binding.fileRecyclerView.adapter = fileAdapter
+                        }
                         fileAdapter?.submitList(files)
+                        binding.fileRecyclerView.visibility = View.VISIBLE
                     } else {
                         binding.fileRecyclerView.visibility = View.GONE
                     }
-
 
                     binding.imageMessageCardView.setOnClickListener {
                         onImageMessageClick(binding.image.drawable, message)

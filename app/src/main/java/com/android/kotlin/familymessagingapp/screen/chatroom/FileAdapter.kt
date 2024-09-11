@@ -4,12 +4,15 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.ItemFileBinding
 import com.android.kotlin.familymessagingapp.model.MediaData
+import com.android.kotlin.familymessagingapp.model.getFileDrawableRes
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 
 class FileAdapter(
     val isSender: Boolean
@@ -31,8 +34,10 @@ class FileAdapter(
             (fileCardLayoutParams as FrameLayout.LayoutParams).gravity = if (isSender) Gravity.END else Gravity.START
         }
         fun bind(mediaData: MediaData) {
+            binding.ivFile.setImageResource(getFileDrawableRes(mediaData.type))
             binding.tvFileName.text = mediaData.fileName
-            binding.root.context.getString(R.string.file_size_type, mediaData.size, mediaData.type)
+            binding.tvFileDescription.text = binding.root.context
+                .getString(R.string.file_size_type, mediaData.size, mediaData.type)
         }
     }
 

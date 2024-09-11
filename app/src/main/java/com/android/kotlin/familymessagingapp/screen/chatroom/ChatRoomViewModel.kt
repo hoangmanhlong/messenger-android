@@ -26,7 +26,7 @@ import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepositor
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
-import com.android.kotlin.familymessagingapp.utils.FileType
+import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils

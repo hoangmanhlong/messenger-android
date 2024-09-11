@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutSelectedItemBinding
 import com.android.kotlin.familymessagingapp.model.FileData
-import com.android.kotlin.familymessagingapp.utils.FileType
-import com.android.kotlin.familymessagingapp.utils.MediaUtils
+import com.android.kotlin.familymessagingapp.model.FileType
+import com.android.kotlin.familymessagingapp.model.getFileDrawableRes
 import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
 
 class SelectedItemAdapter(
@@ -32,7 +32,7 @@ class SelectedItemAdapter(
                 val fileName = fileData.fileName
                 binding.tvFileName.visibility = if (fileName.isNullOrEmpty()) View.GONE else View.VISIBLE
 
-                binding.ivFile.setImageResource(MediaUtils.getFileDrawableRes(fileData.type!!))
+                binding.ivFile.setImageResource(getFileDrawableRes(fileData.type!!))
                 binding.tvFileName.text = fileName
 
                 binding.fileContainerView.visibility = View.VISIBLE
