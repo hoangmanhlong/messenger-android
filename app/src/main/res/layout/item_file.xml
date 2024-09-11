@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/fileCard"
+        tools:layout_gravity="end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/ivFile"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@drawable/mc_file_document" />
+
+            <TextView
+                android:textStyle="bold"
+                android:id="@+id/tvFileName"
+                android:layout_width="wrap_content"
+                android:layout_marginStart="16dp"
+                android:textSize="16sp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/ivFile"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:singleLine="true"
+                tools:text="Hoang Manh Long.docx" />
+
+            <TextView
+                android:id="@+id/tvFileDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/tvFileName"
+                app:layout_constraintStart_toEndOf="@id/ivFile"
+                android:layout_marginStart="16dp"
+                tools:text="100GB • DOCX" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>

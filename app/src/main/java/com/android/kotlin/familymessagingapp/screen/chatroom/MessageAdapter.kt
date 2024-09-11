@@ -14,6 +14,7 @@ import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBind
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Reaction
+import com.android.kotlin.familymessagingapp.utils.FileType
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
@@ -46,6 +47,8 @@ class MessageAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         private var reactionsAdapter: ReactionsAdapter? = null
+
+        private var fileAdapter: FileAdapter? = null
 
         init {
             reactionsAdapter = ReactionsAdapter {
@@ -128,9 +131,28 @@ class MessageAdapter(
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
-                if (!message.medias.isNullOrEmpty()) {
-                    bindPhotoMessage(binding.image, message.photo)
-                    binding.imageMessageCardView.visibility = View.VISIBLE
+
+                val medias = message.medias
+
+                if (!medias.isNullOrEmpty()) {
+
+                    val (images, files) = message.medias.partition { it.type == FileType.IMAGE.value }
+
+                    if (images.isNotEmpty()) {
+
+                    } else {
+                        binding.imageMessageCardView.visibility = View.VISIBLE
+                    }
+
+                    if (files.isNotEmpty()) {
+                        if (fileAdapter == null) fileAdapter = FileAdapter(isSender = true)
+                        binding.fileRecyclerView.visibility = View.VISIBLE
+                        fileAdapter?.submitList(files)
+                    } else {
+                        binding.fileRecyclerView.visibility = View.GONE
+                    }
+
+
                     binding.imageMessageCardView.setOnClickListener {
                         onImageMessageClick(binding.image.drawable, message)
                     }
@@ -139,9 +161,11 @@ class MessageAdapter(
                         false
                     }
                 } else {
+                    binding.fileRecyclerView.visibility = View.GONE
                     binding.imageMessageCardView.visibility = View.GONE
                 }
             }
+
             binding.tvMessageTime.text = StringUtils.formatTime(message.timestamp!!, false)
             binding.tvMessageTime.visibility =
                 if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE

@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -116,8 +115,8 @@ class ChatRoomViewModel @Inject constructor(
     private val _selectedItems = MutableLiveData<List<FileData>>(emptyList())
     val selectedItems: LiveData<List<FileData>> = _selectedItems
 
-    private val _clearEdiText = MutableLiveData(false)
-    val clearEdiText: LiveData<Boolean> = _clearEdiText
+    private val _clearInputMessage = MutableLiveData(false)
+    val clearInputMessage: LiveData<Boolean> = _clearInputMessage
 
     private val _replying = MutableLiveData(false)
     val replying: LiveData<Boolean> = _replying
@@ -131,10 +130,7 @@ class ChatRoomViewModel @Inject constructor(
     private val _openTakePhoto = MutableLiveData(false)
     val openTakePhoto: LiveData<Boolean> = _openTakePhoto
 
-    var uriOfTheImageBeingCapturedByTheCamera: Uri? = null
-        private set
-
-    private var takenPhotoFromCamera = FileData(type = FileType.IMAGE)
+    private val uriOfTakenPhotos = mutableListOf<Uri>()
 
     fun resetIsOpenFromNotificationFlag() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -146,16 +142,15 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun createUriOfTheImageBeingCapturedByTheCamera(context: Context): Uri? {
-        return MediaUtils.createTempImageFile(context).also {
-            takenPhotoFromCamera = takenPhotoFromCamera.copy(uri = it)
+        return MediaUtils.createTempImageFile(context).also { uri ->
+            if (uri == null) return null
+            uriOfTakenPhotos.add(uri)
         }
     }
 
-    fun deleteUriOfTheImageBeingCapturedByTheCamera(context: Context) {
-        takenPhotoFromCamera.uri?.let {
-            context.contentResolver.delete(it, null, null)
-            takenPhotoFromCamera = takenPhotoFromCamera.copy(uri = null)
-        }
+    fun deleteUriOfTheImageBeingCapturedByTheCamera() {
+        if (uriOfTakenPhotos.lastOrNull() == null) return
+        deleteTakenPhotoFromCamera(listOf(uriOfTakenPhotos.last()))
     }
 
     fun resetState() {
@@ -179,14 +174,15 @@ class ChatRoomViewModel @Inject constructor(
         _AICreating.value = false
         _isInputValid.value = isInputValid()
         _selectedItems.value = emptyList()
-        _clearEdiText.value = false
+        _clearInputMessage.value = false
         _replying.value = false
         message = Message()
         _replyingMessage.value = null
         _openPhotoPicker.value = false
         _openUploadFile.value = false
         _openTakePhoto.value = false
-        takenPhotoFromCamera = FileData(type = FileType.IMAGE)
+        deleteTakenPhotoFromCamera(uriOfTakenPhotos)
+        uriOfTakenPhotos.clear()
     }
 
     fun openPhotoPicker(isOpen: Boolean) {
@@ -445,39 +441,42 @@ class ChatRoomViewModel @Inject constructor(
             _selectedItems.value = currentItems
         }
         message = message.copy(fileDataList = _selectedItems.value)
+
         _isInputValid.value = isInputValid()
     }
 
-    fun addSelectedItems(context: Context, items: List<Uri>) {
-        val newItems = mutableListOf<FileData>()
-
-        // Add only new items to the list
-        items.forEach {
-            val fileType = MediaUtils.getFileType(context, it)
-            val fileName = MediaUtils.getFileName(context, it)
-            newItems.add(FileData(it, fileType, fileName))
-        }
-
-        addSelectedItems(newItems)
+    fun addSelectedUris(items: List<Uri>) {
+        addSelectedItems(localDatabaseRepository.updateFileDataFromUri(items))
     }
 
-    fun removeItemInSelectedItems(fileData: FileData, context: Context?) {
+    fun removeItemInSelectedItems(fileData: FileData) {
         // Delete taken photo from device when user remove it from selected items
-        if (fileData.uri == takenPhotoFromCamera.uri && context != null) deleteUriOfTheImageBeingCapturedByTheCamera(context)
+
+        // Check fileData have in uriOfTakenPhotos. if so take it out
+        val uriInUriOfTakenPhotos = uriOfTakenPhotos.firstOrNull { uri -> uri.toString() == fileData.uri.toString() }
+
+        // If it exists then clear it from cache
+        if (uriInUriOfTakenPhotos != null) deleteTakenPhotoFromCamera(listOf(uriInUriOfTakenPhotos))
+
+        // Remove fileData from selected items
         _selectedItems.value = _selectedItems.value?.toMutableList()?.apply { remove(fileData) }
+
+        message = message.copy(fileDataList = _selectedItems.value)
+
         _isInputValid.value = isInputValid()
     }
 
     fun addUriOfTheImageBeingCapturedByTheCameraInSelectedItems() {
-        takenPhotoFromCamera.uri?.let {
-            addSelectedItems(listOf(takenPhotoFromCamera))
+        if (uriOfTakenPhotos.isNotEmpty()) {
+            val takenPhotoFromCameraFileData = FileData(uriOfTakenPhotos.last(), FileType.IMAGE, null)
+            addSelectedItems(listOf(takenPhotoFromCameraFileData))
         }
     }
 
     private fun isInputValid(): Boolean = !message.text.isNullOrEmpty() || !message.fileDataList.isNullOrEmpty()
 
     fun clearEditText(clear: Boolean) {
-        _clearEdiText.value = clear
+        _clearInputMessage.value = clear
     }
 
     fun sendMessage() {
@@ -518,8 +517,14 @@ class ChatRoomViewModel @Inject constructor(
 
     private fun clearInput() {
         clearEditText(true)
-
+        message = Message()
+        deleteTakenPhotoFromCamera(uriOfTakenPhotos)
+        _selectedItems.value = emptyList()
         setReplyingMessage(false)
+    }
+
+    private fun deleteTakenPhotoFromCamera(list: List<Uri>) {
+        localDatabaseRepository.deleteTakenPhotoFromCamera(list)
     }
 
     fun copyMessage(activity: Activity) {

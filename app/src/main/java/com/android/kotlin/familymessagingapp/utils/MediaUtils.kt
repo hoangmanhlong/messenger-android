@@ -401,4 +401,14 @@ object MediaUtils {
         }
         return fileName
     }
+
+    /**
+     * Delete file in cache
+     *
+     * The ContentResolver.delete() method might not always behave as expected when called on
+     * background threads, especially when dealing with cached or media content URIs.
+     */
+    fun deleteUriInCache(context: Context, uri: Uri) {
+        context.contentResolver.delete(uri, null, null)
+    }
 }

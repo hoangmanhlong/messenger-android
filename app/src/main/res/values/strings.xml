@@ -159,4 +159,6 @@
     <string name="photo">Photo</string>
     <string name="camera">Camera</string>
     <string name="file">File</string>
+    <string name="file_size_type" translatable="false">%s • %s</string>
+    <string name="sent_file">sent file</string>
 </resources>

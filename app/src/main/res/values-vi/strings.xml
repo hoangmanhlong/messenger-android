@@ -141,4 +141,5 @@
     <string name="go_to_setting">Đi tới cài đặt</string>
     <string name="user_update_chatroom_info">%s đã cập nhật thông tin phòng chat</string>
     <string name="user_created_group_chat">%s đã tạo nhóm chat</string>
+    <string name="sent_file">đã gửi tập tin</string>
 </resources>

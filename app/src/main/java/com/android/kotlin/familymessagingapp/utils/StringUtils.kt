@@ -75,12 +75,20 @@ object StringUtils {
             when (chatRoomActivity.activityType) {
                 ChatActivityType.NEW_MESSAGE.value -> {
                     val message = chatRoomActivity.newMessage ?: return result
+                    val text = message.text
+                    val medias = message.medias
 
-                    result = if (!message.text.isNullOrEmpty() || !message.photo.isNullOrEmpty()) {
-                        if (!message.text.isNullOrEmpty()) message.text else context.getString(R.string.photo_last_message)
-                    } else {
-                        result
+                    if (!text.isNullOrEmpty()) {
+                        result = text
+                    } else if(!medias.isNullOrEmpty() && text.isNullOrEmpty()) {
+
+                        // Check all medias are images
+                        val isAllImage = medias.all { it.type == FileType.IMAGE.value }
+
+                        result = context.getString(if (isAllImage) R.string.photo_last_message else R.string.sent_file)
                     }
+
+                    // Add sender name at the beginning
                     val senderName = chatRoomActivity.dataOfUserPerformingTheActivity?.username
                     if (senderName != null) {
                         result = if (message.senderId == Firebase.auth.uid) {

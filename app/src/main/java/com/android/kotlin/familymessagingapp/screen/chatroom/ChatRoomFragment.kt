@@ -85,7 +85,7 @@ class ChatRoomFragment : Fragment() {
                 hideKeyboard()
             }
             if (context != null && !list.isNullOrEmpty()) {
-                _viewModel.addSelectedItems(requireContext(), list)
+                _viewModel.addSelectedUris(list)
 //                } else {
 //                    Snackbar.make(
 //                        requireContext(),
@@ -101,8 +101,8 @@ class ChatRoomFragment : Fragment() {
         }
 
     private val openDocument = registerForActivityResult(AppOpenMultipleDocuments()) {
-        if (it == null && context != null) return@registerForActivityResult
-        _viewModel.addSelectedItems(requireContext(), it)
+        if (it.isNullOrEmpty() && context != null) return@registerForActivityResult
+        _viewModel.addSelectedUris(it)
     }
 
     private val takePicture =
@@ -114,7 +114,7 @@ class ChatRoomFragment : Fragment() {
                 // User cancelled or error occurred
                 if (context != null) {
                     // Delete Uri if photo is not taken
-                    _viewModel.deleteUriOfTheImageBeingCapturedByTheCamera(requireContext())
+                    _viewModel.deleteUriOfTheImageBeingCapturedByTheCamera()
                 }
             }
         }
@@ -207,7 +207,7 @@ class ChatRoomFragment : Fragment() {
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter(
-            onItemRemove = { _viewModel.removeItemInSelectedItems(it, context) },
+            onItemRemove = { _viewModel.removeItemInSelectedItems(it) },
             onPhotoItemClick = { _viewModel.setImageDetailShown(true, it) }
         )
 
@@ -389,7 +389,7 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
-        _viewModel.clearEdiText.observe(this.viewLifecycleOwner) {
+        _viewModel.clearInputMessage.observe(this.viewLifecycleOwner) {
             if (it) binding.etMessage.text = null
         }
 

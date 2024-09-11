@@ -13,7 +13,6 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomActivity
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Contact
-import com.android.kotlin.familymessagingapp.model.FileData
 import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.MobileConfig
@@ -37,7 +36,6 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -609,7 +607,10 @@ class FirebaseRealtimeDatabaseService(
     suspend fun pushMessageToChatRoom(chatRoom: ChatRoom, message: Message): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val newMessage = createNewMessage(chatRoom.chatRoomId!!, message)
+                // Because this function is only called in 2 cases: New chat room is created and
+                // sending a message in an existing chat room. => chatRoomID is not null. use !!
+                val chatRoomId = chatRoom.chatRoomId!!
+                val newMessage = createNewMessage(chatRoomId, message)
 
                 val chatRoomActivity = ChatRoomActivity(
                     latestActiveTime = StringUtils.getCurrentTime(),
@@ -626,7 +627,7 @@ class FirebaseRealtimeDatabaseService(
                 )
 
                 // Update chat room to Firebase Realtime Database
-                chatRoomsRef.child(chatRoom.chatRoomId!!).updateChildren(chatRoomUpdates).await()
+                chatRoomsRef.child(chatRoomId).updateChildren(chatRoomUpdates).await()
 
                 // send notify to socket to push new message to other user
                 socketClient.emitNewMessageToOtherUser(chatRoom, newMessage, _publicUserData.value?.username)
