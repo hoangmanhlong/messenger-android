@@ -1,5 +1,7 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -14,11 +16,12 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.webkit.MimeTypeMap
-import androidx.annotation.DrawableRes
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.FileType
+import com.android.kotlin.familymessagingapp.model.MediaData
+import com.android.kotlin.familymessagingapp.model.Result
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -28,10 +31,13 @@ import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 
@@ -304,12 +310,12 @@ object MediaUtils {
     }
 
     fun isValidMediaFileSize(context: Context, uri: Uri): Boolean {
-        val fileSizeInBytes = getFileSize(context, uri)
+        val fileSizeInBytes = getFileSizeLongType(context, uri)
         val fileSizeInMB = fileSizeInBytes / (1024 * 1024)
         return fileSizeInMB <= Constant.MAXIMUM_FILE_SIZE_MB
     }
 
-    private fun getFileSize(context: Context, uri: Uri): Long {
+    private fun getFileSizeLongType(context: Context, uri: Uri): Long {
         val cursor = context.contentResolver.query(uri, null, null, null, null)
         return cursor?.use {
             val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
@@ -319,7 +325,8 @@ object MediaUtils {
     }
 
     // Function to format file size
-    fun formatFileSize(sizeInBytes: Long): String {
+    @SuppressLint("DefaultLocale")
+    private fun formatFileSize(sizeInBytes: Long): String {
         val sizeInKB = sizeInBytes / 1024.0
         val sizeInMB = sizeInKB / 1024.0
         val sizeInGB = sizeInMB / 1024.0
@@ -330,6 +337,11 @@ object MediaUtils {
             sizeInKB >= 1 -> String.format("%.2f KB", sizeInKB)
             else -> "$sizeInBytes Bytes"
         }
+    }
+
+    fun getFileSize(context: Context, uri: Uri): String {
+        val fileSizeInBytes = getFileSizeLongType(context, uri)
+        return formatFileSize(fileSizeInBytes)
     }
 
     fun getFileType(context: Context, uri: Uri): FileType {
@@ -350,7 +362,7 @@ object MediaUtils {
         }
     }
 
-    private fun getMimeType(context: Context, uri: Uri): String? {
+    fun getMimeType(context: Context, uri: Uri): String? {
         return context.contentResolver.getType(uri) ?: getMimeTypeFromExtension(uri)
     }
 
@@ -383,6 +395,8 @@ object MediaUtils {
         return fileName
     }
 
+    fun getFileExtensionFromString(url: String): String = url.substringAfter(".")
+
     /**
      * Delete file in cache
      *
@@ -391,5 +405,52 @@ object MediaUtils {
      */
     fun deleteUriInCache(context: Context, uri: Uri) {
         context.contentResolver.delete(uri, null, null)
+    }
+
+    fun openFile(context: Context, mediaData: MediaData) {
+        val uri = Uri.parse(mediaData.url)
+        val fileType = mediaData.mime ?: "application/octet-stream"
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, fileType)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+
+        try {
+            val title = context.getString(R.string.open_file_with)
+            context.startActivity(Intent.createChooser(intent, title))
+        } catch (e: ActivityNotFoundException) {
+            e.stackTrace
+        }
+    }
+
+    suspend fun downloadFile(fileUrl: String, fileName: String?): Result<Uri> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder().url(fileUrl).build()
+                val response = client.newCall(request).execute()
+
+                if (!response.isSuccessful && response.body == null)
+                    return@withContext Result.Error(IOException("Error downloading file"))
+
+                val inputStream: InputStream = response.body!!.byteStream()
+
+                val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName ?: "downloaded_file_${StringUtils.getCurrentTime()}")
+
+                FileOutputStream(file).use { outputStream ->
+                    val buffer = ByteArray(4096)
+                    var bytesRead: Int
+                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                    }
+                }
+
+                val uri = Uri.fromFile(file)
+                Result.Success(uri)
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
+        }
     }
 }

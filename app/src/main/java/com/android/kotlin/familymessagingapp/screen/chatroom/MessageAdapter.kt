@@ -15,6 +15,7 @@ import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.Reaction
 import com.android.kotlin.familymessagingapp.model.FileType
+import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.utils.StringUtils
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
@@ -27,6 +28,7 @@ class MessageAdapter(
     private val onMessageLongClick: (Boolean, Message) -> Unit,
     private val onImageMessageClick: (Drawable, Message) -> Unit,
     private val onReplyMessageClick: (Message) -> Unit,
+    private val onFileLongClick: (Boolean, MediaData, Message) -> Unit,
 ) : ListAdapter<Message, RecyclerView.ViewHolder>(DiffCallback) {
 
     private lateinit var chatRoomType: String
@@ -170,7 +172,9 @@ class MessageAdapter(
 
                     if (files.isNotEmpty()) {
                         if (fileAdapter == null) {
-                            fileAdapter = FileAdapter(isSender = true)
+                            fileAdapter = FileAdapter(isSender = true) { mediaData ->
+                                onFileLongClick(true, mediaData, message)
+                            }
                             binding.fileRecyclerView.adapter = fileAdapter
                         }
                         fileAdapter?.submitList(files)
@@ -186,9 +190,11 @@ class MessageAdapter(
                         onMessageLongClick(true, message)
                         false
                     }
+
                 } else {
                     binding.fileRecyclerView.visibility = View.GONE
                     binding.imageMessageCardView.visibility = View.GONE
+                    binding.imageRecyclerView.visibility = View.GONE
                 }
             }
 

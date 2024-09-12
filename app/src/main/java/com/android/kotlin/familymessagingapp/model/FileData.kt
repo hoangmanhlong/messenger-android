@@ -8,5 +8,7 @@ import kotlinx.parcelize.Parcelize
 data class FileData(
     val uri: Uri? = null,
     val type: FileType? = null,
-    val fileName: String? = null
+    val fileName: String? = null,
+    val fileSize: String? = null,
+    val mime: String? = null
 ) : Parcelable

@@ -161,4 +161,12 @@
     <string name="file">File</string>
     <string name="file_size_type" translatable="false">%s • %s</string>
     <string name="sent_file">sent file</string>
+    <string name="open_file_with">Open file with</string>
+    <string name="download">Download</string>
+    <string name="download_success">Download successfully</string>
+    <string name="downloading">Downloading</string>
+    <string name="download_fail">Download failed</string>
+    <string name="write_storage_denied_title">Write storage permission required</string>
+    <string name="write_storage_denied_message">To download files to your phone, you need to have write storage permission. Please grant the permission in the app settings</string>
+
 </resources>

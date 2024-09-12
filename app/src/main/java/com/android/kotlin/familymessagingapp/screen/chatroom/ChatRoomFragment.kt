@@ -171,6 +171,7 @@ class ChatRoomFragment : Fragment() {
             },
             onMessageLongClick = { isSender, message ->
                 _viewModel.setSelectedMessage(message)
+                _viewModel.setSelectMediaData(null)
                 openMessageOptions()
             },
             onImageMessageClick = { drawable, message ->
@@ -181,6 +182,11 @@ class ChatRoomFragment : Fragment() {
                 if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
                     messageRecyclerview!!.scrollToPosition(messageAdapter!!.getPositionById(it.messageId))
                 }
+            },
+            onFileLongClick = { isSender, mediaData, message ->
+                _viewModel.setSelectedMessage(message)
+                _viewModel.setSelectMediaData(mediaData)
+                openMessageOptions()
             }
         )
 

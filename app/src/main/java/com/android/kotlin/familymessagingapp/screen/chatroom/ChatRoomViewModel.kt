@@ -17,6 +17,7 @@ import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.FileData
+import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
@@ -26,7 +27,6 @@ import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepositor
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
-import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
@@ -132,6 +132,11 @@ class ChatRoomViewModel @Inject constructor(
 
     private val uriOfTakenPhotos = mutableListOf<Uri>()
 
+    private val _selectedMediaData: MutableLiveData<MediaData?> = MutableLiveData(null)
+    val selectedMediaData: LiveData<MediaData?> = _selectedMediaData
+
+    var goToSettingToGrantCameraPermission = false
+
     fun resetIsOpenFromNotificationFlag() {
         viewModelScope.launch(Dispatchers.IO) {
             localDatabaseRepository.appDataStore.saveString(
@@ -183,6 +188,12 @@ class ChatRoomViewModel @Inject constructor(
         _openTakePhoto.value = false
         deleteTakenPhotoFromCamera(uriOfTakenPhotos)
         uriOfTakenPhotos.clear()
+        _selectedMediaData.value = null
+        goToSettingToGrantCameraPermission = false
+    }
+
+    fun setSelectMediaData(mediaData: MediaData?) {
+        _selectedMediaData.value = mediaData
     }
 
     fun openPhotoPicker(isOpen: Boolean) {
@@ -467,10 +478,7 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun addUriOfTheImageBeingCapturedByTheCameraInSelectedItems() {
-        if (uriOfTakenPhotos.isNotEmpty()) {
-            val takenPhotoFromCameraFileData = FileData(uriOfTakenPhotos.last(), FileType.IMAGE, null)
-            addSelectedItems(listOf(takenPhotoFromCameraFileData))
-        }
+        if (uriOfTakenPhotos.isNotEmpty()) addSelectedUris(listOf(uriOfTakenPhotos.last()))
     }
 
     private fun isInputValid(): Boolean = !message.text.isNullOrEmpty() || !message.fileDataList.isNullOrEmpty()
@@ -534,6 +542,10 @@ class ChatRoomViewModel @Inject constructor(
                 selectedMessage.value!!.text!!
             )
         }
+    }
+
+    fun downloadFile() {
+        localDatabaseRepository.downloadFiles(listOf(_selectedMediaData.value!!))
     }
 
     fun leaveChatRoom() {

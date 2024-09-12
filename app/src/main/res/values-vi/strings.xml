@@ -142,4 +142,12 @@
     <string name="user_update_chatroom_info">%s đã cập nhật thông tin phòng chat</string>
     <string name="user_created_group_chat">%s đã tạo nhóm chat</string>
     <string name="sent_file">đã gửi tập tin</string>
+    <string name="open_file_with">Mở tập tin với</string>
+    <string name="download">Tải xuống</string>
+    <string name="download_success">Tải xuống thành công</string>
+    <string name="downloading">Đang tải</string>
+    <string name="download_fail">Tải xuống thất bại</string>
+    <string name="write_storage_denied_title">Quyền ghi dữ liệu bị từ chối</string>
+    <string name="write_storage_denied_message">Để tải tệp xuống điện thoại, bạn cần có quyền ghi lưu trữ. Vui lòng cấp quyền trong cài đặt ứng dụng</string>
+
 </resources>

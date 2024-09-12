@@ -129,4 +129,24 @@ object DialogUtils {
         )
             .create()
     }
+
+    fun writeStoragePermissionRequiredDialog(
+        context: Context,
+        onPositiveClick: () -> Unit?,
+        onNegativeClick: () -> Unit?,
+        onCancelListener: () -> Unit? = {}
+    ): AlertDialog {
+        return createCommonDialog(
+            context = context,
+            title = R.string.write_storage_denied_title,
+            message = R.string.write_storage_denied_message,
+            cancelable = false,
+            positiveButtonLabel = R.string.go_to_setting,
+            negativeButtonLabel = R.string.cancel,
+            onPositiveClick = onPositiveClick,
+            onNegativeClick = onNegativeClick,
+            onCancelListener = onCancelListener
+        )
+            .create()
+    }
 }

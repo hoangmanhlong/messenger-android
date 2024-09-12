@@ -585,7 +585,13 @@ class FirebaseRealtimeDatabaseService(
                         }
 
                         fileUrl?.let {
-                            MediaData(type = fileData.type?.value, url = it, fileName = fileData.fileName)
+                            MediaData(
+                                type = fileData.type?.value,
+                                url = it,
+                                fileName = fileData.fileName,
+                                fileSize = fileData.fileSize,
+                                mime = fileData.mime
+                            )
                         }
                     }
                 }
@@ -630,7 +636,11 @@ class FirebaseRealtimeDatabaseService(
                 chatRoomsRef.child(chatRoomId).updateChildren(chatRoomUpdates).await()
 
                 // send notify to socket to push new message to other user
-                socketClient.emitNewMessageToOtherUser(chatRoom, newMessage, _publicUserData.value?.username)
+                socketClient.emitNewMessageToOtherUser(
+                    chatRoom,
+                    newMessage,
+                    _publicUserData.value?.username
+                )
                 Result.Success(true)
             } catch (e: Exception) {
                 throw e
@@ -710,7 +720,8 @@ class FirebaseRealtimeDatabaseService(
                         // Because the newly created chat room from the server does not send the
                         // chatroom name field, this chatroom name will be set to your own name to
                         // send to the other person.
-                        val updatedChatRoom = chatRoom.copy(chatRoomName = _publicUserData.value?.username)
+                        val updatedChatRoom =
+                            chatRoom.copy(chatRoomName = _publicUserData.value?.username)
 
                         // Just in case the chatroom name might exist. check first.
                         pushMessageToChatRoom(

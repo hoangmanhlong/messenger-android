@@ -20,7 +20,8 @@ data class MediaData(
     val type: String? = null,
     val url: String? = null,
     val fileName: String? = null,
-    val size: String? = null
+    val fileSize: String? = null,
+    val mime: String? = null
 ) : Parcelable
 
 @Parcelize
