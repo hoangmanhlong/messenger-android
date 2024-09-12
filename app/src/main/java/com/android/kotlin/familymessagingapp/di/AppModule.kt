@@ -2,6 +2,7 @@ package com.android.kotlin.familymessagingapp.di
 
 import android.app.Application
 import androidx.room.Room
+import com.android.kotlin.familymessagingapp.data.AndroidDownloader
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.data_store.dataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
@@ -35,6 +36,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideAndroidDownloader(application: Application): AndroidDownloader = AndroidDownloader(application)
 
     @Provides
     @Singleton

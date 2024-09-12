@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.android.kotlin.familymessagingapp.data.AndroidDownloader
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.model.ChatRoom
@@ -52,7 +53,8 @@ class ChatRoomViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
     private val geminiModel: GeminiModel,
     private val localDatabaseRepository: LocalDatabaseRepository,
-    private val workManager: AppWorkManager
+    private val workManager: AppWorkManager,
+    private val androidDownloader: AndroidDownloader
 ) : ViewModel() {
 
     var selectedMessageIsPinnedMessage: Boolean? = null
@@ -226,9 +228,10 @@ class ChatRoomViewModel @Inject constructor(
         if (_isExpandPinnedMessage.value == true) _isExpandPinnedMessage.value = false
     }
 
-    fun setImageDetailShown(shown: Boolean, drawable: Drawable?) {
+    fun setImageDetailShown(shown: Boolean, drawable: Drawable?, mediaData: MediaData?) {
         imageMessageDrawable = drawable
         _imageDetailShown.value = shown
+        _selectedMediaData.value = mediaData
     }
 
     fun setIsLoading(isLoading: Boolean) {
@@ -545,7 +548,8 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun downloadFile() {
-        localDatabaseRepository.downloadFiles(listOf(_selectedMediaData.value!!))
+        if (_selectedMediaData.value?.url.isNullOrEmpty()) return
+        androidDownloader.downloadFile(_selectedMediaData.value!!)
     }
 
     fun leaveChatRoom() {

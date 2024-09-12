@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -108,7 +109,7 @@ class MessageOptionsFragment : BottomSheetDialogFragment() {
     }
 
     private fun checkPermission() {
-        if (context != null && writeStoragePermissionGranted()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) || writeStoragePermissionGranted()) {
             downloadFile()
         } else {
             requestPermissions()

@@ -11,11 +11,13 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.webkit.MimeTypeMap
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
@@ -424,7 +426,8 @@ object MediaUtils {
         }
     }
 
-    suspend fun downloadFile(fileUrl: String, fileName: String?): Result<Uri> {
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun downloadFile(context: Context, fileUrl: String, fileName: String?): Result<Uri> {
         return withContext(Dispatchers.IO) {
             try {
                 val client = OkHttpClient()
@@ -436,17 +439,24 @@ object MediaUtils {
 
                 val inputStream: InputStream = response.body!!.byteStream()
 
-                val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName ?: "downloaded_file_${StringUtils.getCurrentTime()}")
+                val resolver = context.contentResolver
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName ?: "downloaded_file_${StringUtils.getCurrentTime()}")
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
 
-                FileOutputStream(file).use { outputStream ->
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                    ?: return@withContext Result.Error(IOException("Failed to create file"))
+
+                resolver.openOutputStream(uri).use { outputStream ->
                     val buffer = ByteArray(4096)
                     var bytesRead: Int
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
+                        outputStream?.write(buffer, 0, bytesRead)
                     }
                 }
 
-                val uri = Uri.fromFile(file)
                 Result.Success(uri)
             } catch (e: Exception) {
                 Result.Error(e)

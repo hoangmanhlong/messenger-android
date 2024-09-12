@@ -9,7 +9,10 @@ import com.android.kotlin.familymessagingapp.databinding.ItemImageMessageBinding
 import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
 
-class ImageMessageAdapter: ListAdapter<MediaData, ImageMessageAdapter.ImageMessageViewHolder>(DiffCallback) {
+class ImageMessageAdapter(
+    private val onImageClick: (MediaData) -> Unit,
+    private val onImageLongClick: (MediaData) -> Unit
+): ListAdapter<MediaData, ImageMessageAdapter.ImageMessageViewHolder>(DiffCallback) {
 
     companion object DiffCallback: DiffUtil.ItemCallback<MediaData>() {
         override fun areItemsTheSame(oldItem: MediaData, newItem: MediaData): Boolean {
@@ -27,6 +30,14 @@ class ImageMessageAdapter: ListAdapter<MediaData, ImageMessageAdapter.ImageMessa
     ): RecyclerView.ViewHolder(binding.root) {
         fun bind(mediaData: MediaData) {
             bindPhotoMessage(binding.image, mediaData.url)
+            binding.root.setOnClickListener {
+                onImageClick(mediaData)
+            }
+
+            binding.root.setOnLongClickListener {
+                onImageLongClick(mediaData)
+                true
+            }
         }
     }
 

@@ -168,5 +168,5 @@
     <string name="download_fail">Download failed</string>
     <string name="write_storage_denied_title">Write storage permission required</string>
     <string name="write_storage_denied_message">To download files to your phone, you need to have write storage permission. Please grant the permission in the app settings</string>
-
+    <string name="dot_3" translatable="false">%s • %s • %s</string>
 </resources>

@@ -2,6 +2,8 @@ package com.android.kotlin.familymessagingapp.repository
 
 import android.app.Application
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.liveData
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
@@ -62,6 +64,7 @@ class LocalDatabaseRepository(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun downloadFiles(list: List<MediaData>) {
         coroutineScope.launch {
             makeStatusNotification(
@@ -72,7 +75,7 @@ class LocalDatabaseRepository(
             val deferredDownload = list.map { media ->
                 async {
                     if (media.url.isNullOrEmpty()) return@async Result.Error(IOException())
-                    MediaUtils.downloadFile(media.url, media.fileName)
+                    MediaUtils.downloadFile(application, media.url, media.fileName)
                 }
             }.awaitAll()
 

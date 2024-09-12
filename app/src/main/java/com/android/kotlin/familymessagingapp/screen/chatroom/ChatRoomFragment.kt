@@ -169,14 +169,15 @@ class ChatRoomFragment : Fragment() {
                 hideKeyboard()
                 _viewModel.hideEmojiPicker()
             },
-            onMessageLongClick = { isSender, message ->
+            onImageLongClick = { isSender, mediaData, message ->
                 _viewModel.setSelectedMessage(message)
-                _viewModel.setSelectMediaData(null)
+                _viewModel.setSelectMediaData(mediaData)
                 openMessageOptions()
             },
-            onImageMessageClick = { drawable, message ->
+            onImageClick = { drawable, mediaData, message ->
                 hideKeyboard()
-                _viewModel.setImageDetailShown(true, drawable)
+                _viewModel.setSelectMediaData(mediaData)
+                _viewModel.setImageDetailShown(true, drawable, mediaData)
             },
             onReplyMessageClick = {
                 if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
@@ -186,6 +187,11 @@ class ChatRoomFragment : Fragment() {
             onFileLongClick = { isSender, mediaData, message ->
                 _viewModel.setSelectedMessage(message)
                 _viewModel.setSelectMediaData(mediaData)
+                openMessageOptions()
+            },
+            onTextMessageLongClick = { isSender, message ->
+                _viewModel.setSelectedMessage(message)
+                _viewModel.setSelectMediaData(null)
                 openMessageOptions()
             }
         )
@@ -203,18 +209,18 @@ class ChatRoomFragment : Fragment() {
         pinnedMessageRecyclerview?.adapter = pinnedMessageAdapter
 
         binding.btDownloadImage.setOnClickListener {
-            _viewModel.saveImageToDeviceStorage()
+            _viewModel.downloadFile()
         }
 
         binding.btCloseImageDetail.setOnClickListener {
-            _viewModel.setImageDetailShown(false, null)
+            _viewModel.setImageDetailShown(false, null, null)
         }
 
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter(
             onItemRemove = { _viewModel.removeItemInSelectedItems(it) },
-            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it) }
+            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it, null) }
         )
 
         selectedItemsRecyclerview = binding.selectedItemsRecyclerview
@@ -310,7 +316,7 @@ class ChatRoomFragment : Fragment() {
         // chứ không back về fragment trước
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
             if (_viewModel.imageDetailShown.value == true)
-                _viewModel.setImageDetailShown(false, null)
+                _viewModel.setImageDetailShown(false, null, null)
             else {
                 findNavController().navigateUp()
             }
