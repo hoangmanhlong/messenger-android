@@ -125,8 +125,8 @@ class MessageOptionsFragment : BottomSheetDialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        if (viewModel.goToSettingToGrantCameraPermission && writeStoragePermissionGranted()) {
-            viewModel.goToSettingToGrantCameraPermission = false
+        if (viewModel.goToSettingToGrantWriteStoragePermission && writeStoragePermissionGranted()) {
+            viewModel.goToSettingToGrantWriteStoragePermission = false
             downloadFile()
         }
     }
@@ -157,7 +157,7 @@ class MessageOptionsFragment : BottomSheetDialogFragment() {
 
     private fun goToSetting() {
         if (context == null) return
-        viewModel.goToSettingToGrantCameraPermission = true
+        viewModel.goToSettingToGrantWriteStoragePermission = true
         DeviceUtils.openApplicationInfo(requireContext())
     }
 

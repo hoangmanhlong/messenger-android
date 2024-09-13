@@ -137,6 +137,8 @@ class ChatRoomViewModel @Inject constructor(
     private val _selectedMediaData: MutableLiveData<MediaData?> = MutableLiveData(null)
     val selectedMediaData: LiveData<MediaData?> = _selectedMediaData
 
+    var goToSettingToGrantWriteStoragePermission = false
+
     var goToSettingToGrantCameraPermission = false
 
     fun resetIsOpenFromNotificationFlag() {
@@ -191,6 +193,7 @@ class ChatRoomViewModel @Inject constructor(
         deleteTakenPhotoFromCamera(uriOfTakenPhotos)
         uriOfTakenPhotos.clear()
         _selectedMediaData.value = null
+        goToSettingToGrantWriteStoragePermission = false
         goToSettingToGrantCameraPermission = false
     }
 

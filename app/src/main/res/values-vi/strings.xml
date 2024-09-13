@@ -149,5 +149,10 @@
     <string name="download_fail">Tải xuống thất bại</string>
     <string name="write_storage_denied_title">Quyền ghi dữ liệu bị từ chối</string>
     <string name="write_storage_denied_message">Để tải tệp xuống điện thoại, bạn cần có quyền ghi lưu trữ. Vui lòng cấp quyền trong cài đặt ứng dụng</string>
-
+    <string name="file_name_unknown">Tên tệp không xác định</string>
+    <string name="photo">Hình ảnh</string>
+    <string name="camera">Máy ảnh</string>
+    <string name="file">Tệp tin</string>
+    <string name="replied_to">%s đã trả lời %s</string>
+    <string name="reply_to">Trả lời %s</string>
 </resources>

@@ -291,7 +291,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:padding="8dp">
+                        android:layout_marginStart="16dp">
 
                         <ImageView
                             android:id="@+id/replyMessageImageView"
@@ -317,20 +317,20 @@
 
                             <TextView
                                 android:id="@+id/tvSenderNameReplyMessage"
-                                style="@style/TextAppearance.AppCompat.Body1"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ellipsize="end"
                                 android:singleLine="true"
-                                android:textSize="16sp"
-                                tools:text="@string/author" />
+                                tools:text="Reply to Hoang Manh Long" />
 
                             <TextView
+                                style="@style/TextAppearance.AppCompat.Body1"
                                 android:id="@+id/tvTextReplyMessage"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ellipsize="end"
                                 android:singleLine="true"
+                                android:textSize="16sp"
                                 tools:text="@string/logout_message" />
 
                         </LinearLayout>

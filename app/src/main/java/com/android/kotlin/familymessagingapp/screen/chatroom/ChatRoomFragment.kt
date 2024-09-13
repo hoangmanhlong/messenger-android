@@ -42,6 +42,8 @@ import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -306,7 +308,7 @@ class ChatRoomFragment : Fragment() {
         return binding.root
     }
 
-    @SuppressLint("IntentReset")
+    @SuppressLint("IntentReset", "StringFormatMatches")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -465,7 +467,9 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.replyingMessage.observe(this.viewLifecycleOwner) { replyingMessage ->
             if (replyingMessage != null) {
-                binding.tvSenderNameReplyMessage.text = replyingMessage.senderData?.username
+                val senderNameOfRepliedMessage = if (replyingMessage.senderId == Firebase.auth.uid) getString(R.string.sender_you) else replyingMessage.senderData?.username ?: ""
+                binding.tvSenderNameReplyMessage.text = getString(R.string.reply_to, senderNameOfRepliedMessage)
+
                 if (!replyingMessage.text.isNullOrEmpty() || !replyingMessage.photo.isNullOrEmpty()) {
                     context?.let {
                         binding.tvTextReplyMessage.text =
@@ -516,7 +520,7 @@ class ChatRoomFragment : Fragment() {
 
     private fun takePhoto() {
         _viewModel.openTakePhoto(false)
-        if (allPermissionsGranted()) {
+        if (cameraPermissionsGranted()) {
             openCamera(requireContext())
             _viewModel.hideEmojiPicker()
         } else {
@@ -553,15 +557,14 @@ class ChatRoomFragment : Fragment() {
         cameraPermissionRequiredDialog?.show()
     }
 
-    private fun allPermissionsGranted() = CAMERA_PERMISSION.all {
+    private fun cameraPermissionsGranted() = CAMERA_PERMISSION.all {
         if (context == null) return false
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun openCamera(context: Context) {
         // Create Uri where to save image
-        val photoUri = _viewModel.createUriOfTheImageBeingCapturedByTheCamera(context)
-        if (photoUri == null) return
+        val photoUri = _viewModel.createUriOfTheImageBeingCapturedByTheCamera(context) ?: return
 
         // Open camera to take photo and save to created Uri
         takePicture.launch(photoUri)
@@ -569,7 +572,16 @@ class ChatRoomFragment : Fragment() {
 
     private fun goToSetting() {
         if (context == null) return
+        _viewModel.goToSettingToGrantCameraPermission = true
         DeviceUtils.openApplicationInfo(requireContext())
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (_viewModel.goToSettingToGrantCameraPermission && cameraPermissionsGranted()) {
+            _viewModel.goToSettingToGrantCameraPermission = false
+            takePhoto()
+        }
     }
 
     private fun hideKeyboard() {

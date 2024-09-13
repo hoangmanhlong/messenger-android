@@ -169,4 +169,7 @@
     <string name="write_storage_denied_title">Write storage permission required</string>
     <string name="write_storage_denied_message">To download files to your phone, you need to have write storage permission. Please grant the permission in the app settings</string>
     <string name="dot_3" translatable="false">%s • %s • %s</string>
+    <string name="file_name_unknown">File name unknown</string>
+    <string name="replied_to">%s replied to %s</string>
+    <string name="reply_to">Reply to %s</string>
 </resources>

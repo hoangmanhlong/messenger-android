@@ -55,73 +55,63 @@
                     android:id="@+id/replyMessageContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_reply_message_of_sender"
-                    android:padding="8dp"
+                    android:orientation="vertical"
                     android:visibility="gone"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     tools:visibility="visible">
 
-                    <View
-                        android:id="@+id/replyMessageView"
-                        android:layout_width="4dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/bg_rounded_corners_view"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp">
+                        android:layout_gravity="end"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <ImageView
-                            android:id="@+id/replyMessageImageView"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_reply" />
+
+                        <TextView
+                            android:id="@+id/tvReplyMessageTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:adjustViewBounds="true"
-                            android:maxHeight="40dp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:src="@drawable/baohong" />
+                            android:layout_marginStart="4dp"
+                            android:textSize="12sp"
+                            tools:text="Long replied to Nam" />
 
-                        <LinearLayout
-                            android:id="@+id/replyMessageTextMessageView"
-                            android:layout_width="wrap_content"
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvTextReplyMessage"
+                            style="@style/TextAppearance.AppCompat.Body1"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:orientation="vertical"
+                            android:background="@drawable/bg_removed_message_middle_of_sender"
+                            android:ellipsize="end"
+                            android:padding="8dp"
+                            android:singleLine="true"
+                            android:textSize="16sp"
+                            tools:text="@string/logout_message" />
+
+                        <View
+                            android:id="@+id/replyMessageView"
+                            android:layout_width="4dp"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_rounded_corners_view"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toEndOf="@id/replyMessageImageView"
-                            app:layout_constraintTop_toTopOf="parent">
+                            app:layout_constraintTop_toTopOf="parent" />
 
-                            <TextView
-                                android:id="@+id/tvSenderNameReplyMessage"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:ellipsize="end"
-                                android:singleLine="true"
-                                tools:text="@string/author" />
+                    </LinearLayout>
 
-                            <TextView
-                                android:id="@+id/tvTextReplyMessage"
-                                style="@style/TextAppearance.AppCompat.Body1"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:ellipsize="end"
-                                android:singleLine="true"
-                                android:textSize="16sp"
-                                tools:text="@string/logout_message" />
-
-                        </LinearLayout>
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                 </LinearLayout>
+
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/imageMessageCardView"
@@ -143,16 +133,16 @@
                             android:id="@+id/imageRecyclerView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                            app:spanCount="2"
-                            tools:itemCount="2"
                             android:visibility="gone"
-                            tools:visibility="visible"
-                            tools:listitem="@layout/item_image_message"
-                            app:layout_constraintStart_toStartOf="parent"
+                            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:spanCount="2"
+                            tools:itemCount="2"
+                            tools:listitem="@layout/item_image_message"
+                            tools:visibility="visible" />
 
                         <ImageView
                             android:id="@+id/image"
@@ -161,11 +151,11 @@
                             android:adjustViewBounds="true"
                             android:maxHeight="300dp"
                             android:visibility="gone"
-                            tools:src="@drawable/long_image"
-                            app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"/>
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:src="@drawable/long_image" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

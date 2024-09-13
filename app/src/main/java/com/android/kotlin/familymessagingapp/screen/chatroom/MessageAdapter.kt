@@ -62,7 +62,7 @@ class MessageAdapter(
             binding.reactionsRecyclerView.adapter = reactionsAdapter
         }
 
-        @SuppressLint("UseCompatLoadingForDrawables")
+        @SuppressLint("UseCompatLoadingForDrawables", "SetTextI18n")
         fun bind(message: Message) {
 
             if (!message.removedByIsEmpty()) {
@@ -79,40 +79,50 @@ class MessageAdapter(
 
                 var isReplyMessageShown = false
 
-                if (!message.isReplyMessageEmpty()) {
-                    val replyMessage = message.replyMessage
-                    if (replyMessage != null) {
-                        binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
-                        if (replyMessage.removedByIsEmpty()) {
-
-                            if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
-                                binding.tvTextReplyMessage.context?.let {
-                                    binding.tvTextReplyMessage.text =
-                                        if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
-                                }
-                            }
-                            if (!replyMessage.photo.isNullOrEmpty()) {
-                                binding.replyMessageImageView.visibility = View.VISIBLE
-                                bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
-                            } else {
-                                binding.replyMessageImageView.visibility = View.GONE
-                            }
-                        } else {
-                            binding.replyMessageImageView.visibility = View.GONE
-                            binding.tvTextReplyMessage.text =
-                                binding.tvTextReplyMessage.context.getString(R.string.message_removed)
-                        }
-
-                        binding.replyMessageContainer.visibility = View.VISIBLE
-                        binding.replyMessageContainer.setOnClickListener {
-                            onReplyMessageClick(replyMessage)
-                        }
-                        isReplyMessageShown = true
-                    } else {
-                        binding.replyMessageContainer.visibility = View.GONE
-                    }
-                } else {
+                // Check if replyMessageId or replyMessage is empty/nul
+                if (message.replyMessageId.isNullOrEmpty() or (message.replyMessage == null)) {
                     binding.replyMessageContainer.visibility = View.GONE
+                } else {
+                    val replyMessage = message.replyMessage!!
+                    val context = binding.root.context
+                    val you = context.getString(R.string.sender_you)
+
+                    // Set the title of the reply message
+                    binding.tvReplyMessageTitle.text = context.getString(
+                        R.string.replied_to,
+                        you,
+                        if (replyMessage.senderData?.uid == Firebase.auth.uid) you else replyMessage.senderData?.username
+                    )
+
+                    if (replyMessage.removedByIsEmpty()) {
+
+                        val replyMessageText = replyMessage.text
+                        val replyMessageMedias = replyMessage.medias
+
+                        // Determine whether to display text, media, or both
+                        val isNeedToShowTextOfReplyMessage = when {
+                            !replyMessageText.isNullOrEmpty() && !replyMessageMedias.isNullOrEmpty() -> true
+                            !replyMessageText.isNullOrEmpty() -> true
+                            !replyMessageMedias.isNullOrEmpty() -> false
+                            else -> null
+                        }
+
+                        // Display the appropriate content
+                        when (isNeedToShowTextOfReplyMessage) {
+                            true -> binding.tvTextReplyMessage.text = replyMessageText
+                            false -> binding.tvTextReplyMessage.text = "[ ${binding.root.context.getString(R.string.file)} ]"
+                            else -> { /* Handle other cases if needed */ }
+                        }
+                    } else {
+                        binding.tvTextReplyMessage.text =
+                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                    }
+
+                    binding.replyMessageContainer.visibility = View.VISIBLE
+                    binding.replyMessageContainer.setOnClickListener {
+                        onReplyMessageClick(replyMessage)
+                    }
+                    isReplyMessageShown = true
                 }
 
                 binding.removedMessageView.visibility = View.GONE
@@ -132,7 +142,12 @@ class MessageAdapter(
                     binding.textMessageContainer.setOnClickListener {
                         handleTextMessageClick(bindingAdapterPosition)
                     }
-                    updateTextMessageOfSenderBackground(binding, message, bindingAdapterPosition, isReplyMessageShown)
+                    updateTextMessageOfSenderBackground(
+                        binding,
+                        message,
+                        bindingAdapterPosition,
+                        isReplyMessageShown
+                    )
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
@@ -161,9 +176,15 @@ class MessageAdapter(
                         } else {
                             binding.image.visibility = View.GONE
                             if (imageMessageAdapter == null) {
-                                imageMessageAdapter = ImageMessageAdapter (
+                                imageMessageAdapter = ImageMessageAdapter(
                                     onImageLongClick = { onImageLongClick(true, it, message) },
-                                    onImageClick = {onImageClick(binding.image.drawable, it, message)}
+                                    onImageClick = {
+                                        onImageClick(
+                                            binding.image.drawable,
+                                            it,
+                                            message
+                                        )
+                                    }
                                 )
 
                                 binding.imageRecyclerView.adapter = imageMessageAdapter
@@ -247,7 +268,7 @@ class MessageAdapter(
             }
         }
 
-        if (needToCheckBackgroundUpdateIfThereIsReplyMessage && isReplyMessageShown){
+        if (needToCheckBackgroundUpdateIfThereIsReplyMessage && isReplyMessageShown) {
             backgroundResId = R.drawable.bg_sender_message_last
         }
 
@@ -353,7 +374,7 @@ class MessageAdapter(
             binding.reactionsRecyclerView.adapter = reactionsAdapter
         }
 
-        @SuppressLint("UseCompatLoadingForDrawables")
+        @SuppressLint("UseCompatLoadingForDrawables", "SetTextI18n")
         fun bind(message: Message, isFirstReceiverMessage: Boolean) {
 
             updateVisibilityReceiverNameAndImageMessage(binding, message, isFirstReceiverMessage)
@@ -372,40 +393,50 @@ class MessageAdapter(
 
                 var isReplyMessageShown = false
 
-                if (!message.isReplyMessageEmpty()) {
-                    val replyMessage = message.replyMessage
-                    if (replyMessage != null) {
-                        binding.tvSenderNameReplyMessage.text = replyMessage.senderData?.username
-                        if (replyMessage.removedByIsEmpty()) {
-
-                            if (!replyMessage.text.isNullOrEmpty() || !replyMessage.photo.isNullOrEmpty()) {
-                                binding.tvTextReplyMessage.context?.let {
-                                    binding.tvTextReplyMessage.text =
-                                        if (replyMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyMessage.text
-                                }
-                            }
-                            if (!replyMessage.photo.isNullOrEmpty()) {
-                                binding.replyMessageImageView.visibility = View.VISIBLE
-                                bindNormalImage(binding.replyMessageImageView, replyMessage.photo)
-                            } else {
-                                binding.replyMessageImageView.visibility = View.GONE
-                            }
-                        } else {
-                            binding.replyMessageImageView.visibility = View.GONE
-                            binding.tvTextReplyMessage.text =
-                                binding.tvTextReplyMessage.context.getString(R.string.message_removed)
-                        }
-
-                        binding.replyMessageContainer.visibility = View.VISIBLE
-                        binding.replyMessageContainer.setOnClickListener {
-                            onReplyMessageClick(replyMessage)
-                        }
-                        isReplyMessageShown = true
-                    } else {
-                        binding.replyMessageContainer.visibility = View.GONE
-                    }
-                } else {
+                // Check if replyMessageId or replyMessage is empty/nul
+                if (message.replyMessageId.isNullOrEmpty() or (message.replyMessage == null)) {
                     binding.replyMessageContainer.visibility = View.GONE
+                } else {
+                    val replyMessage = message.replyMessage!!
+                    val context = binding.root.context
+                    val you = context.getString(R.string.sender_you)
+
+                    // Set the title of the reply message
+                    binding.tvReplyMessageTitle.text = context.getString(
+                        R.string.replied_to,
+                        if (message.senderData?.uid == Firebase.auth.uid) you else message.senderData?.username,
+                        if (replyMessage.senderData?.uid == Firebase.auth.uid) you else replyMessage.senderData?.username
+                    )
+
+                    if (replyMessage.removedByIsEmpty()) {
+
+                        val replyMessageText = replyMessage.text
+                        val replyMessageMedias = replyMessage.medias
+
+                        // Determine whether to display text, media, or both
+                        val isNeedToShowTextOfReplyMessage = when {
+                            !replyMessageText.isNullOrEmpty() && !replyMessageMedias.isNullOrEmpty() -> true
+                            !replyMessageText.isNullOrEmpty() -> true
+                            !replyMessageMedias.isNullOrEmpty() -> false
+                            else -> null
+                        }
+
+                        // Display the appropriate content
+                        when (isNeedToShowTextOfReplyMessage) {
+                            true -> binding.tvTextReplyMessage.text = replyMessageText
+                            false -> binding.tvTextReplyMessage.text = "[ ${binding.root.context.getString(R.string.file)} ]"
+                            else -> { /* Handle other cases if needed */ }
+                        }
+                    } else {
+                        binding.tvTextReplyMessage.text =
+                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                    }
+
+                    binding.replyMessageContainer.visibility = View.VISIBLE
+                    binding.replyMessageContainer.setOnClickListener {
+                        onReplyMessageClick(replyMessage)
+                    }
+                    isReplyMessageShown = true
                 }
 
                 binding.removedMessageView.visibility = View.GONE
@@ -426,7 +457,12 @@ class MessageAdapter(
                     binding.textMessageContainer.setOnClickListener {
                         handleTextMessageClick(bindingAdapterPosition)
                     }
-                    updateTextMessageOfReceiverBackground(binding, message, bindingAdapterPosition, isReplyMessageShown)
+                    updateTextMessageOfReceiverBackground(
+                        binding,
+                        message,
+                        bindingAdapterPosition,
+                        isReplyMessageShown
+                    )
                 } else {
                     binding.textMessageContainer.visibility = View.GONE
                 }
@@ -455,9 +491,15 @@ class MessageAdapter(
                         } else {
                             binding.image.visibility = View.GONE
                             if (imageMessageAdapter == null) {
-                                imageMessageAdapter = ImageMessageAdapter (
+                                imageMessageAdapter = ImageMessageAdapter(
                                     onImageLongClick = { onImageLongClick(false, it, message) },
-                                    onImageClick = {onImageClick(binding.image.drawable, it, message)}
+                                    onImageClick = {
+                                        onImageClick(
+                                            binding.image.drawable,
+                                            it,
+                                            message
+                                        )
+                                    }
                                 )
 
                                 binding.imageRecyclerView.adapter = imageMessageAdapter
@@ -541,7 +583,7 @@ class MessageAdapter(
             } // Fallback
         }
 
-        if (needToCheckBackgroundUpdateIfThereIsReplyMessage && isReplyMessageShown){
+        if (needToCheckBackgroundUpdateIfThereIsReplyMessage && isReplyMessageShown) {
             backgroundResId = R.drawable.bg_receiver_message_last
         }
 
@@ -560,8 +602,10 @@ class MessageAdapter(
         val context = binding.root.context
         val resources = context.resources
 
-        val receiverAvatarCardViewLayoutParams = binding.receiverAvatarCardView.layoutParams as ViewGroup.MarginLayoutParams
-        val receiverMessageContainerLayoutParams = binding.receiverMessageContainer.layoutParams as ViewGroup.MarginLayoutParams
+        val receiverAvatarCardViewLayoutParams =
+            binding.receiverAvatarCardView.layoutParams as ViewGroup.MarginLayoutParams
+        val receiverMessageContainerLayoutParams =
+            binding.receiverMessageContainer.layoutParams as ViewGroup.MarginLayoutParams
 
         when {
             chatRoomType == ChatRoomType.Group.type && isFirstReceiverMessage -> {
@@ -569,18 +613,22 @@ class MessageAdapter(
                 binding.receiverAvatarCardView.visibility = View.VISIBLE
                 bindNormalImage(binding.ivSenderAvatar, message.senderData?.userAvatar)
 
-                val senderName = message.senderData?.username ?: context.getString(R.string.app_user)
+                val senderName =
+                    message.senderData?.username ?: context.getString(R.string.app_user)
                 binding.tvReceiverName.text = senderName
 
-                receiverAvatarCardViewLayoutParams.topMargin = resources.getDimensionPixelSize(R.dimen.margin_24dp)
-                receiverMessageContainerLayoutParams.marginStart = resources.getDimensionPixelSize(R.dimen.spacing_small)
+                receiverAvatarCardViewLayoutParams.topMargin =
+                    resources.getDimensionPixelSize(R.dimen.margin_24dp)
+                receiverMessageContainerLayoutParams.marginStart =
+                    resources.getDimensionPixelSize(R.dimen.spacing_small)
             }
 
             chatRoomType == ChatRoomType.Group.type && !isFirstReceiverMessage -> {
                 binding.tvReceiverName.visibility = View.GONE
                 binding.receiverAvatarCardView.visibility = View.INVISIBLE
                 receiverAvatarCardViewLayoutParams.topMargin = 0
-                receiverMessageContainerLayoutParams.marginStart = resources.getDimensionPixelSize(R.dimen.spacing_small)
+                receiverMessageContainerLayoutParams.marginStart =
+                    resources.getDimensionPixelSize(R.dimen.spacing_small)
             }
 
             else -> {
@@ -638,7 +686,8 @@ class MessageAdapter(
             holder.itemView.setOnClickListener { onMessageContentViewClick() }
             if (holder is SenderMessageViewHolder) holder.bind(item)
             if (holder is ReceiverMessageViewHolder) {
-                val isFirstReceiverMessage = position == 0 || getItem(position - 1).senderId != item.senderId
+                val isFirstReceiverMessage =
+                    position == 0 || getItem(position - 1).senderId != item.senderId
                 holder.bind(item, isFirstReceiverMessage)
             }
 

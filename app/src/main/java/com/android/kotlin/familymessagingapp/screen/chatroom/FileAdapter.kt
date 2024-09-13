@@ -4,7 +4,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -37,7 +36,7 @@ class FileAdapter(
 
         fun bind(mediaData: MediaData) {
             binding.ivFile.setImageResource(getFileDrawableRes(mediaData.type))
-            binding.tvFileName.text = mediaData.fileName
+            binding.tvFileName.text = mediaData.fileName ?: binding.root.context.getString(R.string.file_name_unknown)
             val fileType = MediaUtils.getFileExtensionFromString(mediaData.fileName ?: "")
             binding.tvFileDescription.text = binding.root.context
                 .getString(R.string.file_size_type, mediaData.fileSize, fileType)
