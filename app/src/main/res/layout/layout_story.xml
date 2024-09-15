@@ -3,9 +3,9 @@
 
     <data>
 
-        <variable
-            name="story"
-            type="com.android.kotlin.familymessagingapp.model.Story" />
+<!--        <variable-->
+<!--            name="story"-->
+<!--            type="com.android.kotlin.familymessagingapp.model.Story" />-->
     </data>
 
     <com.google.android.material.carousel.MaskableFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -20,7 +20,6 @@
         app:shapeAppearance="?attr/shapeAppearanceCornerExtraLarge">
 
         <ImageView
-            bindNormalImage="@{story.photoUrl}"
             android:id="@+id/carousel_image_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

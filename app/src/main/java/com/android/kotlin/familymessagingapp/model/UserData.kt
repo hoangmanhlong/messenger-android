@@ -4,9 +4,6 @@ import android.os.Parcelable
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 // Bug:
@@ -33,7 +30,6 @@ data class UserData(
         const val USERNAME = "username"
         const val PHONE_NUMBER = "phoneNumber"
         const val EMAIL = "email"
-        const val CHAT_ROOMS = "chatrooms"
     }
 
     @Exclude

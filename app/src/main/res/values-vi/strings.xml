@@ -135,7 +135,7 @@
     <string name="file_size_exceed_limit">Hình ảnh được chọn lớn hơn %sMB. Vui lòng chọn hình ảnh nhỏ hơn</string>
     <string name="message_has_been_deleted">Tin nhắn đã bị xóa</string>
     <string name="authorization">Cấp quyền</string>
-    <string name="camera_access_denied">Quyền truy cập camera bị từ chối</string>
+    <string name="camera_access_denied">Không có quyền truy cập vào máy ảnh</string>
     <string name="camera_access_denied_title">Cần có sự cho phép của máy ảnh</string>
     <string name="camera_access_denied_message">Cần có quyền sử dụng máy ảnh để sử dụng tính năng này. Vui lòng cấp quyền trong cài đặt ứng dụng.</string>
     <string name="go_to_setting">Đi tới cài đặt</string>
@@ -155,4 +155,7 @@
     <string name="file">Tệp tin</string>
     <string name="replied_to">%s đã trả lời %s</string>
     <string name="reply_to">Trả lời %s</string>
+    <string name="grant_access">Cấp quyền truy cập</string>
+    <string name="qr_code_not_found">Mã QR không tồn tại. Vui lòng thử lại</string>
+    <string name="share_image_with">Chia sẻ hình ảnh với</string>
 </resources>

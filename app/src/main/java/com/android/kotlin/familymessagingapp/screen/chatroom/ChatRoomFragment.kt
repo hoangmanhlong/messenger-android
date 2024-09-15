@@ -11,7 +11,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
@@ -39,6 +38,7 @@ import com.android.kotlin.familymessagingapp.utils.Constant
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.snackbar.Snackbar
@@ -46,24 +46,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 
-/**
- * ChatRoom hiển thị data với 2 trường hợp
- *
- *  Case 1: ChatRoom được mở từ Danh sách chatroom ở màn Home(HomeFragment)
- *
- *      - Lấy dữ liệu chatroom được truyền từ Home kiểm tra xem có null không(99% là không null, nếu null thì back về màn Home)
- *      - Hiển thị toàn bộ dữ liệu chatroom được truyền từ Home lên màn hình
- *      - Bắt đầu trình nghe tin nhắn theo chatroom ID
- *
- *  Case 2: ChatRoom được mở khi click từ User trong tìm kiếm
- *
- *      - Trong case này chatroom sẽ null và có userdata
- *      - Lấy tên và ảnh của user đó đặt làm ảnh cho chatroom
- *      - Thực hiện kiểm tra xem chatroom có tồn tại bằng cách: Vì chatroomID được đặt theo quy ước trước đó(có 2TH user1___user2 hoặc user2___user1)
- *          + Nếu chatroom ID tồn tại: Bắt đầu trình nghe tin nhắn theo chatroom ID
- *          + Nếu không tồn tại: Danh sách tin nhắn sẽ hiển thị rỗng. Khi người dùng nhắn tin nhắn đầu tiên chatroom sẽ được tạo. Nếu chatroom được tạo thành công. Chatroom sẽ được lưu vào userdata của 2 người dùng. Bắt đầu trình nghe tin nhắn theo chatroom ID
- */
-// TODO: block screen capture
 @AndroidEntryPoint
 class ChatRoomFragment : Fragment() {
 
@@ -86,24 +68,13 @@ class ChatRoomFragment : Fragment() {
                 binding.etMessage.clearFocus()
                 hideKeyboard()
             }
-            if (context != null && !list.isNullOrEmpty()) {
+            if (!list.isNullOrEmpty()) {
                 _viewModel.addSelectedUris(list)
-//                } else {
-//                    Snackbar.make(
-//                        requireContext(),
-//                        binding.inputViewContainer,
-//                        requireContext().getString(
-//                            R.string.file_size_exceed_limit,
-//                            Constant.MAXIMUM_FILE_SIZE_MB.toString()
-//                        ),
-//                        Snackbar.LENGTH_SHORT
-//                    ).show()
-//                }
             }
         }
 
     private val openDocument = registerForActivityResult(AppOpenMultipleDocuments()) {
-        if (it.isNullOrEmpty() && context != null) return@registerForActivityResult
+        if (it.isNullOrEmpty()) return@registerForActivityResult
         _viewModel.addSelectedUris(it)
     }
 
@@ -114,10 +85,9 @@ class ChatRoomFragment : Fragment() {
                 _viewModel.addUriOfTheImageBeingCapturedByTheCameraInSelectedItems()
             } else {
                 // User cancelled or error occurred
-                if (context != null) {
-                    // Delete Uri if photo is not taken
-                    _viewModel.deleteUriOfTheImageBeingCapturedByTheCamera()
-                }
+
+                // Delete Uri if photo is not taken
+                _viewModel.deleteUriOfTheImageBeingCapturedByTheCamera()
             }
         }
 
@@ -160,10 +130,7 @@ class ChatRoomFragment : Fragment() {
 
         messageRecyclerview = binding.messageRecyclerview
         (messageRecyclerview?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
-        val messageLayoutManager = LinearLayoutManager(activity).apply {
-            stackFromEnd = true
-//            reverseLayout = false
-        }
+        val messageLayoutManager = LinearLayoutManager(activity).apply { stackFromEnd = true }
         messageRecyclerview?.layoutManager = messageLayoutManager
 
         messageAdapter = MessageAdapter(
@@ -171,12 +138,12 @@ class ChatRoomFragment : Fragment() {
                 hideKeyboard()
                 _viewModel.hideEmojiPicker()
             },
-            onImageLongClick = { isSender, mediaData, message ->
+            onImageLongClick = { _, mediaData, message ->
                 _viewModel.setSelectedMessage(message)
                 _viewModel.setSelectMediaData(mediaData)
                 openMessageOptions()
             },
-            onImageClick = { drawable, mediaData, message ->
+            onImageClick = { drawable, mediaData, _ ->
                 hideKeyboard()
                 _viewModel.setSelectMediaData(mediaData)
                 _viewModel.setImageDetailShown(true, drawable, mediaData)
@@ -186,12 +153,12 @@ class ChatRoomFragment : Fragment() {
                     messageRecyclerview!!.scrollToPosition(messageAdapter!!.getPositionById(it.messageId))
                 }
             },
-            onFileLongClick = { isSender, mediaData, message ->
+            onFileLongClick = { _, mediaData, message ->
                 _viewModel.setSelectedMessage(message)
                 _viewModel.setSelectMediaData(mediaData)
                 openMessageOptions()
             },
-            onTextMessageLongClick = { isSender, message ->
+            onTextMessageLongClick = { _, message ->
                 _viewModel.setSelectedMessage(message)
                 _viewModel.setSelectMediaData(null)
                 openMessageOptions()
@@ -222,7 +189,7 @@ class ChatRoomFragment : Fragment() {
 
         selectedItemAdapter = SelectedItemAdapter(
             onItemRemove = { _viewModel.removeItemInSelectedItems(it) },
-            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it, null) }
+            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it.uri, null) }
         )
 
         selectedItemsRecyclerview = binding.selectedItemsRecyclerview
@@ -314,8 +281,7 @@ class ChatRoomFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         getSharedData()
 
-        // Khi nhấn nút back trên thiết bị nếu đang show Image Detail thì đóng Image Detail View
-        // chứ không back về fragment trước
+        // When pressing the back button on the device, if Image Detail is showing, close Image Detail View
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
             if (_viewModel.imageDetailShown.value == true)
                 _viewModel.setImageDetailShown(false, null, null)
@@ -343,7 +309,7 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
             binding.imageDetailShown = it
-            if (it) binding.imageDetailImageView.setImageDrawable(_viewModel.imageMessageDrawable)
+            if (it) MediaUtils.loadImageFollowImageViewSize(binding.imageDetailImageView, _viewModel.selectedImage)
             else binding.imageDetailImageView.resetZoom()
         }
 
@@ -356,10 +322,10 @@ class ChatRoomFragment : Fragment() {
             // Show pinned message view nếu có có tin nhắn
             binding.pinnedMessageContainer.visibility =
                 if (it.isNullOrEmpty()) View.GONE else View.VISIBLE
-            // Nếu có nhiều hơn 1 tin nhắn thì show view xem thêm tin nhắn
+            // If there is more than 1 message then show view to see more messages
             binding.ivExpandMorePinnedMessage.visibility =
                 if (it.size > 1) View.VISIBLE else View.GONE
-            // Nếu đang ở chế độ mở rộng thì show toàn bộ tin nhắn ngược lại chỉ show 1 tin nhắn
+            // If in expanded mode, show all messages, otherwise show only 1 message.
             pinnedMessageAdapter?.submitList(
                 if (_viewModel.isExpandPinnedMessage.value == true) it else it.take(
                     1
@@ -368,11 +334,11 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.isExpandPinnedMessage.observe(this.viewLifecycleOwner) {
-            // Cập nhật trạng thái icon mợ rộng hoặc ẩn bớt
+            // Update status icon enlarge or hide
             binding.ivExpandMorePinnedMessage.setImageResource(if (it) R.drawable.ic_expand_less else R.drawable.ic_outline_expand_more)
             binding.isExpandMore = it
 
-            // Nếu đang ở chế độ mở rộng thì show toàn bộ tin nhắn ngược lại chỉ show 1 tin nhắn
+            // If in expanded mode, show all messages, otherwise show only 1 message.
             val pinnedMessages = _viewModel.pinnedMessages.value
             if (!pinnedMessages.isNullOrEmpty()) {
                 pinnedMessageAdapter?.submitList(if (it) pinnedMessages else pinnedMessages.take(1))
@@ -467,8 +433,11 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.replyingMessage.observe(this.viewLifecycleOwner) { replyingMessage ->
             if (replyingMessage != null) {
-                val senderNameOfRepliedMessage = if (replyingMessage.senderId == Firebase.auth.uid) getString(R.string.sender_you) else replyingMessage.senderData?.username ?: ""
-                binding.tvSenderNameReplyMessage.text = getString(R.string.reply_to, senderNameOfRepliedMessage)
+                val senderNameOfRepliedMessage =
+                    if (replyingMessage.senderId == Firebase.auth.uid) getString(R.string.sender_you) else replyingMessage.senderData?.username
+                        ?: ""
+                binding.tvSenderNameReplyMessage.text =
+                    getString(R.string.reply_to, senderNameOfRepliedMessage)
 
                 if (!replyingMessage.text.isNullOrEmpty() || !replyingMessage.photo.isNullOrEmpty()) {
                     context?.let {
@@ -499,7 +468,7 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.openPhotoPicker.observe(this.viewLifecycleOwner) {
             if (it == true) {
-                pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                 _viewModel.hideEmojiPicker()
                 _viewModel.openPhotoPicker(false)
             }
@@ -656,12 +625,12 @@ class ChatRoomFragment : Fragment() {
         MessageOptionsFragment().show(this.parentFragmentManager, MessageOptionsFragment.TAG)
     }
 
-    private fun blockScreenCapture() {
-        activity?.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
-    }
+//    private fun blockScreenCapture() {
+//        activity?.window?.setFlags(
+//            WindowManager.LayoutParams.FLAG_SECURE,
+//            WindowManager.LayoutParams.FLAG_SECURE
+//        )
+//    }
 
     private fun showErrorDialog() {
         if (activity == null) {

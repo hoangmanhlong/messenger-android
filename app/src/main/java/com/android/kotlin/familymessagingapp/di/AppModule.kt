@@ -6,10 +6,10 @@ import com.android.kotlin.familymessagingapp.data.AndroidDownloader
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.data_store.dataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
-import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.data.remote.AppRetrofitClient
 import com.android.kotlin.familymessagingapp.data.remote.client_retrofit.BackendApiService
 import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
+import com.android.kotlin.familymessagingapp.repository.AppRepository
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
@@ -36,6 +36,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideAppRepository(application: Application): AppRepository = AppRepository(application)
 
     @Provides
     @Singleton
@@ -162,11 +166,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGeminiModel(application: Application): GeminiModel = GeminiModel(application)
-
-    @Provides
-    @Singleton
-    fun provideAppWorkManager(application: Application) = AppWorkManager(application)
+    fun provideGeminiModel(): GeminiModel = GeminiModel()
 
     @Provides
     @Singleton

@@ -540,7 +540,7 @@
             android:background="@color/md_theme_background"
             android:orientation="vertical"
             android:visibility="@{imageDetailShown ? View.VISIBLE : View.GONE}"
-            tools:visibility="gone">
+            >
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -587,7 +587,7 @@
                 <com.ortiz.touchview.TouchImageView
                     android:id="@+id/imageDetailImageView"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:adjustViewBounds="true"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"

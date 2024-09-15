@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.camerax_mlkit
+package com.android.kotlin.familymessagingapp.screen.scan_qr_code
 
 import android.content.Intent
 import android.graphics.Rect

@@ -12,6 +12,8 @@ import com.android.kotlin.familymessagingapp.services.firebase_services.realtime
 import com.android.kotlin.familymessagingapp.services.firebase_services.storage.FirebaseStorageService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -48,6 +50,8 @@ class FirebaseServiceRepository(
     init {
         auth.addAuthStateListener(authStateListener)
     }
+
+    fun getCurrentUserUid(): String? = Firebase.auth.uid
 
     suspend fun deleteAccount(): Result<Boolean> {
         return withContext(Dispatchers.IO) {

@@ -13,7 +13,6 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.AndroidDownloader
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
-import com.android.kotlin.familymessagingapp.data.local.work.AppWorkManager
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.CountExceededException
@@ -24,10 +23,10 @@ import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.repository.AppRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.gemini.GeminiModel
-import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
@@ -53,8 +52,8 @@ class ChatRoomViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository,
     private val geminiModel: GeminiModel,
     private val localDatabaseRepository: LocalDatabaseRepository,
-    private val workManager: AppWorkManager,
-    private val androidDownloader: AndroidDownloader
+    private val androidDownloader: AndroidDownloader,
+    private val appRepository: AppRepository
 ) : ViewModel() {
 
     var selectedMessageIsPinnedMessage: Boolean? = null
@@ -95,7 +94,7 @@ class ChatRoomViewModel @Inject constructor(
     private val _saveImageState: MutableLiveData<Boolean?> = MutableLiveData(null)
     val saveImageState: LiveData<Boolean?> = _saveImageState
 
-    var imageMessageDrawable: Drawable? = null
+    var selectedImage: Any? = null
         private set
 
     private val _chatRoom: MutableLiveData<ChatRoom?> = MutableLiveData(ChatRoom())
@@ -177,7 +176,7 @@ class ChatRoomViewModel @Inject constructor(
         _selectedMessage.value = null
         _pinnedMessages.value = emptyList()
         _saveImageState.value = null
-        imageMessageDrawable = null
+        selectedImage = null
         _chatRoom.value = ChatRoom()
         _AIGeneratedText.value = null
         _AICreating.value = false
@@ -231,8 +230,8 @@ class ChatRoomViewModel @Inject constructor(
         if (_isExpandPinnedMessage.value == true) _isExpandPinnedMessage.value = false
     }
 
-    fun setImageDetailShown(shown: Boolean, drawable: Drawable?, mediaData: MediaData?) {
-        imageMessageDrawable = drawable
+    fun <T> setImageDetailShown(shown: Boolean, image: T?, mediaData: MediaData?) {
+        selectedImage = image
         _imageDetailShown.value = shown
         _selectedMediaData.value = mediaData
     }
@@ -268,19 +267,9 @@ class ChatRoomViewModel @Inject constructor(
         _sendMessageStatus.value = status
     }
 
-    fun saveImageToDeviceStorage() {
-        imageMessageDrawable?.let {
-            viewModelScope.launch {
-                val result =
-                    workManager.saveImageToDeviceStorage((imageMessageDrawable as BitmapDrawable).bitmap)
-                _saveImageState.value = !result.isNullOrEmpty()
-            }
-        }
-    }
-
     fun shareImage(context: Context, drawable: Drawable) {
         viewModelScope.launch(Dispatchers.IO) {
-            DeviceUtils.shareImage(context, drawable)
+            appRepository.shareBitmap(context, (drawable as BitmapDrawable).bitmap)
         }
     }
 

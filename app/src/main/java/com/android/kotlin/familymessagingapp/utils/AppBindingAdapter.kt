@@ -7,7 +7,6 @@ import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
-import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -31,11 +30,13 @@ fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
 @BindingAdapter("bindPhotoMessage")
 fun <T> bindPhotoMessage(imageView: ImageView, photo: T?) {
     photo?.let {
+        val density = imageView.context.resources.displayMetrics.density
+
         Glide.with(imageView.context)
             .load(photo)
             .error(R.drawable.ic_broken_message_image)
             .placeholder(R.drawable.image_placeholder)
-            .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+            .override(Target.SIZE_ORIGINAL, (300 * density).toInt())
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(imageView)
     }
@@ -53,22 +54,10 @@ fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
         return
     }
 
-    val density = imageView.context.resources.displayMetrics.density
-    val imageViewWidth = imageView.width
-    val imageViewHeight = imageView.height
-
-    // Giới hạn kích thước hình ảnh dựa trên mật độ màn hình và kích thước của ImageView
-    val targetWidth = (imageViewWidth * density).toInt()
-    val targetHeight = (imageViewHeight * density).toInt()
-
-    Glide.with(imageView.context)
-        .load(chatRoomImageUrl)
-        .error(R.drawable.ic_broken_image)
-        .placeholder(R.drawable.loading_animation)
-        .override(targetWidth, targetHeight)
-        .fitCenter()
-        .diskCacheStrategy(DiskCacheStrategy.ALL)
-        .into(imageView)
+    MediaUtils.loadImageFollowImageViewSize(
+        imageView = imageView,
+        photo = chatRoomImageUrl,
+    )
 }
 
 fun <T> loadImageFollowImageViewSize(imageView: ImageView, image: T?) {

@@ -10,7 +10,6 @@ import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FindIntentSenderResult
-import com.facebook.AccessToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,8 +28,9 @@ class LoginViewModel @Inject constructor(
     localDatabaseRepository: LocalDatabaseRepository
 ) : ViewModel() {
 
-    val isTheEnglishLanguageDisplayedLiveData =
-        localDatabaseRepository.isTheEnglishLanguageDisplayedFlow.asLiveData()
+    val isTheEnglishLanguageDisplayedLiveData = localDatabaseRepository
+        .isTheEnglishLanguageDisplayedFlow
+        .asLiveData()
 
     private val _loadingStatus = MutableLiveData(false)
     val loadingStatus: LiveData<Boolean> = _loadingStatus
@@ -38,8 +38,7 @@ class LoginViewModel @Inject constructor(
     private val _authenticationStatus: MutableLiveData<Boolean?> = MutableLiveData(null)
     val authenticationStatus: LiveData<Boolean?> = _authenticationStatus
 
-    private val _findIntentSenderStatus: MutableLiveData<FindIntentSenderResult?> =
-        MutableLiveData(null)
+    private val _findIntentSenderStatus: MutableLiveData<FindIntentSenderResult?> = MutableLiveData(null)
     val findIntentSenderStatus: LiveData<FindIntentSenderResult?> = _findIntentSenderStatus
 
     fun signInWithActivityResult(activityResult: ActivityResult) {
@@ -71,8 +70,8 @@ class LoginViewModel @Inject constructor(
     }
 
     fun launchGoogleSignIn() {
-        updateLoadingStatus(true)
         viewModelScope.launch {
+            updateLoadingStatus(true)
             _findIntentSenderStatus.value = firebaseServiceRepository.firebaseGoogleService.signIn()
             updateLoadingStatus(false)
         }
@@ -80,11 +79,5 @@ class LoginViewModel @Inject constructor(
 
     private fun updateLoadingStatus(isLoading: Boolean) {
         _loadingStatus.value = isLoading
-    }
-
-    fun signInWithFacebook(token: AccessToken) {
-        viewModelScope.launch {
-            firebaseServiceRepository.facebookService.handleFacebookAccessToken(token)
-        }
     }
 }

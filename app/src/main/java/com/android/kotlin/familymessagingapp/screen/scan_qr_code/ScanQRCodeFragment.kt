@@ -2,15 +2,14 @@ package com.android.kotlin.familymessagingapp.screen.scan_qr_code
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.camera.mlkit.vision.MlKitAnalyzer
 import androidx.camera.view.CameraController.COORDINATE_SYSTEM_VIEW_REFERENCED
@@ -25,10 +24,10 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentScanQrCodeBinding
 import com.android.kotlin.familymessagingapp.model.QRCodeInvalidException
+import com.android.kotlin.familymessagingapp.model.QRCodeNotFoundException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.UserData
 import com.android.kotlin.familymessagingapp.utils.Constant
-import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -36,7 +35,6 @@ import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -65,19 +63,23 @@ class ScanQRCodeFragment : Fragment() {
 
     private var cameraPermissionRequiredDialog: AlertDialog? = null
 
-    private var isGotoSetting = false
-
     private val activityResultLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             // Handle Permission granted/rejected
-            var permissionGranted = true
-            permissions.entries.forEach {
-                if (it.key in REQUIRED_PERMISSIONS && !it.value)
-                    permissionGranted = false
-            }
-            if (permissionGranted) startCamera()
-            else {
-                viewModel.setCameraPermissionGranted(false)
+            viewModel.setCameraPermissionGranted(granted)
+        }
+
+    // Registers a photo picker activity launcher in single-select mode.
+    private val pickMultipleMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null && context != null) {
+                stopCamera()
+                NetworkChecker.checkNetwork(
+                    context = requireContext(),
+                    actionWhenNetworkAvailable = { viewModel.handleSelectedPhoto(uri) },
+                    onCancelListener = { restartCamera() },
+                    onNegativeClick = { restartCamera() }
+                )
             }
         }
 
@@ -93,35 +95,43 @@ class ScanQRCodeFragment : Fragment() {
         context?.let {
             netWorkDialog = DialogUtils.showNetworkNotAvailableDialog(
                 context = it,
-                onPositiveClick = {
-                    restartCamera()
-                },
-                onCancelListener = {
-                    restartCamera()
-                },
-                onNegativeClick = {
-                    restartCamera()
-                },
+                onPositiveClick = { restartCamera() },
+                onCancelListener = { restartCamera() },
+                onNegativeClick = { restartCamera() },
                 cancelable = false
             )
         }
 
-        binding.btAuthorization.setOnClickListener {
-            goToSetting()
+        binding.btSelectPhoto.setOnClickListener {
+            pickMultipleMedia.launch(
+                PickVisualMediaRequest(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                )
+            )
         }
+
+        binding.btFlashlight.setOnClickListener {
+            if (cameraController == null || !deviceHasFlashlight()) return@setOnClickListener
+            viewModel.toggleFlashlight()
+        }
+
+        binding.btAuthorization.setOnClickListener { goToSetting() }
 
         return binding.root
     }
 
     private fun goToSetting() {
-        if (context == null) return
-        isGotoSetting = true
-        DeviceUtils.openApplicationInfo(requireContext())
+        activity?.let {
+            viewModel.goToSettingToGrantCameraPermission = true
+            viewModel.openSetting(it)
+        }
     }
+
+    private fun deviceHasFlashlight(): Boolean =
+        cameraController?.cameraInfo?.hasFlashUnit() == true
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        askCameraPermission()
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         viewModel.isLoading.observe(viewLifecycleOwner) {
@@ -130,7 +140,12 @@ class ScanQRCodeFragment : Fragment() {
 
         viewModel.cameraPermissionGranted.observe(viewLifecycleOwner) {
             it?.let {
+                if (it) startCamera()
+                else if (!viewModel.askedForCameraPermission) requestPermissions()
+
                 binding.cameraPermissionDeniedView.visibility = if (it) View.GONE else View.VISIBLE
+                binding.ivScanQrBorder.visibility = if (it) View.VISIBLE else View.GONE
+                binding.scanQrActionView.visibility = if (it) View.VISIBLE else View.GONE
             }
         }
 
@@ -143,44 +158,51 @@ class ScanQRCodeFragment : Fragment() {
 
                     is Result.Error -> {
                         var errorMessage = R.string.error_occurred
-                        if (result.exception is QRCodeInvalidException) {
-                            errorMessage = R.string.qr_invalid_message
+                        when (result.exception) {
+                            is QRCodeNotFoundException -> errorMessage = R.string.qr_code_not_found
+
+                            is QRCodeInvalidException -> errorMessage = R.string.qr_invalid_message
+
+                            else -> {}
                         }
-                        context?.let {
-                            if (scanQRErrorDialog == null) {
-                                scanQRErrorDialog = DialogUtils.showNotificationDialog(
-                                    context = it,
-                                    cancelable = false,
-                                    message = errorMessage,
-                                    title = R.string.scan_qr_error,
-                                    onOkButtonClick = { _, _ ->
-                                        restartCamera()
-                                    }
-                                )
-                            }
-                            scanQRErrorDialog?.show()
-                        }
+
+                        showErrorDialog(errorMessage)
                     }
                 }
             }
         }
     }
 
-    private fun askCameraPermission() {
-        if (viewModel.cameraPermissionGranted.value == true) return
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            requestPermissions()
+    private fun showErrorDialog(@StringRes errorMessage: Int) {
+        context?.let {
+            if (scanQRErrorDialog == null) {
+                scanQRErrorDialog = DialogUtils.showNotificationDialog(
+                    context = it,
+                    cancelable = false,
+                    message = errorMessage,
+                    title = R.string.scan_qr_error,
+                    onOkButtonClick = { _, _ -> restartCamera() }
+                )
+            }
+
+            if (scanQRErrorDialog?.isShowing == false) scanQRErrorDialog?.show()
         }
-        viewModel.askedForCameraPermission = true
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun startCamera() {
-        viewModel.setCameraPermissionGranted(true)
         if (activity == null) return
         cameraController = LifecycleCameraController(requireActivity())
+
+        viewModel.isFlashlightOn.observe(viewLifecycleOwner) {
+            updateFlashlightStatus(it)
+            (binding.btFlashlight as com.google.android.material.button.MaterialButton).icon =
+                if (it) {
+                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_flash_off)
+                } else {
+                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_flash_on)
+                }
+        }
 
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
@@ -230,13 +252,9 @@ class ScanQRCodeFragment : Fragment() {
         previewView?.controller = cameraController
     }
 
-    private fun stopCamera() {
-        cameraController?.unbind()
-    }
+    private fun stopCamera() = cameraController?.unbind()
 
-    private fun restartCamera() {
-        cameraController?.bindToLifecycle(this)
-    }
+    private fun restartCamera() = cameraController?.bindToLifecycle(this)
 
     private fun navigateToChatRoom(userdata: UserData) {
         findNavController().apply {
@@ -246,6 +264,8 @@ class ScanQRCodeFragment : Fragment() {
     }
 
     private fun requestPermissions() {
+        viewModel.askedForCameraPermission = true
+
         val permissionsDenied = arrayOf(Manifest.permission.CAMERA).filter {
             ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), it).not()
         }
@@ -255,11 +275,16 @@ class ScanQRCodeFragment : Fragment() {
             return
         }
 
-        activityResultLauncher.launch(REQUIRED_PERMISSIONS)
+        activityResultLauncher.launch(CAMERA_PERMISSION)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.turnOffFlashlight()
     }
 
     private fun showPermissionDeniedDialog() {
-        if (cameraPermissionRequiredDialog == null) {
+        if (cameraPermissionRequiredDialog == null && context != null) {
             cameraPermissionRequiredDialog = DialogUtils.cameraPermissionRequiredDialog(
                 context = requireContext(),
                 onPositiveClick = { goToSetting() },
@@ -268,32 +293,28 @@ class ScanQRCodeFragment : Fragment() {
                 }
             )
         }
-        cameraPermissionRequiredDialog?.show()
+        if (cameraPermissionRequiredDialog != null && cameraPermissionRequiredDialog?.isShowing == false) {
+            cameraPermissionRequiredDialog?.show()
+        }
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        if (context == null) return false
-        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun toggleFlashlight(enable: Boolean) {
+    private fun updateFlashlightStatus(enable: Boolean) {
+        if (!deviceHasFlashlight()) return
         cameraController?.enableTorch(enable)
     }
 
     override fun onStart() {
         super.onStart()
-
-        if (cameraController?.isRecording == true) return
-
-        if (!allPermissionsGranted() && isGotoSetting) {
-            viewModel.setCameraPermissionGranted(false)
-            isGotoSetting = false
-            return
+        if (
+            viewModel.isCameraPermissionGranted()
+            && viewModel.goToSettingToGrantCameraPermission
+            && (cameraController?.isRecording == null || cameraController?.isRecording == false)
+        ) {
+            viewModel.goToSettingToGrantCameraPermission = false
+            viewModel.setCameraPermissionGranted(true)
+            startCamera()
         }
-
-        startCamera()
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -308,46 +329,12 @@ class ScanQRCodeFragment : Fragment() {
         scanQRErrorDialog = null
         _binding = null
         cameraPermissionRequiredDialog = null
+        viewModel.turnOffFlashlight()
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-    }
-
-    fun scanQRCodeFromBitmap(
-        bitmap: Bitmap,
-        onSuccess: (String) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val image = InputImage.fromBitmap(bitmap, 0)
-
-        val options = BarcodeScannerOptions.Builder()
-            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-            .build()
-
-        val scanner: BarcodeScanner = BarcodeScanning.getClient(options)
-
-        scanner.process(image)
-            .addOnSuccessListener { barcodes ->
-                for (barcode in barcodes) {
-                    val rawValue = barcode.rawValue
-                    if (rawValue != null) {
-                        onSuccess(rawValue)
-                        return@addOnSuccessListener
-                    }
-                }
-                onFailure(Exception("No QR code found"))
-            }
-            .addOnFailureListener { e ->
-                onFailure(e)
-            }
     }
 
     companion object {
         val TAG: String = ScanQRCodeFragment::class.java.simpleName
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-        private val REQUIRED_PERMISSIONS =
-            mutableListOf(Manifest.permission.CAMERA).apply {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                    add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                }
-            }.toTypedArray()
+        private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
     }
 }

@@ -4,6 +4,12 @@ import com.android.kotlin.familymessagingapp.BuildConfig
 
 object Constant {
 
+    const val MY_QR_CODE_DEFAULT_NAME = "my_qr_code"
+
+    const val SHARED_IMAGE_NAME = "image_shared_to_other_apps"
+
+    const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+
     const val MAXIMUM_FILE_SIZE_MB = 20
 
     const val USER_DATA_KEY = "USER_DATA_KEY"
@@ -75,12 +81,6 @@ object Constant {
 
     const val OUTPUT_PATH = "save_image_temp"
 
-    // The name of the image manipulation work
-    const val IMAGE_MANIPULATION_WORK_NAME = "image_manipulation_work"
-    const val TAG_OUTPUT = "OUTPUT"
-
-    const val MAX_PINNED_MESSAGE = "MAX_PINNED_MESSAGE"
-
     const val ONE_SECOND = 1000
 
     const val BACK_PRESS_INTERVAL = 2000L
@@ -99,15 +99,9 @@ object Constant {
 
     const val NEW_MESSAGE_SOCKET_EVENT = "NEW_MESSAGE_SOCKET_EVENT"
 
-    const val APP_BASE_URI = "https://${BuildConfig.APPLICATION_ID}/"
-
-    fun getAppUrl(endpoint: String): String = "$APP_BASE_URI$endpoint"
-
     const val FIREBASE_STORAGE_CHAT_ROOM_IMAGE_REF_NAME = "chat_room_images"
 
     const val PHOTO_TAKEN_FROM_CAMERA_NAME = "PHOTO_TAKEN_FROM_CAMERA"
-
-    const val PHOTO_SHARED_TO_OTHER_APPS_NAME = "PHOTO_SHARED_TO_OTHER_APPS"
 }
 
 

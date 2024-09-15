@@ -18,7 +18,6 @@ package com.android.kotlin.familymessagingapp.screen.scan_qr_code
 
 import android.graphics.*
 import android.graphics.drawable.Drawable
-import com.example.camerax_mlkit.QRCodeProcessor
 
 /**
  * A Drawable that handles displaying a QR Code's data and a bounding box around the QR code.

@@ -4,7 +4,6 @@ import android.app.Application
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.liveData
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.data.local.room.AppDatabase
 import com.android.kotlin.familymessagingapp.data.local.room.SearchHistoryEntity
@@ -19,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -29,7 +27,7 @@ import okio.IOException
 class LocalDatabaseRepository(
     val application: Application,
     val appDataStore: AppDataStore,
-    val appDatabase: AppDatabase,
+    private val appDatabase: AppDatabase,
 ) {
 
     private val job = Job()
@@ -46,9 +44,9 @@ class LocalDatabaseRepository(
     }
 
     fun updateFileDataFromUri(list: List<Uri>): List<FileData> {
-        // Chạy các tác vụ đồng thời
+        // Run tasks concurrently
         return runBlocking {
-            // Sử dụng async để thực hiện các tác vụ đồng thời
+            // Use async to perform concurrent tasks
             val deferredFileData = list.map { uri ->
                 async {
                     val fileType = MediaUtils.getFileType(application, uri)
@@ -59,7 +57,7 @@ class LocalDatabaseRepository(
                 }
             }
 
-            // Chờ cho tất cả các tác vụ hoàn thành và trả kết quả
+            // Wait for all tasks to complete and return results
             deferredFileData.awaitAll()
         }
     }
@@ -80,8 +78,8 @@ class LocalDatabaseRepository(
             }.awaitAll()
 
             val lastSuccessfulUri = deferredDownload
-                .filterIsInstance<Result.Success<Uri>>() // Lọc chỉ những kết quả thành công
-                .lastOrNull()?.data // Lấy URI từ kết quả thành công
+                .filterIsInstance<Result.Success<Uri>>() // Filter only successful results
+                .lastOrNull()?.data // Get URI from success result
 
             val success = deferredDownload.all { it is Result.Success }
             if (success && lastSuccessfulUri != null) {
@@ -108,18 +106,18 @@ class LocalDatabaseRepository(
     val isTheEnglishLanguageDisplayedFlow: Flow<Boolean?> = appDataStore
         .getBooleanPreferenceFlow(AppDataStore.IS_THE_ENGLISH_LANGUAGE_DISPLAYED, true)
 
-    fun getSearchHistories(): Flow<List<SearchHistoryEntity>> =
-        appDatabase.searchHistoryDao.getSearchHistories()
+    fun getSearchHistories(): Flow<List<SearchHistoryEntity>> = appDatabase
+        .searchHistoryDao
+        .getSearchHistories()
 
-    suspend fun saveSearchHistory(text: String) =
-        withContext(Dispatchers.IO) {
-            try {
-                val searchHistoryEntity = SearchHistoryEntity(text, System.currentTimeMillis())
-                appDatabase.searchHistoryDao.saveSearchHistory(searchHistoryEntity)
-            } catch (e: Exception) {
-                throw e
-            }
+    suspend fun saveSearchHistory(text: String) = withContext(Dispatchers.IO) {
+        try {
+            val searchHistoryEntity = SearchHistoryEntity(text, System.currentTimeMillis())
+            appDatabase.searchHistoryDao.saveSearchHistory(searchHistoryEntity)
+        } catch (e: Exception) {
+            throw e
         }
+    }
 
     suspend fun deleteSearchHistory(searchHistoryEntity: SearchHistoryEntity) =
         withContext(Dispatchers.IO) {
@@ -130,12 +128,11 @@ class LocalDatabaseRepository(
             }
         }
 
-    suspend fun clearAllSearchHistories() =
-        withContext(Dispatchers.IO) {
-            try {
-                appDatabase.searchHistoryDao.deleteAllSearchHistories()
-            } catch (e: Exception) {
-                throw e
-            }
+    suspend fun clearAllSearchHistories() = withContext(Dispatchers.IO) {
+        try {
+            appDatabase.searchHistoryDao.deleteAllSearchHistories()
+        } catch (e: Exception) {
+            throw e
         }
+    }
 }

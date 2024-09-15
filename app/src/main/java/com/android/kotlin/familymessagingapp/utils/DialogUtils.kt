@@ -62,10 +62,10 @@ object DialogUtils {
 
     fun logoutDialog(
         context: Context,
-        onPositiveClick: () -> Unit?,
-        onNegativeClick: () -> Unit?,
-        onCancelListener: () -> Unit?
-    ): MaterialAlertDialogBuilder {
+        onPositiveClick: () -> Unit = {},
+        onNegativeClick: () -> Unit = {},
+        onCancelListener: () -> Unit = {}
+    ): AlertDialog {
         return createCommonDialog(
             context = context,
             title = R.string.logout,
@@ -76,7 +76,7 @@ object DialogUtils {
             onPositiveClick = onPositiveClick,
             onNegativeClick = onNegativeClick,
             onCancelListener = onCancelListener
-        )
+        ).create()
     }
 
     fun leaveChatRoomDialog(context: Context, onPositiveClick: () -> Unit?): AlertDialog {

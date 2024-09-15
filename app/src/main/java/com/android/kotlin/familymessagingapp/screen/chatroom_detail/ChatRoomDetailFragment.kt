@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -13,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomDetailBinding
 import com.android.kotlin.familymessagingapp.screen.chatroom.ChatRoomViewModel
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 
 
 class ChatRoomDetailFragment : Fragment() {
@@ -29,6 +31,11 @@ class ChatRoomDetailFragment : Fragment() {
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             it?.let {
+                MediaUtils.loadImageFollowImageViewSize(
+                    imageView = binding.ivAvatar,
+                    photo = it,
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                )
                 binding.ivAvatar.setImageURI(it)
             }
         }

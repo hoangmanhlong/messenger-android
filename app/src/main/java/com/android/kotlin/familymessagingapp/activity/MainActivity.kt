@@ -9,7 +9,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -32,8 +31,7 @@ import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import com.android.kotlin.familymessagingapp.utils.TimeUtils
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.Target
+import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
@@ -121,17 +119,7 @@ class MainActivity : AppCompatActivity() {
 
         _viewModel.currentUserLiveData.observe(this) { userdata ->
             if (userdata != null && !userdata.uid.isNullOrEmpty()) {
-                val userAvatar = userdata.userAvatar
-                if (userAvatar.isNullOrEmpty()) {
-                    userImageView.setImageResource(R.drawable.ic_user_default)
-                } else {
-                    Glide.with(this)
-                        .load(userAvatar)
-                        .error(R.drawable.ic_broken_image)
-                        .placeholder(R.drawable.loading_animation)
-                        .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                        .into(userImageView)
-                }
+                bindNormalImage(userImageView, userdata.userAvatar)
                 usernameTextView.text = userdata.username
                 userEmailTextView.text = userdata.email
                 verifiedMaterialCardView.visibility =
@@ -214,14 +202,6 @@ class MainActivity : AppCompatActivity() {
         activityResultLauncher.launch(CallFragment.REQUIRED_PERMISSIONS)
     }
 
-    fun isTheEnglishLanguageSelected(isTheEnglishLanguageSelected: Boolean) {
-        _viewModel.isTheEnglishLanguageSelected(isTheEnglishLanguageSelected)
-    }
-
-    fun changeLanguage() {
-        _viewModel.changeLanguage()
-    }
-
     override fun onStart() {
         super.onStart()
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
@@ -284,16 +264,16 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
-    private fun getBackgroundColor(): Int {
-        val typedValue = TypedValue()
-        val theme = this.theme
-        theme.resolveAttribute(android.R.attr.background, typedValue, true)
-        return typedValue.data
-    }
-
-    private fun getErrorColor(): Int {
-        return ContextCompat.getColor(this@MainActivity, R.color.md_theme_error)
-    }
+//    private fun getBackgroundColor(): Int {
+//        val typedValue = TypedValue()
+//        val theme = this.theme
+//        theme.resolveAttribute(android.R.attr.background, typedValue, true)
+//        return typedValue.data
+//    }
+//
+//    private fun getErrorColor(): Int {
+//        return ContextCompat.getColor(this@MainActivity, R.color.md_theme_error)
+//    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -307,7 +287,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (!allPermissionsGranted()) requestPermissions()
         } else {
-            saveNotificationStatus(PermissionUtils.areNotificationsEnabled(this))
+            _viewModel.saveCurrentNotificationStatus()
         }
     }
 

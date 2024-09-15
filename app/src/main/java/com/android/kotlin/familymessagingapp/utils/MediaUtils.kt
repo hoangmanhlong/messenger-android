@@ -7,8 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
@@ -17,21 +17,31 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.webkit.MimeTypeMap
+import android.widget.ImageView
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmapOrNull
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.model.MediaData
+import com.android.kotlin.familymessagingapp.model.QRCodeNotFoundException
 import com.android.kotlin.familymessagingapp.model.Result
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -166,8 +176,8 @@ object MediaUtils {
         }
     }
 
-    fun saveBitmapToGallery(context: Context, bitmap: Bitmap): String? {
-        val displayName = UUID.randomUUID().toString()
+    fun saveBitmapToGallery(context: Context, bitmap: Bitmap, displayName: String): Uri? {
+//        val displayName = UUID.randomUUID().toString()
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
@@ -195,7 +205,7 @@ object MediaUtils {
             contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
             contentResolver.update(uri, contentValues, null, null)
 
-            return uri.toString()
+            return uri
         }
 
         return null
@@ -232,7 +242,7 @@ object MediaUtils {
         }
     }
 
-    private fun getScreenShotFromView(v: View): Bitmap? {
+    fun getBitmapFromView(v: View): Bitmap? {
         // create a bitmap object
         var screenshot: Bitmap? = null
         try {
@@ -253,12 +263,11 @@ object MediaUtils {
         return screenshot
     }
 
-    fun createUriFromDrawable(context: Context, drawable: Drawable): Uri? {
+    fun createUriFromDrawable(context: Context, bitmap: Bitmap, imageName: String): Uri? {
         var file: File? = null
         return try {
-            val bitmap = (drawable as BitmapDrawable).bitmap
 
-            file = File(context.cacheDir, "image_shared_to_other_apps.png")
+            file = File(context.cacheDir, "$imageName.png")
             val fileOutputStream = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
             fileOutputStream.flush()
@@ -441,7 +450,10 @@ object MediaUtils {
 
                 val resolver = context.contentResolver
                 val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName ?: "downloaded_file_${StringUtils.getCurrentTime()}")
+                    put(
+                        MediaStore.MediaColumns.DISPLAY_NAME,
+                        fileName ?: "downloaded_file_${StringUtils.getCurrentTime()}"
+                    )
                     put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream")
                     put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                 }
@@ -462,5 +474,84 @@ object MediaUtils {
                 Result.Error(e)
             }
         }
+    }
+
+    // Hàm chuyển đổi URI thành Bitmap
+    fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+        return try {
+            // Use ContentResolver to get input stream from URI
+            val inputStream = context.contentResolver.openInputStream(uri)
+            // Use BitmapFactory to convert InputStream to Bitmap
+            BitmapFactory.decodeStream(inputStream)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun readQrCodeFromBitmap(bitmap: Bitmap): Result<String> {
+        return withContext(Dispatchers.IO) {
+            val image = InputImage.fromBitmap(bitmap, 0)
+
+            val options = BarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                .build()
+
+            val scanner: BarcodeScanner = BarcodeScanning.getClient(options)
+
+            try {
+                val barcodes = scanner.process(image).await()
+
+                for (barcode in barcodes) {
+                    val rawValue = barcode.rawValue
+                    if (rawValue != null) {
+                        return@withContext Result.Success(rawValue)
+                    }
+                }
+
+                Result.Error(QRCodeNotFoundException())
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
+        }
+    }
+
+    @SuppressLint("CheckResult")
+    fun <T> loadImageFollowImageViewSize(
+        imageView: ImageView,
+        photo: T?,
+        scaleType: ImageView.ScaleType? = null,
+        @DrawableRes fallback: Int = R.drawable.ic_broken_image,
+        @DrawableRes placeholder: Int = R.drawable.loading_animation,
+        @DrawableRes error: Int = R.drawable.ic_broken_image,
+    ) {
+        if (photo == null) {
+            imageView.setImageResource(fallback)
+            return
+        }
+
+        val density = imageView.context.resources.displayMetrics.density
+        val imageViewWidth = imageView.width
+        val imageViewHeight = imageView.height
+
+        // Giới hạn kích thước hình ảnh dựa trên mật độ màn hình và kích thước của ImageView
+        val targetWidth = (imageViewWidth * density).toInt()
+        val targetHeight = (imageViewHeight * density).toInt()
+
+        val requestBuilder = Glide.with(imageView.context)
+            .load(photo)
+            .error(error)
+            .placeholder(placeholder)
+            .override(targetWidth, targetHeight)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+
+        when (scaleType) {
+            ImageView.ScaleType.CENTER_CROP -> requestBuilder.centerCrop()
+            ImageView.ScaleType.CENTER_INSIDE -> requestBuilder.centerInside()
+            ImageView.ScaleType.FIT_CENTER -> requestBuilder.fitCenter()
+            else -> {}
+        }
+
+        requestBuilder.into(imageView)
     }
 }

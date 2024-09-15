@@ -1,7 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.login
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,10 +20,6 @@ import com.android.kotlin.familymessagingapp.screen.select_language.SelectLangua
 import com.android.kotlin.familymessagingapp.services.firebase_services.google_authentication.FindIntentSenderResult
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginResult
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,15 +27,11 @@ class LoginFragment : Fragment() {
 
     private val _viewModel: LoginViewModel by viewModels()
 
-    private lateinit var callbackManager: CallbackManager
-
     private val loginWithGoogleAccountLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                context?.let { context ->
-                    NetworkChecker.checkNetwork(context) {
-                        _viewModel.signInWithActivityResult(result)
-                    }
+            if (result.resultCode == Activity.RESULT_OK && context != null) {
+                NetworkChecker.checkNetwork(requireContext()) {
+                    _viewModel.signInWithActivityResult(result)
                 }
             }
         }
@@ -58,11 +49,7 @@ class LoginFragment : Fragment() {
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         binding.fragment = this@LoginFragment
-        binding.btLoginWithGoogleAccount.root.setOnClickListener {
-            context?.let { context ->
-                NetworkChecker.checkNetwork(context) { _viewModel.launchGoogleSignIn() }
-            }
-        }
+        binding.loginWithGoogleView.setOnClickListener { _viewModel.launchGoogleSignIn() }
         return binding.root
     }
 
@@ -70,18 +57,16 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
-            if (findNavController().previousBackStackEntry == null) {
-                activity?.let {
-                    (it as MainActivity).handleDoubleBackPress()
-                }
-            } else findNavController().navigateUp()
+            if (findNavController().previousBackStackEntry == null && activity != null)
+                    (activity as MainActivity).handleDoubleBackPress()
+            else findNavController().navigateUp()
         }
 
         _viewModel.authenticationStatus.observe(this.viewLifecycleOwner) { authenticated ->
-            authenticated?.let {
-                if (authenticated) navigateToHomeScreen()
-                else showErrorDialog(false)
-            }
+            if (authenticated == null) return@observe
+
+            if (authenticated) navigateToHomeScreen()
+            else showErrorDialog(false)
         }
 
         _viewModel.loadingStatus.observe(this.viewLifecycleOwner) {
@@ -91,31 +76,6 @@ class LoginFragment : Fragment() {
         _viewModel.isTheEnglishLanguageDisplayedLiveData.observe(this.viewLifecycleOwner) {
             binding.isTheEnglishLanguageDisplayed = it
         }
-
-//        binding.btLoginWithYourAccount.setOnClickListener {
-//            findNavController().navigate(Screen.LoginScreen.toSignInYourAccount())
-//        }
-//
-//        binding.btSignUp.setOnClickListener {
-//            findNavController().navigate(Screen.LoginScreen.toRegister())
-//        }
-
-        callbackManager = CallbackManager.Factory.create()
-        binding.facebook.setPermissions("email", "public_profile")
-        binding.facebook.registerCallback(
-            callbackManager,
-            object : FacebookCallback<LoginResult> {
-                override fun onSuccess(result: LoginResult) {
-                    _viewModel.signInWithFacebook(result.accessToken)
-                }
-
-                override fun onCancel() {
-                }
-
-                override fun onError(error: FacebookException) {
-                }
-            },
-        )
 
         _viewModel.findIntentSenderStatus.observe(this.viewLifecycleOwner) { status ->
             status?.let {
@@ -139,22 +99,17 @@ class LoginFragment : Fragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        // Pass the activity result back to the Facebook SDK
-        callbackManager.onActivityResult(requestCode, resultCode, data)
-    }
-
     private fun navigateToHomeScreen() {
-        findNavController().popBackStack(Screen.LoginScreen.screenId, true)
-        findNavController().navigate(Screen.HomeScreen.screenId)
+        findNavController().apply {
+            popBackStack(Screen.LoginScreen.screenId, true)
+            navigate(Screen.HomeScreen.screenId)
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        noGoogleAccountDialog = null;
+        noGoogleAccountDialog = null
         _viewModel.setFindIntentSenderStatus(null)
         _viewModel.setAuthenticationStatus(null)
         (activity as MainActivity).isShowLoadingDialog(false)

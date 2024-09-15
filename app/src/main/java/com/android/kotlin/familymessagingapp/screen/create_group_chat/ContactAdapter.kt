@@ -1,15 +1,12 @@
 package com.android.kotlin.familymessagingapp.screen.create_group_chat
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutContactBinding
-import com.android.kotlin.familymessagingapp.databinding.LayoutUserBinding
 import com.android.kotlin.familymessagingapp.model.Contact
-import com.android.kotlin.familymessagingapp.model.UserData
 
 class ContactAdapter(
     private val onItemClicked: (Contact) -> Unit
@@ -20,9 +17,7 @@ class ContactAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(contact: Contact) {
-            binding.checkbox.addOnCheckedStateChangedListener { checkBox, state ->
-                onItemClicked(contact)
-            }
+            binding.checkbox.addOnCheckedStateChangedListener { _, _ -> onItemClicked(contact) }
             binding.root.setOnClickListener {
                 binding.checkbox.isChecked = !binding.checkbox.isChecked
             }

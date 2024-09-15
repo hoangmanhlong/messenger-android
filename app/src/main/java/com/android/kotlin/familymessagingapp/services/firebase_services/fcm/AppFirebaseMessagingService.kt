@@ -91,7 +91,6 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
     /**
      * Create and show a simple notification containing the received FCM message.
      *
-     * @param messageBody FCM message body received.
      */
     private fun sendNotification(
         chatRoomName: String,

@@ -36,6 +36,7 @@ import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -76,8 +77,6 @@ class HomeFragment : Fragment() {
     private var searchHistoryAdapter: SearchHistoryAdapter? = null
 
     private var recentSearchHistory: LinearLayout? = null
-
-    private var storyRecyclerView: RecyclerView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -139,7 +138,7 @@ class HomeFragment : Fragment() {
 
         searchBar?.setNavigationOnClickListener { (activity as MainActivity).openDrawer() }
 
-        searchView!!.setOnMenuItemClickListener {
+        searchView?.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.QrCodeSearchViewMenu -> {
                     findNavController().navigate(R.id.action_homeFragment_to_scanQRCodeFragment)
@@ -182,151 +181,143 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         activity?.let { KeyBoardUtils.setupHideKeyboard(binding.searchView, it) }
 
-        findNavController()
-            .currentBackStackEntry
-            ?.savedStateHandle
-            ?.getLiveData<UserData>(Constant.USER_DATA_KEY)
-            ?.observe(viewLifecycleOwner) { userData ->
-                findNavController()
-                    .currentBackStackEntry
-                    ?.savedStateHandle
-                    ?.remove<UserData>(Constant.USER_DATA_KEY)
-                navigateToChatRoom(userData = userData)
-            }
+        val savedStateHandle = findNavController().currentBackStackEntry?.savedStateHandle
+        savedStateHandle?.getLiveData<UserData>(Constant.USER_DATA_KEY)?.observe(viewLifecycleOwner) { userData ->
+            savedStateHandle.remove<UserData>(Constant.USER_DATA_KEY)
+            navigateToChatRoom(userData = userData)
+        }
 
-        // Khi nhấn nút back trên thiết bị nếu đang show Image Detail thì đóng Image Detail View
-        // chứ không back về fragment trước
+        // When searchView is open and you press the back button on your phone, searchView is closed.
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
-            if (searchView?.isShowing == true)
-                searchView?.hide()
-            else {
-                if (findNavController().previousBackStackEntry == null) {
-                    activity?.let {
-                        (it as MainActivity).handleDoubleBackPress()
-                    }
-                } else findNavController().navigateUp()
-            }
+            if (searchView?.isShowing == true) searchView?.hide()
+            else if (findNavController().previousBackStackEntry == null) activity?.let { (it as MainActivity).handleDoubleBackPress() }
+            else findNavController().navigateUp()
         }
 
         viewModel.authenticateState.observe(this.viewLifecycleOwner) { authenticated ->
-            authenticated?.let {
-                if (!authenticated) {
-                    findNavController().popBackStack()
-                    findNavController().navigate(Screen.LoginScreen.screenId)
-                } else {
-                    viewModel.isLoading.observe(this.viewLifecycleOwner) {
-                        binding.isLoading = it
-                        binding.progressBar.isIndeterminate = it
+
+            if (authenticated == null) return@observe
+
+            if (authenticated == false) {
+                // If not authenticated then navigate to login screen
+                findNavController().popBackStack()
+                findNavController().navigate(Screen.LoginScreen.screenId)
+                return@observe
+            }
+
+            // If authenticated then show home screen
+            viewModel.isLoading.observe(this.viewLifecycleOwner) {
+                binding.isLoading = it
+                binding.progressBar.isIndeterminate = it
+            }
+
+            viewModel.searchHistories.observe(this.viewLifecycleOwner) {
+                searchHistoryAdapter?.submitList(it)
+                if (it.isNullOrEmpty()) recentSearchHistory?.visibility = View.GONE
+            }
+
+            viewModel.searchResultList.observe(this.viewLifecycleOwner) {
+                userAdapter?.submitList(it)
+            }
+
+            viewModel.searchViewStatus.observe(this.viewLifecycleOwner) {
+                when (it) {
+                    is SearchViewStatus.ShowSearchResult -> {
+                        // ẩn searchHistories và hiện search result
+                        recentSearchHistory?.visibility = View.GONE
+                        binding.isSearchedUserEmpty =
+                            viewModel.searchResultList.value.isNullOrEmpty()
                     }
 
-                    viewModel.searchHistories.observe(this.viewLifecycleOwner) {
-                        searchHistoryAdapter?.submitList(it)
-                        if (it.isNullOrEmpty()) recentSearchHistory?.visibility = View.GONE
+                    is SearchViewStatus.ShowSearchHistory -> {
+                        // Ẩn search result và hiện search hístories nếu có
+                        usersRecyclerView?.visibility = View.GONE
+                        binding.tvSearchedUserEmpty.visibility = View.GONE
+                        recentSearchHistory?.visibility =
+                            if (viewModel.searchHistories.value.isNullOrEmpty())
+                                View.GONE
+                            else
+                                View.VISIBLE
                     }
 
-                    viewModel.searchResultList.observe(this.viewLifecycleOwner) {
-                        userAdapter?.submitList(it)
+                    is SearchViewStatus.Other -> {
+                        if (searchViewEditText?.text.isNullOrEmpty()) {
+                            viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchHistory)
+                        }
                     }
+                }
+            }
 
-                    viewModel.searchViewStatus.observe(this.viewLifecycleOwner) {
-                        when (it) {
-                            is SearchViewStatus.ShowSearchResult -> {
-                                // ẩn searchHistories và hiện search result
-                                recentSearchHistory?.visibility = View.GONE
-                                binding.isSearchedUserEmpty =
-                                    viewModel.searchResultList.value.isNullOrEmpty()
-                            }
+            viewModel.chatRoomsLiveData.observe(viewLifecycleOwner) { chatRoomsList ->
+                lifecycleScope.launch {
+                    if (chatRoomsList != null) {
+                        viewModel.setIsLoadingStatus(false)
+                        binding.isConversationEmpty = chatRoomsList.isEmpty()
 
-                            is SearchViewStatus.ShowSearchHistory -> {
-                                // Ẩn search result và hiện search hístories nếu có
-                                usersRecyclerView?.visibility = View.GONE
-                                binding.tvSearchedUserEmpty.visibility = View.GONE
-                                recentSearchHistory?.visibility =
-                                    if (viewModel.searchHistories.value.isNullOrEmpty())
-                                        View.GONE
-                                    else
-                                        View.VISIBLE
-                            }
-
-                            is SearchViewStatus.Other -> {
-                                // Hiện Search Histories nếu text trong ô tìm kiếm rỗng
-                                if (searchViewEditText?.text.isNullOrEmpty()) {
-                                    viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchHistory)
+                        if (chatRoomsList.isNotEmpty()) {
+                            // Safely handle the chatRoomIdFromNotification value
+                            val chatRoomId = viewModel.chatRoomIdFromNotification.first()
+                            if (!chatRoomId.isNullOrEmpty()) {
+                                val chatRoom =
+                                    chatRoomsList.firstOrNull { it.chatRoomId == chatRoomId }
+                                if (chatRoom != null) {
+                                    navigateToChatRoom(
+                                        chatRoom = chatRoom,
+                                        isOpenedFromNotification = true
+                                    )
                                 }
                             }
                         }
+
+                        chatroomAdapter?.submitList(chatRoomsList)
                     }
+                }
+            }
 
-                    viewModel.chatRoomsLiveData.observe(viewLifecycleOwner) { chatRoomsList ->
-                        if (chatRoomsList != null) {
-                            viewModel.setIsLoadingStatus(false)
-                            binding.isConversationEmpty = chatRoomsList.isEmpty()
-
-                            if (chatRoomsList.isNotEmpty()) {
-                                // Safely handle the chatRoomIdFromNotification value
-                                val chatRoomId = viewModel.chatRoomIdFromNotification.value
-                                if (!chatRoomId.isNullOrEmpty()) {
-                                    val chatRoom =
-                                        chatRoomsList.firstOrNull { it.chatRoomId == chatRoomId }
-                                    if (chatRoom != null) {
-                                        navigateToChatRoom(
-                                            chatRoom = chatRoom,
-                                            isOpenedFromNotification = true
-                                        )
+            viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) { userdata ->
+                if (userdata != null && !userdata.uid.isNullOrEmpty()) {
+                    if (!viewModel.isFragmentCreatedFirstTime) {
+                        searchBar?.hint = getString(R.string.hi_user, userdata.username)
+                        TimeUtils.startCountdown(countDownTime = 3) {
+                            searchBar?.hint = getString(R.string.search)
+                        }
+                    }
+                    context?.let { context ->
+                        _binding?.let {
+                            loadingProgressBarMenu?.isVisible =
+                                !viewModel.isFragmentCreatedFirstTime
+                        }
+                        MediaUtils.loadImageWithListener(
+                            context = context,
+                            photo = userdata.userAvatar ?: R.drawable.ic_broken_image,
+                            actionOnResourceReady = { draw ->
+                                viewModel.isFragmentCreatedFirstTime = true
+                                lifecycleScope.launch(Dispatchers.Main) {
+                                    _binding?.let {
+                                        loadingProgressBarMenu?.isVisible = false
+                                        avatarMenu?.apply {
+                                            isVisible = true
+                                            icon = draw
+                                        }
+                                    }
+                                }
+                            },
+                            actionOnLoadFailed = {
+                                viewModel.isFragmentCreatedFirstTime = true
+                                lifecycleScope.launch(Dispatchers.Main) {
+                                    _binding?.let {
+                                        loadingProgressBarMenu?.isVisible = false
+                                        avatarMenu?.apply {
+                                            isVisible = true
+                                            icon = AppCompatResources.getDrawable(
+                                                context,
+                                                R.drawable.ic_broken_image
+                                            )
+                                        }
                                     }
                                 }
                             }
-
-                            chatroomAdapter?.submitList(chatRoomsList)
-                        }
-                    }
-
-                    viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) { userdata ->
-                        if (userdata != null && !userdata.uid.isNullOrEmpty()) {
-                            if (!viewModel.isFragmentCreatedFirstTime) {
-                                searchBar?.hint = getString(R.string.hi_user, userdata.username)
-                                TimeUtils.startCountdown(countDownTime = 3) {
-                                    searchBar?.hint = getString(R.string.search)
-                                }
-                            }
-                            context?.let { context ->
-                                _binding?.let {
-                                    loadingProgressBarMenu?.isVisible =
-                                        !viewModel.isFragmentCreatedFirstTime
-                                }
-                                MediaUtils.loadImageWithListener(
-                                    context = context,
-                                    photo = userdata.userAvatar ?: R.drawable.ic_broken_image,
-                                    actionOnResourceReady = { draw ->
-                                        viewModel.isFragmentCreatedFirstTime = true
-                                        lifecycleScope.launch(Dispatchers.Main) {
-                                            _binding?.let {
-                                                loadingProgressBarMenu?.isVisible = false
-                                                avatarMenu?.apply {
-                                                    isVisible = true
-                                                    icon = draw
-                                                }
-                                            }
-                                        }
-                                    },
-                                    actionOnLoadFailed = {
-                                        viewModel.isFragmentCreatedFirstTime = true
-                                        lifecycleScope.launch(Dispatchers.Main) {
-                                            _binding?.let {
-                                                loadingProgressBarMenu?.isVisible = false
-                                                avatarMenu?.apply {
-                                                    isVisible = true
-                                                    icon = AppCompatResources.getDrawable(
-                                                        context,
-                                                        R.drawable.ic_broken_image
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-                        }
+                        )
                     }
                 }
             }
@@ -371,7 +362,6 @@ class HomeFragment : Fragment() {
         userAdapter = null
         searchHistoriesRecyclerView = null
         searchHistoryAdapter = null
-        storyRecyclerView = null
         recentSearchHistory = null
         viewModel.setSearchViewStatus(SearchViewStatus.ShowSearchResult)
     }

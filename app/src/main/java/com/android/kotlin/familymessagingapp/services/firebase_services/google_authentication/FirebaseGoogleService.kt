@@ -44,7 +44,7 @@ class FirebaseGoogleService(
                 FindIntentSenderResult.Success(beginSignIn.pendingIntent.intentSender)
             } catch (e: Exception) {
                 e.printStackTrace()
-                if (e is CancellationException) throw e
+//                if (e is CancellationException) throw e
                 if (e is ApiException) FindIntentSenderResult.NoAccountFound
                 else FindIntentSenderResult.Error(e)
             }

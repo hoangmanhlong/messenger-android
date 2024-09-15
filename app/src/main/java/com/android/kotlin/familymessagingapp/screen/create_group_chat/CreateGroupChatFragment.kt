@@ -140,16 +140,7 @@ class CreateGroupChatFragment : Fragment() {
                     }
                     is CreateNewChatRoomStatus.Fail -> {
                         (activity as MainActivity).isShowLoadingDialog(false)
-                        var message = R.string.error_occurred
-                        val exception = it.exception
-//                        if (exception is InvalidChatRoomException) {
-//
-//                        } else if(exception is ServerErrorException) {
-//
-//                        } else {
-//
-//                        }
-                        showErrorDialog(message)
+                        showErrorDialog(R.string.error_occurred)
                     }
 
                     is CreateNewChatRoomStatus.Loading -> {

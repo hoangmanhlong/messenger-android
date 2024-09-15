@@ -81,12 +81,13 @@ object StringUtils {
 
                     if (!text.isNullOrEmpty()) {
                         result = text
-                    } else if(!medias.isNullOrEmpty() && text.isNullOrEmpty()) {
+                    } else if (!medias.isNullOrEmpty() && text.isNullOrEmpty()) {
 
                         // Check all medias are images
                         val isAllImage = medias.all { it.type == FileType.IMAGE.value }
 
-                        result = context.getString(if (isAllImage) R.string.photo_last_message else R.string.sent_file)
+                        result =
+                            context.getString(if (isAllImage) R.string.photo_last_message else R.string.sent_file)
                     }
 
                     // Add sender name at the beginning
@@ -169,4 +170,10 @@ object StringUtils {
     }
 
     fun getUidFromFormattedQrCode(text: String): String = text.split("___")[0]
+
+    fun formatMyQRCodeImageName(username: String?): String {
+        var formattedName = username
+        formattedName = if (formattedName.isNullOrEmpty()) Constant.MY_QR_CODE_DEFAULT_NAME else formattedName.replace(" ", "_")
+        return formattedName + "_" + getCurrentTime()
+    }
 }

@@ -26,7 +26,6 @@ sealed class CreateNewChatRoomStatus {
     data object Loading : CreateNewChatRoomStatus()
 }
 
-
 @HiltViewModel
 class CreateGroupChatViewModel @Inject constructor(
     private val firebaseServiceRepository: FirebaseServiceRepository
@@ -55,7 +54,6 @@ class CreateGroupChatViewModel @Inject constructor(
 
     private val _selectedContacts: MutableLiveData<MutableList<Contact>> =
         MutableLiveData(mutableListOf())
-    val selectedContacts: LiveData<MutableList<Contact>> = _selectedContacts
 
     private val _chatRoom: MutableLiveData<ChatRoom> =
         MutableLiveData(ChatRoom(chatRoomType = ChatRoomType.Group.type))

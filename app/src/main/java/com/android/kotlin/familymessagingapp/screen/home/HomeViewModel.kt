@@ -34,8 +34,7 @@ class HomeViewModel @Inject constructor(
 
     val chatRoomIdFromNotification = localDatabaseRepository
         .appDataStore
-        .getStringPreferenceFlow(AppDataStore.CHAT_ROOM_ID_FROM_NOTIFICATION, "")
-        .asLiveData()
+        .getStringPreferenceFlow(AppDataStore.CHAT_ROOM_ID_FROM_NOTIFICATION, null)
 
     val authenticateState: LiveData<Boolean?> = firebaseServiceRepository.authenticateState
 

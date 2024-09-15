@@ -1,16 +1,16 @@
 package com.android.kotlin.familymessagingapp.screen.profile
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.activity.MainActivity
+import com.android.kotlin.familymessagingapp.activity.MainViewModel
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.ConfirmDeleteAccountFragment
@@ -18,8 +18,6 @@ import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.Delet
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -30,13 +28,14 @@ class ProfileFragment : Fragment() {
 
     private val _viewModel: ProfileViewModel by viewModels()
 
+    private val mainViewModel: MainViewModel by activityViewModels()
+
     private var _binding: FragmentProfileBinding? = null
 
     private val binding get() = _binding!!
 
-    private var isDialogShowing: Boolean? = false
+    private var logOutDialog: AlertDialog? = null
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -45,13 +44,7 @@ class ProfileFragment : Fragment() {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         binding.fragment = this@ProfileFragment
 
-        binding.enabledAI.setOnCheckedChangeListener { _, isChecked ->
-            context?.let {
-                NetworkChecker.checkNetwork(it) {
-                    _viewModel.enableAI(isChecked)
-                }
-            }
-        }
+        binding.enabledAI.setOnClickListener { _viewModel.enableAI() }
 
         binding.deleteAccountView.setOnClickListener {
             ConfirmDeleteAccountFragment().show(
@@ -60,16 +53,10 @@ class ProfileFragment : Fragment() {
             )
         }
 
-        binding.logOutView.setOnClickListener {
-            if (!isDialogShowing!!) onLogoutViewClick()
-        }
+        binding.logOutView.setOnClickListener { onLogoutViewClick() }
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
 
-        binding.feedbackView.setOnClickListener {
-            activity?.let {
-                DeviceUtils.composeEmail(it, arrayOf(getString(R.string.feedback_mail)), null)
-            }
-        }
+        binding.feedbackView.setOnClickListener { activity?.let { _viewModel.composeFeedback(it) } }
 
         binding.notificationView.setOnClickListener {
             activity?.let { DeviceUtils.openNotificationPermissionSetting(it) }
@@ -82,16 +69,15 @@ class ProfileFragment : Fragment() {
         return binding.root
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        _viewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) {
+        mainViewModel.isTheEnglishLanguageDisplayed.observe(this.viewLifecycleOwner) {
             binding.isTheEnglishLanguageDisplayed = it
         }
 
         binding.ivAvatar.setOnClickListener {
-            val userData = _viewModel.currentUserLiveData.value
+            val userData = mainViewModel.currentUserLiveData.value
             userData?.let {
                 val action =
                     ProfileFragmentDirections.actionProfileFragmentToProfileDetailFragment(it)
@@ -99,7 +85,7 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        _viewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
+        mainViewModel.currentUserLiveData.observe(this.viewLifecycleOwner) {
             it?.let { binding.userData = it }
         }
 
@@ -122,50 +108,35 @@ class ProfileFragment : Fragment() {
             binding.areNotificationsEnabled = areNotificationsEnabled
         }
 
-        _viewModel.isLoading.observe(this.viewLifecycleOwner) {
-            (activity as MainActivity).isShowLoadingDialog(it)
-        }
+        _viewModel.isLoading.observe(this.viewLifecycleOwner) { mainViewModel.setIsLoading(it) }
     }
 
     override fun onStart() {
         super.onStart()
-        activity?.let {
-            (activity as MainActivity).saveNotificationStatus(
-                PermissionUtils.areNotificationsEnabled(it)
-            )
-        }
+        mainViewModel.saveCurrentNotificationStatus()
         EventBus.getDefault().register(this)
     }
 
-    fun deleteAccount() {
-        _viewModel.deleteAccount()
-    }
+    fun deleteAccount() = _viewModel.deleteAccount()
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        (activity as MainActivity).isShowLoadingDialog(false)
+        if (logOutDialog?.isShowing == true) logOutDialog?.dismiss()
+        logOutDialog = null
+        mainViewModel.setIsLoading(false)
     }
 
     private fun onLogoutViewClick() {
         context?.let {
-            NetworkChecker.checkNetwork(it) {
-                isDialogShowing = true
-                DialogUtils.logoutDialog(
+            if (logOutDialog == null) {
+                logOutDialog = DialogUtils.logoutDialog(
                     context = it,
-                    onPositiveClick = {
-                        _viewModel.logout()
-                    },
-                    onNegativeClick = {
-                        isDialogShowing = false
-                        Unit
-                    },
-                    onCancelListener = {
-                        isDialogShowing = false
-                        Unit
-                    })
-                    .show()
+                    onPositiveClick = { _viewModel.logout() }
+                )
             }
+
+            if (logOutDialog?.isShowing == false) logOutDialog?.show()
         }
     }
 

@@ -3,17 +3,15 @@ package com.android.kotlin.familymessagingapp.utils
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
+import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
-import androidx.annotation.RequiresApi
 import com.android.kotlin.familymessagingapp.BuildConfig
+import com.android.kotlin.familymessagingapp.R
 import java.util.Locale
 
 object DeviceUtils {
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun openNotificationPermissionSetting(context: Context) {
         val intent = Intent().apply {
             action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
@@ -43,16 +41,15 @@ object DeviceUtils {
         return currentLocale.language
     }
 
-    fun shareImage(context: Context, drawable: Drawable) {
-        val uriToImage = MediaUtils.createUriFromDrawable(context, drawable) ?: return
+    fun shareImage(context: Context, bitmap: Bitmap, imageName: String) {
+        val uriToImage = MediaUtils.createUriFromDrawable(context, bitmap, imageName) ?: return
         val shareIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            // Example: content://com.google.android.apps.photos.contentprovider/...
             putExtra(Intent.EXTRA_STREAM, uriToImage)
             type = "image/*"
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // Cấp quyền đọc tạm thời
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // Grant temporary read permissions
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Chia sẻ hình ảnh qua"))
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_image_with)))
     }
 
     fun isAppInBackground(context: Context): Boolean {

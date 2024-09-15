@@ -1,5 +1,7 @@
 package com.android.kotlin.familymessagingapp.activity
 
+import android.content.Context
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.LiveData
@@ -9,6 +11,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.UserData
+import com.android.kotlin.familymessagingapp.repository.AppRepository
 import com.android.kotlin.familymessagingapp.repository.BackendServiceRepository
 import com.android.kotlin.familymessagingapp.repository.FirebaseServiceRepository
 import com.android.kotlin.familymessagingapp.repository.LocalDatabaseRepository
@@ -22,8 +25,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val backendServiceRepository: BackendServiceRepository,
-    private val firebaseServiceRepository: FirebaseServiceRepository,
-    private val localDatabaseRepository: LocalDatabaseRepository
+    firebaseServiceRepository: FirebaseServiceRepository,
+    private val localDatabaseRepository: LocalDatabaseRepository,
+    private val appRepository: AppRepository
 ) : ViewModel() {
 
     companion object {
@@ -38,6 +42,10 @@ class MainViewModel @Inject constructor(
                 enabled
             )
         }
+    }
+
+    fun saveCurrentNotificationStatus() {
+        saveNotificationStatus(appRepository.getCurrentNotificationStatus())
     }
 
     val currentUserLiveData: LiveData<UserData?> = firebaseServiceRepository
@@ -84,6 +92,18 @@ class MainViewModel @Inject constructor(
 
     init {
         executeTheJobOnFirstRun()
+    }
+
+    fun shareMyQRCode(context: Context, qrView: ViewGroup) {
+        viewModelScope.launch(Dispatchers.IO) {
+            appRepository.shareQrCode(context, qrView, currentUserLiveData.value?.username)
+        }
+    }
+
+    fun saveQrCode(qrView: ViewGroup) {
+        viewModelScope.launch(Dispatchers.IO) {
+            appRepository.saveQrCode(qrView, currentUserLiveData.value?.username)
+        }
     }
 
     override fun onCleared() {
