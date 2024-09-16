@@ -34,7 +34,7 @@
                 app:strokeWidth="0dp">
 
                 <ImageView
-                    bindNormalImage="@{userdata.userAvatar}"
+                    bindUserAvatar="@{userdata.userAvatar}"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"

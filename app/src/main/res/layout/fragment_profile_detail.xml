@@ -99,7 +99,7 @@
 
                             <ImageView
                                 android:id="@+id/ivAvatar"
-                                bindNormalImage="@{userData.userAvatar}"
+                                bindUserAvatar="@{userData.userAvatar}"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:contentDescription="@null"

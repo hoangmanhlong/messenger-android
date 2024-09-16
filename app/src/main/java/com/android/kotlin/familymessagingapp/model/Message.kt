@@ -4,7 +4,6 @@ import android.os.Parcelable
 import com.android.kotlin.familymessagingapp.data.remote.socket.BackendEvent
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -36,6 +35,7 @@ data class Message(
     val replyMessageId: String? = null,
     val removedBy: String? = null,
     val medias: List<MediaData>? = null,
+    val repliedMediaData: MediaData? = null,
     @Exclude var pinned: Boolean? = null,
     @Exclude var replyMessage: Message? = null,
     @Exclude @Contextual var senderData: UserData? = null,
@@ -44,9 +44,6 @@ data class Message(
 
     @Exclude
     fun isTextEmpty(): Boolean = text.isNullOrEmpty()
-
-    @Exclude
-    fun isReplyMessageEmpty(): Boolean = replyMessageId.isNullOrEmpty()
 
     @Exclude
     fun removedByIsEmpty(): Boolean = removedBy.isNullOrEmpty()

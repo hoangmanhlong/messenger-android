@@ -82,30 +82,54 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:layout_gravity="end"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/tvTextReplyMessage"
-                            style="@style/TextAppearance.AppCompat.Body1"
-                            android:layout_width="match_parent"
+                        <LinearLayout
+                            android:gravity="center_vertical"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_removed_message_middle_of_sender"
-                            android:ellipsize="end"
-                            android:padding="8dp"
-                            android:singleLine="true"
-                            android:textSize="16sp"
-                            tools:text="@string/logout_message" />
+                            android:background="@drawable/bg_reply_message_of_sender"
+                            android:orientation="horizontal"
+                            android:padding="8dp">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/replyMessageImageContainerView"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginHorizontal="8dp"
+                                android:visibility="gone"
+                                app:cardCornerRadius="8dp"
+                                app:strokeWidth="0dp"
+                                tools:visibility="visible">
+
+                                <ImageView
+                                    android:id="@+id/ivReplyMessageMedia"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    tools:src="@drawable/baohong" />
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <TextView
+                                android:id="@+id/tvTextReplyMessage"
+                                style="@style/TextAppearance.AppCompat.Body1"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxWidth="200dp"
+                                android:maxLines="2"
+                                tools:text="@string/logout_message" />
+
+                        </LinearLayout>
 
                         <View
                             android:id="@+id/replyMessageView"
                             android:layout_width="4dp"
                             android:layout_height="match_parent"
-                            android:background="@drawable/bg_rounded_corners_view"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            android:background="@drawable/bg_rounded_corners_view" />
 
                     </LinearLayout>
 

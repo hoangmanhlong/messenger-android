@@ -125,6 +125,10 @@ class FirebaseRealtimeDatabaseService(
     private val _chatRooms = MutableStateFlow<List<ChatRoom>?>(null)
     val chatRooms: StateFlow<List<ChatRoom>?> = _chatRooms
 
+    private val contactsList = mutableListOf<Contact>()
+
+    private val contactsUid = mutableListOf<String>()
+
     /**
      * Message sent when creating a double chat room
      */
@@ -386,14 +390,36 @@ class FirebaseRealtimeDatabaseService(
     }
 
     suspend fun getContacts(): List<Contact> = withContext(Dispatchers.IO) {
-        if (Firebase.auth.currentUser == null) return@withContext emptyList()
+        if (Firebase.auth.currentUser == null) {
+            contactsList.clear()
+            contactsUid.clear()
+            return@withContext emptyList()
+        }
         try {
-            _privateUserData.value?.contacts?.mapNotNull {
-                async {
-                    val userData = getUserData(it.key)
-                    it.value.toContact().copy(contactData = userData)
-                }
-            }?.awaitAll() ?: emptyList()
+            val privateUserDataContacts = _privateUserData.value?.contacts
+            if (privateUserDataContacts.isNullOrEmpty()) {
+                emptyList()
+            } else if (StringUtils.areListsEqual(
+                    contactsUid,
+                    privateUserDataContacts.keys.toList()
+                )
+            ) {
+                contactsList
+            } else {
+                val contacts = privateUserDataContacts
+                    .mapNotNull {
+                        async {
+                            val userData = getUserData(it.key)
+                            it.value.toContact().copy(contactData = userData)
+                        }
+                    }
+                    .awaitAll()
+                contactsList.clear()
+                contactsList.addAll(contacts)
+                contactsUid.clear()
+                contactsUid.addAll(privateUserDataContacts.keys.toList())
+                contacts
+            }
         } catch (e: Exception) {
             emptyList()
         }
@@ -565,7 +591,8 @@ class FirebaseRealtimeDatabaseService(
                 text = message.text,
                 senderId = auth.uid,
                 reactions = message.reactions,
-                replyMessageId = message.replyMessageId
+                replyMessageId = message.replyMessageId,
+                repliedMediaData = message.repliedMediaData
             )
 
             val medias = mutableListOf<MediaData>()
@@ -791,6 +818,8 @@ class FirebaseRealtimeDatabaseService(
         _privateUserData.value = null
         _chatRooms.value = null
         chatroomIDList.clear()
+        contactsUid.clear()
+        contactsList.clear()
     }
 
     /**

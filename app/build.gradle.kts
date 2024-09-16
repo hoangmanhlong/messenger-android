@@ -183,6 +183,9 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.github.MikeOrtiz:TouchImageView:1.4.1")
 
+    val lottieVersion = "3.4.0"
+    implementation("com.airbnb.android:lottie:$lottieVersion")
+
 }
 
 kapt {

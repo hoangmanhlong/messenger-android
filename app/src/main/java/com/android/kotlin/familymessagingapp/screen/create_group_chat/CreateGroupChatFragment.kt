@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ImageView
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -19,6 +20,7 @@ import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentCreateGroupChatBinding
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -37,9 +39,7 @@ class CreateGroupChatFragment : Fragment() {
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
-            it?.let {
-                viewModel.updateSelectedImageUri(it)
-            }
+            it?.let { viewModel.updateSelectedImageUri(it) }
         }
 
     override fun onCreateView(
@@ -113,11 +113,12 @@ class CreateGroupChatFragment : Fragment() {
         }
 
         viewModel.selectedImageUri.observe(this.viewLifecycleOwner) {
-            if (it == null) {
-                binding.chatRoomImageView.setImageResource(R.drawable.group)
-            } else {
-                binding.chatRoomImageView.setImageURI(it)
-            }
+            MediaUtils.loadImageFollowImageViewSize(
+                imageView = binding.chatRoomImageView,
+                photo = it,
+                fallback = R.drawable.group,
+                scaleType = ImageView.ScaleType.CENTER_CROP
+            )
         }
 
         viewModel.clearSearchInputState.observe(this.viewLifecycleOwner) {
@@ -133,11 +134,12 @@ class CreateGroupChatFragment : Fragment() {
 
         viewModel.createNewChatRoomStatus.observe(this.viewLifecycleOwner) {
             it?.let {
-                when(it) {
+                when (it) {
                     is CreateNewChatRoomStatus.Success -> {
                         (activity as MainActivity).isShowLoadingDialog(false)
                         findNavController().navigateUp()
                     }
+
                     is CreateNewChatRoomStatus.Fail -> {
                         (activity as MainActivity).isShowLoadingDialog(false)
                         showErrorDialog(R.string.error_occurred)

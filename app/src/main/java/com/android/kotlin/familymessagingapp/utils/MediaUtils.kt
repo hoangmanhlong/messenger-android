@@ -524,6 +524,7 @@ object MediaUtils {
         @DrawableRes fallback: Int = R.drawable.ic_broken_image,
         @DrawableRes placeholder: Int = R.drawable.loading_animation,
         @DrawableRes error: Int = R.drawable.ic_broken_image,
+        diskCacheStrategy: DiskCacheStrategy = DiskCacheStrategy.RESOURCE
     ) {
         if (photo == null) {
             imageView.setImageResource(fallback)
@@ -543,7 +544,7 @@ object MediaUtils {
             .error(error)
             .placeholder(placeholder)
             .override(targetWidth, targetHeight)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .diskCacheStrategy(diskCacheStrategy)
 
         when (scaleType) {
             ImageView.ScaleType.CENTER_CROP -> requestBuilder.centerCrop()

@@ -14,17 +14,15 @@ import com.bumptech.glide.request.target.Target
 
 // Rule : The first parameter in the binding function is always view
 // If using object class, add fields @JvmStatic before the method
-@BindingAdapter("bindNormalImage")
-fun <T> bindNormalImage(imageView: ImageView, photo: T?) {
-    photo?.let {
-        Glide.with(imageView.context)
-            .load(photo)
-            .error(R.drawable.ic_broken_image)
-            .placeholder(R.drawable.loading_animation)
-            .override(600, 600)
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .into(imageView)
-    } ?: imageView.setImageResource(R.drawable.ic_user_default)
+
+@BindingAdapter("bindUserAvatar")
+fun <T> bindUserAvatar(imageView: ImageView, photo: T?) {
+    MediaUtils.loadImageFollowImageViewSize(
+        imageView = imageView,
+        photo = photo,
+        fallback = R.drawable.ic_user_default,
+        placeholder = R.drawable.ic_user_default
+    )
 }
 
 @BindingAdapter("bindPhotoMessage")
@@ -83,11 +81,7 @@ fun <T> loadImageFollowImageViewSize(imageView: ImageView, image: T?) {
 
 @BindingAdapter("bindPinnedBy")
 fun bindPinnedBy(textView: TextView, pinnedMessage: PinnedMessage) {
-    textView.text = textView.context.getString(
-        R.string.pinned_by,
-        pinnedMessage.senderName,
-        StringUtils.formatTime(pinnedMessage.pinTime!!, false)
-    )
+
 }
 
 @BindingAdapter("bindChatRoomTypeStatus")

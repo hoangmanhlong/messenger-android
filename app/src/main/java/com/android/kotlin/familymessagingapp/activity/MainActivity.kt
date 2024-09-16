@@ -29,9 +29,8 @@ import com.android.kotlin.familymessagingapp.databinding.ActivityMainBinding
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.PermissionUtils
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.TimeUtils
-import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
@@ -119,7 +118,7 @@ class MainActivity : AppCompatActivity() {
 
         _viewModel.currentUserLiveData.observe(this) { userdata ->
             if (userdata != null && !userdata.uid.isNullOrEmpty()) {
-                bindNormalImage(userImageView, userdata.userAvatar)
+                MediaUtils.loadImageFollowImageViewSize(userImageView, userdata.userAvatar)
                 usernameTextView.text = userdata.username
                 userEmailTextView.text = userdata.email
                 verifiedMaterialCardView.visibility =

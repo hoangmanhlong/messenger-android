@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,12 +13,13 @@ import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutReceiverMessageBinding
 import com.android.kotlin.familymessagingapp.databinding.LayoutSenderMessageBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
-import com.android.kotlin.familymessagingapp.model.Message
-import com.android.kotlin.familymessagingapp.model.Reaction
 import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.model.MediaData
+import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.Reaction
+import com.android.kotlin.familymessagingapp.model.getFileDrawableRes
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.StringUtils
-import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -97,25 +99,36 @@ class MessageAdapter(
                     if (replyMessage.removedByIsEmpty()) {
 
                         val replyMessageText = replyMessage.text
-                        val replyMessageMedias = replyMessage.medias
+                        val replyMessageMedia = message.repliedMediaData
 
-                        // Determine whether to display text, media, or both
-                        val isNeedToShowTextOfReplyMessage = when {
-                            !replyMessageText.isNullOrEmpty() && !replyMessageMedias.isNullOrEmpty() -> true
-                            !replyMessageText.isNullOrEmpty() -> true
-                            !replyMessageMedias.isNullOrEmpty() -> false
-                            else -> null
-                        }
+                        if (!replyMessageText.isNullOrEmpty() && replyMessageMedia == null) {
+                            binding.tvTextReplyMessage.text = replyMessageText
+                            binding.replyMessageImageContainerView.visibility = View.GONE
+                        } else if(replyMessageMedia != null && message.replyMessage?.medias?.contains(replyMessageMedia) == true) {
+                            if (replyMessageMedia.type == FileType.IMAGE.value) {
+                                MediaUtils.loadImageFollowImageViewSize(
+                                    imageView = binding.ivReplyMessageMedia,
+                                    photo = replyMessageMedia.url,
+                                    scaleType = ImageView.ScaleType.CENTER_CROP
+                                )
+                                binding.tvTextReplyMessage.text = context.getString(R.string.photo_last_message)
+                            } else {
+                                val fileName = replyMessageMedia.fileName
+                                binding.tvTextReplyMessage.visibility =
+                                    if (fileName.isNullOrEmpty()) View.GONE else View.VISIBLE
 
-                        // Display the appropriate content
-                        when (isNeedToShowTextOfReplyMessage) {
-                            true -> binding.tvTextReplyMessage.text = replyMessageText
-                            false -> binding.tvTextReplyMessage.text = "[ ${binding.root.context.getString(R.string.file)} ]"
-                            else -> { /* Handle other cases if needed */ }
+                                binding.ivReplyMessageMedia.setImageResource(
+                                    getFileDrawableRes(replyMessageMedia.type)
+                                )
+                                binding.tvTextReplyMessage.text = fileName
+                            }
+                            binding.replyMessageImageContainerView.visibility = View.VISIBLE
+                        } else {
+                            binding.replyMessageImageContainerView.visibility = View.GONE
+                            binding.tvTextReplyMessage.text = context.getString(R.string.message_removed)
                         }
                     } else {
-                        binding.tvTextReplyMessage.text =
-                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                        binding.tvTextReplyMessage.text = context.getString(R.string.message_removed)
                     }
 
                     binding.replyMessageContainer.visibility = View.VISIBLE
@@ -200,9 +213,15 @@ class MessageAdapter(
 
                     if (files.isNotEmpty()) {
                         if (fileAdapter == null) {
-                            fileAdapter = FileAdapter(isSender = true) { mediaData ->
-                                onFileLongClick(true, mediaData, message)
-                            }
+                            fileAdapter = FileAdapter(
+                                isSender = true,
+                                onFileLongClick = {
+                                    onFileLongClick(true, it, message)
+                                },
+                                onFileContainerClick = {
+                                    onMessageContentViewClick()
+                                }
+                            )
                             binding.fileRecyclerView.adapter = fileAdapter
                         }
                         fileAdapter?.submitList(files)
@@ -411,25 +430,36 @@ class MessageAdapter(
                     if (replyMessage.removedByIsEmpty()) {
 
                         val replyMessageText = replyMessage.text
-                        val replyMessageMedias = replyMessage.medias
+                        val replyMessageMedia = message.repliedMediaData
 
-                        // Determine whether to display text, media, or both
-                        val isNeedToShowTextOfReplyMessage = when {
-                            !replyMessageText.isNullOrEmpty() && !replyMessageMedias.isNullOrEmpty() -> true
-                            !replyMessageText.isNullOrEmpty() -> true
-                            !replyMessageMedias.isNullOrEmpty() -> false
-                            else -> null
-                        }
+                        if (!replyMessageText.isNullOrEmpty() && replyMessageMedia == null) {
+                            binding.tvTextReplyMessage.text = replyMessageText
+                            binding.replyMessageImageContainerView.visibility = View.GONE
+                        } else if(replyMessageMedia != null && message.replyMessage?.medias?.contains(replyMessageMedia) == true) {
+                            if (replyMessageMedia.type == FileType.IMAGE.value) {
+                                MediaUtils.loadImageFollowImageViewSize(
+                                    imageView = binding.ivReplyMessageMedia,
+                                    photo = replyMessageMedia.url,
+                                    scaleType = ImageView.ScaleType.CENTER_CROP
+                                )
+                                binding.tvTextReplyMessage.text = context.getString(R.string.photo_last_message)
+                            } else {
+                                val fileName = replyMessageMedia.fileName
+                                binding.tvTextReplyMessage.visibility =
+                                    if (fileName.isNullOrEmpty()) View.GONE else View.VISIBLE
 
-                        // Display the appropriate content
-                        when (isNeedToShowTextOfReplyMessage) {
-                            true -> binding.tvTextReplyMessage.text = replyMessageText
-                            false -> binding.tvTextReplyMessage.text = "[ ${binding.root.context.getString(R.string.file)} ]"
-                            else -> { /* Handle other cases if needed */ }
+                                binding.ivReplyMessageMedia.setImageResource(
+                                    getFileDrawableRes(replyMessageMedia.type)
+                                )
+                                binding.tvTextReplyMessage.text = fileName
+                            }
+                            binding.replyMessageImageContainerView.visibility = View.VISIBLE
+                        } else {
+                            binding.replyMessageImageContainerView.visibility = View.GONE
+                            binding.tvTextReplyMessage.text = context.getString(R.string.message_removed)
                         }
                     } else {
-                        binding.tvTextReplyMessage.text =
-                            binding.tvTextReplyMessage.context.getString(R.string.message_removed)
+                        binding.tvTextReplyMessage.text = context.getString(R.string.message_removed)
                     }
 
                     binding.replyMessageContainer.visibility = View.VISIBLE
@@ -515,9 +545,15 @@ class MessageAdapter(
 
                     if (files.isNotEmpty()) {
                         if (fileAdapter == null) {
-                            fileAdapter = FileAdapter(isSender = false) { mediaData ->
-                                onFileLongClick(false, mediaData, message)
-                            }
+                            fileAdapter = FileAdapter(
+                                isSender = false,
+                                onFileLongClick = {
+                                    onFileLongClick(false, it, message)
+                                },
+                                onFileContainerClick = {
+                                    onMessageContentViewClick()
+                                }
+                            )
                             binding.fileRecyclerView.adapter = fileAdapter
                         }
                         fileAdapter?.submitList(files)
@@ -611,7 +647,13 @@ class MessageAdapter(
             chatRoomType == ChatRoomType.Group.type && isFirstReceiverMessage -> {
                 binding.tvReceiverName.visibility = View.VISIBLE
                 binding.receiverAvatarCardView.visibility = View.VISIBLE
-                bindNormalImage(binding.ivSenderAvatar, message.senderData?.userAvatar)
+                MediaUtils.loadImageFollowImageViewSize(
+                    binding.ivSenderAvatar,
+                    message.senderData?.userAvatar,
+                    fallback = R.drawable.ic_user_default,
+                    error = R.drawable.ic_user_default,
+                    placeholder = R.drawable.ic_user_default
+                )
 
                 val senderName =
                     message.senderData?.username ?: context.getString(R.string.app_user)

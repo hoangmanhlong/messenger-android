@@ -69,9 +69,9 @@ class ChatRoomDetailFragment : Fragment() {
             }
         }
 
-        binding.ivAvatar.setOnClickListener {
-            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        }
+//        binding.ivAvatar.setOnClickListener {
+//            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//        }
 
         return binding.root
     }

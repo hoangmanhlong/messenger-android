@@ -19,14 +19,33 @@
             android:id="@+id/view"
             android:layout_width="4dp"
             android:layout_height="0dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             android:background="@drawable/bg_rounded_corners_view"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/mediaDataImageContainer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            app:cardCornerRadius="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/view"
+            app:layout_constraintTop_toTopOf="parent"
+            app:strokeWidth="0dp">
+
+            <ImageView
+                android:id="@+id/ivMediaData"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:src="@drawable/baohong" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            style="@style/TextAppearance.Material3.BodyLarge"
             android:id="@+id/tvPinnedMessageText"
+            style="@style/TextAppearance.Material3.BodyLarge"
             bindFormattedContentOfPinnedMessage="@{pinnedMessage}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -36,7 +55,7 @@
             android:singleLine="true"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/view"
+            app:layout_constraintStart_toEndOf="@id/mediaDataImageContainer"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="All of your data will be permanently deleted and cannot be recovered.Are you sure you want to delete?. Are you sure you want to delete?" />
 
@@ -47,7 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/view"
+            app:layout_constraintStart_toEndOf="@id/mediaDataImageContainer"
             app:layout_constraintTop_toBottomOf="@id/tvPinnedMessageText"
             tools:text="Pinned by Long at 18:00" />
 

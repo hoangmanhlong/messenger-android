@@ -5,8 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutPinnedMessageBinding
 import com.android.kotlin.familymessagingapp.model.PinnedMessage
+import com.android.kotlin.familymessagingapp.utils.StringUtils
 
 class PinnedMessageAdapter(
     private val onPinnedMessageClick: (PinnedMessage) -> Unit
@@ -27,6 +29,15 @@ class PinnedMessageAdapter(
         private val binding: LayoutPinnedMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(pinnedMessage: PinnedMessage) {
+            val context = binding.root.context
+            binding.tvPinnedBy.text = context.getString(
+                R.string.pinned_by,
+                pinnedMessage.senderName,
+                StringUtils.formatTime(pinnedMessage.pinTime!!, false)
+            )
+
+
+
             binding.root.setOnClickListener {
                 onPinnedMessageClick(pinnedMessage)
             }

@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
@@ -26,12 +27,15 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
+import com.airbnb.lottie.LottieAnimationView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
 import com.android.kotlin.familymessagingapp.model.CountExceededException
+import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ObjectAlreadyExistException
 import com.android.kotlin.familymessagingapp.model.Result
+import com.android.kotlin.familymessagingapp.model.getFileDrawableRes
 import com.android.kotlin.familymessagingapp.screen.Screen
 import com.android.kotlin.familymessagingapp.screen.profile_detail.AppOpenMultipleDocuments
 import com.android.kotlin.familymessagingapp.utils.Constant
@@ -40,7 +44,6 @@ import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -120,6 +123,8 @@ class ChatRoomFragment : Fragment() {
 
     private var cameraPermissionRequiredDialog: AlertDialog? = null
 
+    private var aiCreatingAnimation: LottieAnimationView? = null
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -127,6 +132,8 @@ class ChatRoomFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatRoomBinding.inflate(inflater, container, false)
+
+        aiCreatingAnimation = binding.aiCreatingAnimation
 
         messageRecyclerview = binding.messageRecyclerview
         (messageRecyclerview?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
@@ -143,10 +150,9 @@ class ChatRoomFragment : Fragment() {
                 _viewModel.setSelectMediaData(mediaData)
                 openMessageOptions()
             },
-            onImageClick = { drawable, mediaData, _ ->
+            onImageClick = { drawable, _, _ ->
                 hideKeyboard()
-                _viewModel.setSelectMediaData(mediaData)
-                _viewModel.setImageDetailShown(true, drawable, mediaData)
+                _viewModel.setImageDetailShown(true, drawable)
             },
             onReplyMessageClick = {
                 if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {
@@ -182,14 +188,14 @@ class ChatRoomFragment : Fragment() {
         }
 
         binding.btCloseImageDetail.setOnClickListener {
-            _viewModel.setImageDetailShown(false, null, null)
+            _viewModel.setImageDetailShown(false, null)
         }
 
         messageRecyclerview?.adapter = messageAdapter
 
         selectedItemAdapter = SelectedItemAdapter(
             onItemRemove = { _viewModel.removeItemInSelectedItems(it) },
-            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it.uri, null) }
+            onPhotoItemClick = { _viewModel.setImageDetailShown(true, it.uri) }
         )
 
         selectedItemsRecyclerview = binding.selectedItemsRecyclerview
@@ -230,9 +236,7 @@ class ChatRoomFragment : Fragment() {
             _viewModel.setAIGeneratedText(null)
         }
 
-        binding.tvCloseGeneratedText.setOnClickListener {
-            _viewModel.setAIGeneratedText(null)
-        }
+        binding.tvCloseGeneratedText.setOnClickListener { _viewModel.setAIGeneratedText(null) }
 
         binding.etMessage.setOnTouchListener { _, _ ->
             _viewModel.hideEmojiPicker()
@@ -250,13 +254,9 @@ class ChatRoomFragment : Fragment() {
             }
         }
 
-        binding.ivExpandMorePinnedMessage.setOnClickListener {
-            _viewModel.setExpandPinnedMessage()
-        }
+        binding.ivExpandMorePinnedMessage.setOnClickListener { _viewModel.setExpandPinnedMessage() }
 
-        binding.ivCloseReplyMessage.setOnClickListener {
-            _viewModel.setReplyingMessage(false)
-        }
+        binding.ivCloseReplyMessage.setOnClickListener { _viewModel.setReplyingMessage(false) }
 
         binding.messagesBlankView.setOnClickListener {
             hideKeyboard()
@@ -283,11 +283,8 @@ class ChatRoomFragment : Fragment() {
 
         // When pressing the back button on the device, if Image Detail is showing, close Image Detail View
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
-            if (_viewModel.imageDetailShown.value == true)
-                _viewModel.setImageDetailShown(false, null, null)
-            else {
-                findNavController().navigateUp()
-            }
+            if (_viewModel.imageDetailShown.value == true) _viewModel.setImageDetailShown(false, null)
+            else findNavController().navigateUp()
         }
 
         messageAdapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
@@ -303,13 +300,12 @@ class ChatRoomFragment : Fragment() {
             }
         })
 
-        _viewModel.isLoading.observe(this.viewLifecycleOwner) {
-            binding.isLoading = it
-        }
-
         _viewModel.imageDetailShown.observe(this.viewLifecycleOwner) {
             binding.imageDetailShown = it
-            if (it) MediaUtils.loadImageFollowImageViewSize(binding.imageDetailImageView, _viewModel.selectedImage)
+            if (it) MediaUtils.loadImageFollowImageViewSize(
+                binding.imageDetailImageView,
+                _viewModel.selectedImage
+            )
             else binding.imageDetailImageView.resetZoom()
         }
 
@@ -358,7 +354,13 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.AICreating.observe(this.viewLifecycleOwner) {
-            binding.aiCreating = it
+            if (it) {
+                aiCreatingAnimation?.visibility = View.VISIBLE
+                aiCreatingAnimation?.playAnimation()
+            } else {
+                aiCreatingAnimation?.cancelAnimation()
+                aiCreatingAnimation?.visibility = View.GONE
+            }
         }
 
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
@@ -380,8 +382,14 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.AIGeneratedText.observe(this.viewLifecycleOwner) {
-            binding.hasAiText = !it.isNullOrEmpty()
-            binding.generatedText = it
+            if (it.isNullOrEmpty()) {
+                binding.aiGenerateView.visibility = View.GONE
+                binding.ivAIAnimation.cancelAnimation()
+            } else {
+                binding.tvAItext.text = it
+                binding.aiGenerateView.visibility = View.VISIBLE
+                binding.ivAIAnimation.playAnimation()
+            }
         }
 
         _viewModel.sendMessageStatus.observe(this.viewLifecycleOwner) {
@@ -434,22 +442,44 @@ class ChatRoomFragment : Fragment() {
         _viewModel.replyingMessage.observe(this.viewLifecycleOwner) { replyingMessage ->
             if (replyingMessage != null) {
                 val senderNameOfRepliedMessage =
-                    if (replyingMessage.senderId == Firebase.auth.uid) getString(R.string.sender_you) else replyingMessage.senderData?.username
-                        ?: ""
-                binding.tvSenderNameReplyMessage.text =
-                    getString(R.string.reply_to, senderNameOfRepliedMessage)
+                    if (replyingMessage.senderId == Firebase.auth.uid) getString(R.string.sender_you)
+                    else replyingMessage.senderData?.username ?: ""
 
-                if (!replyingMessage.text.isNullOrEmpty() || !replyingMessage.photo.isNullOrEmpty()) {
-                    context?.let {
-                        binding.tvTextReplyMessage.text =
-                            if (replyingMessage.text.isNullOrEmpty()) it.getString(R.string.sent_an_image) else replyingMessage.text
-                    }
+                binding.tvSenderNameReplyMessage.text = getString(
+                    R.string.reply_to,
+                    senderNameOfRepliedMessage
+                )
+
+                val text = replyingMessage.text
+                val selectedMedia = _viewModel.currentMediaDataOfReplyMessage
+                if (!text.isNullOrEmpty()) {
+                    binding.replyMessageImageContainerView.visibility = View.GONE
+                    binding.tvTextReplyMessage.text = text
+                    binding.tvTextReplyMessage.visibility = View.VISIBLE
+                    return@observe
                 }
-                if (!replyingMessage.photo.isNullOrEmpty()) {
-                    binding.replyMessageImageView.visibility = View.VISIBLE
-                    bindNormalImage(binding.replyMessageImageView, replyingMessage.photo)
-                } else {
-                    binding.replyMessageImageView.visibility = View.GONE
+
+                if (selectedMedia != null) {
+
+                    if (selectedMedia.type == FileType.IMAGE.value) {
+                        MediaUtils.loadImageFollowImageViewSize(
+                            imageView = binding.ivReplyMessageMedia,
+                            photo = selectedMedia.url,
+                            scaleType = ImageView.ScaleType.CENTER_CROP
+                        )
+                        binding.tvTextReplyMessage.text = getString(R.string.photo_last_message)
+                    } else {
+                        val fileName = selectedMedia.fileName
+                        binding.tvTextReplyMessage.visibility =
+                            if (fileName.isNullOrEmpty()) View.GONE else View.VISIBLE
+
+                        binding.ivReplyMessageMedia.setImageResource(
+                            getFileDrawableRes(selectedMedia.type!!)
+                        )
+                        binding.tvTextReplyMessage.text = fileName
+                    }
+
+                    binding.replyMessageImageContainerView.visibility = View.VISIBLE
                 }
             }
         }
@@ -598,7 +628,6 @@ class ChatRoomFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
         messageAdapter = null
         messageRecyclerview = null
         selectedItemAdapter = null
@@ -608,6 +637,10 @@ class ChatRoomFragment : Fragment() {
         sendOptionsFragment = null
         cameraPermissionRequiredDialog = null
         _viewModel.setPinMessageStatus(null)
+        aiCreatingAnimation?.cancelAnimation()
+        aiCreatingAnimation = null
+        binding.ivAIAnimation.cancelAnimation()
+        _binding = null
 //        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED)
     }

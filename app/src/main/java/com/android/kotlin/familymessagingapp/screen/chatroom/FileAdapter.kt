@@ -15,7 +15,8 @@ import com.android.kotlin.familymessagingapp.utils.MediaUtils
 
 class FileAdapter(
     val isSender: Boolean,
-    val onFileLongClick: (MediaData) -> Unit
+    val onFileLongClick: (MediaData) -> Unit,
+    val onFileContainerClick: () -> Unit
 ): ListAdapter<MediaData, FileAdapter.FileViewHolder>(DiffCallback) {
 
     companion object DiffCallback: DiffUtil.ItemCallback<MediaData>() {
@@ -35,17 +36,20 @@ class FileAdapter(
         }
 
         fun bind(mediaData: MediaData) {
+            val context = binding.root.context
             binding.ivFile.setImageResource(getFileDrawableRes(mediaData.type))
-            binding.tvFileName.text = mediaData.fileName ?: binding.root.context.getString(R.string.file_name_unknown)
+            binding.tvFileName.text = mediaData.fileName ?: context.getString(R.string.file_name_unknown)
             val fileType = MediaUtils.getFileExtensionFromString(mediaData.fileName ?: "")
-            binding.tvFileDescription.text = binding.root.context
+            binding.tvFileDescription.text = context
                 .getString(R.string.file_size_type, mediaData.fileSize, fileType)
 
-            binding.root.setOnClickListener {
-                MediaUtils.openFile(binding.root.context, mediaData)
+            binding.fileCard.setOnClickListener {
+                MediaUtils.openFile(context, mediaData)
             }
 
-            binding.root.setOnLongClickListener {
+            binding.root.setOnClickListener { onFileContainerClick() }
+
+            binding.fileCard.setOnLongClickListener {
                 onFileLongClick(mediaData)
                 true
             }

@@ -13,7 +13,6 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,11 +27,7 @@ import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBi
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
-import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
-import com.android.kotlin.familymessagingapp.utils.bindNormalImage
 import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.Target
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -150,7 +145,11 @@ class ProfileDetailFragment : Fragment() {
         if (activity == null) return
 
         // Load the high-resolution "zoomed-in" image.
-        loadImageFollowImageViewSize(binding.expandedImage, imageDrawable)
+        MediaUtils.loadImageFollowImageViewSize(
+            imageView = binding.expandedImage,
+            photo = imageDrawable,
+            placeholder = R.drawable.image_placeholder
+        )
 
         // Calculate the starting and ending bounds for the zoomed-in image.
         val startBoundsInt = Rect()

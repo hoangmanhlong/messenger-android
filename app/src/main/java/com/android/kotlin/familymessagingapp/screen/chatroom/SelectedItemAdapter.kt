@@ -1,6 +1,5 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,15 +7,11 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.LayoutSelectedItemBinding
 import com.android.kotlin.familymessagingapp.model.FileData
 import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.model.getFileDrawableRes
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
-import com.android.kotlin.familymessagingapp.utils.bindNormalImage
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 class SelectedItemAdapter(
     private val onItemRemove: (FileData) -> Unit,

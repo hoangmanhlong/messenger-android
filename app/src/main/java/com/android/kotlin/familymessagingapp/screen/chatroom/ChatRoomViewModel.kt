@@ -73,9 +73,6 @@ class ChatRoomViewModel @Inject constructor(
     private val _imageDetailShown = MutableLiveData(false)
     val imageDetailShown: LiveData<Boolean> = _imageDetailShown
 
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> = _isLoading
-
     private val _pinMessageStatus: MutableLiveData<Result<Boolean>?> = MutableLiveData(null)
     val pinMessageStatus: LiveData<Result<Boolean>?> = _pinMessageStatus
 
@@ -136,6 +133,8 @@ class ChatRoomViewModel @Inject constructor(
     private val _selectedMediaData: MutableLiveData<MediaData?> = MutableLiveData(null)
     val selectedMediaData: LiveData<MediaData?> = _selectedMediaData
 
+    var currentMediaDataOfReplyMessage: MediaData? = null
+
     var goToSettingToGrantWriteStoragePermission = false
 
     var goToSettingToGrantCameraPermission = false
@@ -169,7 +168,6 @@ class ChatRoomViewModel @Inject constructor(
         selectedMessageIsMessageOfMe = null
         _isExpandPinnedMessage.value = false
         _imageDetailShown.value = false
-        _isLoading.value = false
         _pinMessageStatus.value = null
         _emojiPickerVisible.value = false
         _sendMessageStatus.value = null
@@ -194,6 +192,7 @@ class ChatRoomViewModel @Inject constructor(
         _selectedMediaData.value = null
         goToSettingToGrantWriteStoragePermission = false
         goToSettingToGrantCameraPermission = false
+        currentMediaDataOfReplyMessage = null
     }
 
     fun setSelectMediaData(mediaData: MediaData?) {
@@ -217,8 +216,15 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun setReplyingMessage(isReplying: Boolean) {
-        _replyingMessage.value = if (isReplying) _selectedMessage.value else null
         _replying.value = isReplying
+        if (isReplying) {
+            currentMediaDataOfReplyMessage = _selectedMediaData.value
+            _replyingMessage.value = _selectedMessage.value
+        } else {
+            currentMediaDataOfReplyMessage = null
+            _replyingMessage.value = null
+        }
+
         message = message.copy(replyMessageId = _replyingMessage.value?.messageId)
     }
 
@@ -226,18 +232,9 @@ class ChatRoomViewModel @Inject constructor(
         _isExpandPinnedMessage.value = !_isExpandPinnedMessage.value!!
     }
 
-    fun hideLessPinnedMessage() {
-        if (_isExpandPinnedMessage.value == true) _isExpandPinnedMessage.value = false
-    }
-
-    fun <T> setImageDetailShown(shown: Boolean, image: T?, mediaData: MediaData?) {
+    fun <T> setImageDetailShown(shown: Boolean, image: T?) {
         selectedImage = image
         _imageDetailShown.value = shown
-        _selectedMediaData.value = mediaData
-    }
-
-    fun setIsLoading(isLoading: Boolean) {
-        _isLoading.value = isLoading
     }
 
     fun setAIGeneratedText(text: String?) {
@@ -333,7 +330,8 @@ class ChatRoomViewModel @Inject constructor(
                     val newPinnedMessage = PinnedMessage(
                         messageId = _selectedMessage.value!!.messageId,
                         senderId = Firebase.auth.uid!!,
-                        pinTime = StringUtils.getCurrentTime()
+                        pinTime = StringUtils.getCurrentTime(),
+                        pinnedMediaData = _selectedMediaData.value
                     )
                     val result = firebaseServiceRepository
                         .firebaseRealtimeDatabaseService
@@ -488,7 +486,8 @@ class ChatRoomViewModel @Inject constructor(
             val sendMessage = Message().copy(
                 text = message.text,
                 fileDataList = message.fileDataList,
-                replyMessageId = message.replyMessageId
+                replyMessageId = message.replyMessageId,
+                repliedMediaData = currentMediaDataOfReplyMessage
             )
             clearInput()
             if (_chatRoom.value?.chatRoomId.isNullOrEmpty()) {
@@ -570,8 +569,4 @@ class ChatRoomViewModel @Inject constructor(
         EventBus.getDefault().unregister(this@ChatRoomViewModel)
         EventBus.getDefault().removeStickyEvent(newChatRoomEventBus)
     }
-}
-
-private fun <T> MutableLiveData<List<T>>.getCurrentItems(): MutableList<T> {
-    return this.value?.toMutableList() ?: mutableListOf()
 }
