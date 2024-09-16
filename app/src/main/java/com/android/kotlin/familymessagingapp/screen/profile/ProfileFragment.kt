@@ -18,7 +18,6 @@ import com.android.kotlin.familymessagingapp.screen.confirm_delete_account.Delet
 import com.android.kotlin.familymessagingapp.screen.select_language.SelectLanguageBottomSheetDialogFragment
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import dagger.hilt.android.AndroidEntryPoint
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -114,6 +113,7 @@ class ProfileFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        binding.aiCreatingAnimation.playAnimation()
         mainViewModel.saveCurrentNotificationStatus()
         EventBus.getDefault().register(this)
     }
@@ -149,6 +149,7 @@ class ProfileFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+        binding.aiCreatingAnimation.cancelAnimation()
         EventBus.getDefault().unregister(this)
     }
 

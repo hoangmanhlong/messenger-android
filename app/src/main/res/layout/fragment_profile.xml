@@ -198,10 +198,12 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent">
 
-                            <ImageView
+                            <com.airbnb.lottie.LottieAnimationView
+                                android:id="@+id/aiCreatingAnimation"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_auto_awesome" />
+                                app:lottie_rawRes="@raw/gemini"
+                                app:lottie_loop="true"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
