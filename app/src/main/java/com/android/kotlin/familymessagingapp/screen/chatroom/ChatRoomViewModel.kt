@@ -139,6 +139,8 @@ class ChatRoomViewModel @Inject constructor(
 
     var goToSettingToGrantCameraPermission = false
 
+    private var latestMessage: Message? = null
+
     fun resetIsOpenFromNotificationFlag() {
         viewModelScope.launch(Dispatchers.IO) {
             localDatabaseRepository.appDataStore.saveString(
@@ -193,6 +195,7 @@ class ChatRoomViewModel @Inject constructor(
         goToSettingToGrantWriteStoragePermission = false
         goToSettingToGrantCameraPermission = false
         currentMediaDataOfReplyMessage = null
+        latestMessage = null
     }
 
     fun setSelectMediaData(mediaData: MediaData?) {
@@ -300,11 +303,28 @@ class ChatRoomViewModel @Inject constructor(
 
     fun deleteMessage() {
         viewModelScope.launch {
-            if (_selectedMessage.value?.senderId == Firebase.auth.uid && _chatRoom.value?.chatRoomId != null) {
-                firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteMessage(
-                    _chatRoom.value!!.chatRoomId!!,
-                    selectedMessage.value!!
-                )
+            val chatRoomId = _chatRoom.value?.chatRoomId
+            if (_selectedMessage.value?.senderId == Firebase.auth.uid && !chatRoomId.isNullOrEmpty()) {
+                val text = _selectedMessage.value?.text
+                val mediasOfCurrentMessage = _selectedMessage.value?.medias
+                val textNotNullAndMediaDataIsNull =
+                    !text.isNullOrEmpty() && mediasOfCurrentMessage == null && _selectedMediaData.value == null
+                val textIsNullAndMediaDataNotNull =
+                    text.isNullOrEmpty() && _selectedMediaData.value != null && mediasOfCurrentMessage?.size == 1
+                if (textIsNullAndMediaDataNotNull || textNotNullAndMediaDataIsNull) {
+                    firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteMessage(
+                        chatroomId = chatRoomId,
+                        message = selectedMessage.value!!,
+                        deletedMessageIsLatestMessage = latestMessage?.messageId == _selectedMessage.value?.messageId
+                    )
+                } else {
+                    firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteItemInMessage(
+                        chatroomId = chatRoomId,
+                        message = _selectedMessage.value!!,
+                        text = text,
+                        mediaData = _selectedMediaData.value
+                    )
+                }
             }
         }
     }
@@ -331,7 +351,8 @@ class ChatRoomViewModel @Inject constructor(
                         messageId = _selectedMessage.value!!.messageId,
                         senderId = Firebase.auth.uid!!,
                         pinTime = StringUtils.getCurrentTime(),
-                        pinnedMediaData = _selectedMediaData.value
+                        pinnedMediaData = _selectedMediaData.value,
+                        text = _selectedMessage.value!!.text
                     )
                     val result = firebaseServiceRepository
                         .firebaseRealtimeDatabaseService
@@ -387,16 +408,16 @@ class ChatRoomViewModel @Inject constructor(
                 _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
                 if (chatRoom != null) {
                     viewModelScope.launch {
-                        val lastMessage = chatRoom.messages?.values?.maxByOrNull { it.timestamp!! }
-                        if (lastMessage != null
-                            && lastMessage.senderId != Firebase.auth.uid
+                        latestMessage = chatRoom.messages?.values?.maxByOrNull { it.timestamp!! }
+                        if (latestMessage != null
+                            && latestMessage?.senderId != Firebase.auth.uid
                             && localDatabaseRepository.appDataStore.getBooleanPreferenceFlow(
                                 AppDataStore.ENABLED_AI,
                                 false
                             ).first() == true
                         ) {
                             _AICreating.value = true
-                            _AIGeneratedText.value = geminiModel.generateContent(lastMessage)
+                            _AIGeneratedText.value = geminiModel.generateContent(latestMessage!!)
                             _AICreating.value = false
                         } else {
                             _AIGeneratedText.value = null
@@ -457,7 +478,8 @@ class ChatRoomViewModel @Inject constructor(
         // Delete taken photo from device when user remove it from selected items
 
         // Check fileData have in uriOfTakenPhotos. if so take it out
-        val uriInUriOfTakenPhotos = uriOfTakenPhotos.firstOrNull { uri -> uri.toString() == fileData.uri.toString() }
+        val uriInUriOfTakenPhotos =
+            uriOfTakenPhotos.firstOrNull { uri -> uri.toString() == fileData.uri.toString() }
 
         // If it exists then clear it from cache
         if (uriInUriOfTakenPhotos != null) deleteTakenPhotoFromCamera(listOf(uriInUriOfTakenPhotos))
@@ -474,7 +496,8 @@ class ChatRoomViewModel @Inject constructor(
         if (uriOfTakenPhotos.isNotEmpty()) addSelectedUris(listOf(uriOfTakenPhotos.last()))
     }
 
-    private fun isInputValid(): Boolean = !message.text.isNullOrEmpty() || !message.fileDataList.isNullOrEmpty()
+    private fun isInputValid(): Boolean =
+        !message.text.isNullOrEmpty() || !message.fileDataList.isNullOrEmpty()
 
     fun clearEditText(clear: Boolean) {
         _clearInputMessage.value = clear

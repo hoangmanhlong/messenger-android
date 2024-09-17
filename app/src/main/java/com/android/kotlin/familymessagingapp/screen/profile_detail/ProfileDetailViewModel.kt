@@ -62,9 +62,9 @@ class ProfileDetailViewModel @Inject constructor(
     }
 
     private fun validInput(): Boolean {
-        return StringUtils.isNumber(userData.phoneNumber.toString())
-                && !userData.username.isNullOrEmpty()
-                && userData.phoneNumber.toString().length >= 10
+        val userName = userData.username
+        val phoneNumber = userData.phoneNumber
+        return !userName.isNullOrEmpty() && (phoneNumber.isNullOrEmpty() || StringUtils.isNumber(phoneNumber) && phoneNumber.length >= 10)
     }
 
     fun saveUserData() {
@@ -76,5 +76,4 @@ class ProfileDetailViewModel @Inject constructor(
             _isLoading.value = false
         }
     }
-
 }

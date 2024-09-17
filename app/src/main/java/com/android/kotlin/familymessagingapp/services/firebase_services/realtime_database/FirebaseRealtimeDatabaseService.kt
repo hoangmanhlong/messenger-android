@@ -36,6 +36,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.zxing.qrcode.decoder.Version.ECB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -54,6 +55,7 @@ import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import org.w3c.dom.Text
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -914,7 +916,7 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    suspend fun deleteMessage(chatroomId: String, message: Message): Result<Boolean> =
+    suspend fun deleteMessage(chatroomId: String, message: Message, deletedMessageIsLatestMessage: Boolean): Result<Boolean> =
         withContext(Dispatchers.IO) {
             try {
                 val messageId = message.messageId!!
@@ -940,13 +942,70 @@ class FirebaseRealtimeDatabaseService(
                             .removeValue()
                             .await()
                     }
+
+                    val updateChatRoomActivityTask = async {
+                        if (deletedMessageIsLatestMessage) {
+                            val updateChatActivity = ChatRoomActivity(
+                                latestActiveTime = StringUtils.getCurrentTime(),
+                                activityType = ChatActivityType.REMOVE_MESSAGE.value,
+                                performedByUser = Firebase.auth.uid,
+                            )
+
+                            chatRoomsRef.child(chatroomId)
+                                .child(ChatRoom.CHAT_ROOM_ACTIVITY)
+                                .setValue(updateChatActivity)
+                                .await()
+
+                        }
+                    }
+
                     // Await both tasks
                     deleteMessageTask.await()
                     deletePinnedMessageTask.await()
+                    updateChatRoomActivityTask.await()
                 }
                 Result.Success(true)
             } catch (e: Exception) {
                 Result.Error(e)
             }
         }
+
+    suspend fun deleteItemInMessage(
+        chatroomId: String,
+        message: Message,
+        text: String?,
+        mediaData: MediaData?
+    ) : Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val medias = message.medias
+            val newMediaDataList = mutableListOf<MediaData>()
+
+            if (mediaData != null && medias != null) {
+                newMediaDataList.addAll(medias)
+                newMediaDataList.remove(mediaData)
+            }
+
+            val updateMessage = Message().copy(
+                messageId = message.messageId,
+                senderId = message.senderId,
+                text = text,
+                medias = newMediaDataList,
+                reactions = message.reactions,
+                removedBy = message.removedBy,
+                repliedMediaData = message.repliedMediaData,
+                timestamp = message.timestamp,
+                replyMessageId = message.replyMessageId
+            )
+
+            chatRoomsRef.child(chatroomId)
+                .child(ChatRoom.MESSAGES)
+                .child(message.messageId!!)
+                .setValue(updateMessage)
+                .await()
+
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
 }

@@ -175,4 +175,8 @@
     <string name="grant_access">Grant access</string>
     <string name="qr_code_not_found">QR code does not exist. Please try again.</string>
     <string name="share_image_with">Share image with</string>
+    <string name="user_deleted_a_message">%s deleted a message</string>
+    <string name="unchangeable">Unchangeable</string>
+    <string name="username_required">Username (required)</string>
+    <string name="phone_number_optional">Phone number (optional)</string>
 </resources>

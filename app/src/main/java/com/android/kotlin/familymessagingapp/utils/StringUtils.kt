@@ -1,13 +1,13 @@
 package com.android.kotlin.familymessagingapp.utils
 
-import android.content.Context
+import android.graphics.Typeface
 import android.os.Build
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.ChatActivityType
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.FileType
-import com.android.kotlin.familymessagingapp.model.Message
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import java.time.Instant
@@ -66,16 +66,17 @@ object StringUtils {
         return regex.matches(url)
     }
 
-    fun getFormattedMessageOfLatestActivityInChatRoom(
-        context: Context,
-        chatRoom: ChatRoom
-    ): String {
+    fun getFormattedMessageOfLatestActivityInChatRoom(textView: TextView, chatRoom: ChatRoom) {
+        val context = textView.context
         var result = context.getString(R.string.connected)
         val chatRoomActivity = chatRoom.chatRoomActivity
+
+        var isNewMessageActivity = false
         if (chatRoomActivity != null) {
             when (chatRoomActivity.activityType) {
                 ChatActivityType.NEW_MESSAGE.value -> {
-                    val message = chatRoomActivity.newMessage ?: return result
+                    isNewMessageActivity = true
+                    val message = chatRoomActivity.newMessage ?: return
                     val text = message.text
                     val medias = message.medias
 
@@ -110,7 +111,10 @@ object StringUtils {
                 }
 
                 ChatActivityType.REMOVE_MESSAGE.value -> {
-
+                    val userdata = chatRoomActivity.dataOfUserPerformingTheActivity
+                    val senderName =
+                        if (userdata?.uid == Firebase.auth.uid) context.getString(R.string.sender_you) else userdata?.username
+                    result = context.getString(R.string.user_deleted_a_message, senderName)
                 }
 
                 ChatActivityType.JOIN_CHATROOM.value -> {
@@ -139,19 +143,11 @@ object StringUtils {
             }
 
         }
-        return result
-    }
-
-    fun showPinnedMessage(context: Context, message: Message?): String {
-        var result = context.getString(R.string.connected)
-        message?.let {
-            result = if (!it.text.isNullOrEmpty() || !it.photo.isNullOrEmpty()) {
-                if (!it.text.isNullOrEmpty()) it.text else context.getString(R.string.photo_last_message)
-            } else {
-                result
-            }
-        }
-        return result
+        textView.text = result
+        textView.setTypeface(
+            null,
+            if (isNewMessageActivity) Typeface.NORMAL else Typeface.ITALIC
+        )
     }
 
     fun areListsEqual(list1: List<String>, list2: List<String>): Boolean {
@@ -173,7 +169,11 @@ object StringUtils {
 
     fun formatMyQRCodeImageName(username: String?): String {
         var formattedName = username
-        formattedName = if (formattedName.isNullOrEmpty()) Constant.MY_QR_CODE_DEFAULT_NAME else formattedName.replace(" ", "_")
+        formattedName =
+            if (formattedName.isNullOrEmpty()) Constant.MY_QR_CODE_DEFAULT_NAME else formattedName.replace(
+                " ",
+                "_"
+            )
         return formattedName + "_" + getCurrentTime()
     }
 }

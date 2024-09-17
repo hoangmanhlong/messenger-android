@@ -64,7 +64,6 @@ data class ChatRoom(
                         membersData.filter { members.contains(it.uid) }.map { it.username }
                     this.chatRoomName = when {
                         members.size > 3 -> "${membersName[0]}, ${membersName[1]}, ${membersName[2]}, ..."
-                        members.size == 3 -> "${membersName[0]}, ${membersName[1]}, ${membersName[2]}"
                         else -> membersName.joinToString(", ")
                     }
                 }
@@ -83,7 +82,13 @@ data class ChatRoom(
                     senderName = membersData?.firstOrNull { it.uid == senderId }?.username
                 }
             }
-        }?.sortedByDescending { it.pinTime } ?: emptyList()
+        }
+            ?.filter {
+                it.text == it.pinnedMessageData?.text || it.pinnedMessageData?.medias?.contains(
+                    it.pinnedMediaData
+                ) == true
+            }
+            ?.sortedByDescending { it.pinTime } ?: emptyList()
     }
 
     @Exclude

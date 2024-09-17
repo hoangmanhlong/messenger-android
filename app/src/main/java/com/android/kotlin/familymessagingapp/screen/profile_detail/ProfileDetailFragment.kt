@@ -14,8 +14,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import android.widget.EditText
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.widget.NestedScrollView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -58,6 +60,12 @@ class ProfileDetailFragment : Fragment() {
 
     private val args: ProfileDetailFragmentArgs by navArgs()
 
+    private var etPhoneNumber: EditText? = null
+
+    private var etDisplayName: EditText? = null
+
+    private var nestedScrollView: NestedScrollView? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,13 +73,44 @@ class ProfileDetailFragment : Fragment() {
     ): View {
         _binding = FragmentProfileDetailBinding.inflate(inflater, container, false)
         binding.fragment = this@ProfileDetailFragment
+        // Retrieve and cache the system's default "short" animation time.
+        shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
+        etPhoneNumber = binding.etPhoneNumber
+        etDisplayName = binding.etDisplayName
+        nestedScrollView = binding.nestedScrollView
+
+        binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
+
+        etDisplayName?.addTextChangedListener {
+            _viewModel.setDisplayName(it.toString().trim())
+        }
+
+        etPhoneNumber?.addTextChangedListener {
+            _viewModel.setPhoneNumber(it.toString().trim())
+        }
+
+        binding.ivAvatar.setOnClickListener {
+            // Hook up taps on the thumbnail views.
+            zoomImageFromThumb(binding.ivAvatar, binding.ivAvatar.drawable)
+        }
+
+        etPhoneNumber?.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                // ScrollView will scroll to the bottom when focused
+                nestedScrollView?.post {
+                    nestedScrollView?.smoothScrollTo(0, nestedScrollView!!.bottom)
+                }
+            }
+        }
+
+
         return binding.root
     }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let { KeyBoardUtils.setupHideKeyboard(view, it) }
+//        activity?.let { KeyBoardUtils.setupHideKeyboard(view, it) }
         val userdata = args.userdata
         _viewModel.setUserData(userdata)
         binding.userData = userdata
@@ -83,36 +122,23 @@ class ProfileDetailFragment : Fragment() {
         _viewModel.isEditingStatus.observe(this.viewLifecycleOwner) {
             binding.isEditing = it
             if (it) {
-                binding.etPhoneNumber.inputType = InputType.TYPE_CLASS_PHONE
-                binding.etDisplayName.inputType = InputType.TYPE_CLASS_TEXT
+                etPhoneNumber?.hint = getString(R.string.phone_number_optional)
+                binding.tvUnchangeable.visibility = View.VISIBLE
+                etPhoneNumber?.inputType = InputType.TYPE_CLASS_PHONE
+                etDisplayName?.inputType = InputType.TYPE_CLASS_TEXT
             } else {
-                binding.etPhoneNumber.clearFocus()
-                binding.etDisplayName.clearFocus()
-                binding.etPhoneNumber.inputType = InputType.TYPE_NULL
-                binding.etDisplayName.inputType = InputType.TYPE_NULL
+                 activity?.let { KeyBoardUtils.hideSoftKeyboard(requireActivity()) }
+                etPhoneNumber?.hint = ""
+                binding.tvUnchangeable.visibility = View.GONE
+                etPhoneNumber?.clearFocus()
+                etDisplayName?.clearFocus()
+                etPhoneNumber?.inputType = InputType.TYPE_NULL
+                etDisplayName?.inputType = InputType.TYPE_NULL
             }
         }
 
         _viewModel.saveButtonStatus.observe(this.viewLifecycleOwner) {
             binding.saveButton.isEnabled = it
-        }
-
-        binding.ivAvatar.setOnClickListener {
-            // Hook up taps on the thumbnail views.
-            zoomImageFromThumb(binding.ivAvatar, binding.ivAvatar.drawable)
-        }
-
-        // Retrieve and cache the system's default "short" animation time.
-        shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
-
-        binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
-
-        binding.etDisplayName.addTextChangedListener {
-            _viewModel.setDisplayName(it.toString().trim())
-        }
-
-        binding.etPhoneNumber.addTextChangedListener {
-            _viewModel.setPhoneNumber(it.toString().trim())
         }
     }
 
@@ -135,6 +161,10 @@ class ProfileDetailFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         (activity as MainActivity).isShowLoadingDialog(false)
+        etPhoneNumber = null
+        etDisplayName = null
+        nestedScrollView = null
+        _binding = null
     }
 
     private fun zoomImageFromThumb(thumbView: View, imageDrawable: Drawable) {

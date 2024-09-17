@@ -30,6 +30,8 @@
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
             app:cardCornerRadius="8dp"
+            android:visibility="gone"
+            tools:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/view"
             app:layout_constraintTop_toTopOf="parent"
@@ -46,7 +48,6 @@
         <TextView
             android:id="@+id/tvPinnedMessageText"
             style="@style/TextAppearance.Material3.BodyLarge"
-            bindFormattedContentOfPinnedMessage="@{pinnedMessage}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -61,7 +62,6 @@
 
         <TextView
             android:id="@+id/tvPinnedBy"
-            bindPinnedBy="@{pinnedMessage}"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

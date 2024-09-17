@@ -33,7 +33,7 @@
                 app:strokeWidth="0dp">
 
                 <ImageView
-                    bindChatRoomImage="@{chatroom}"
+                    android:id="@+id/ivChatRoom"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
@@ -63,7 +63,6 @@
                 android:layout_marginEnd="16dp"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="@{chatroom.chatRoomName}"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toStartOf="@id/tvLatestActiveTime"
                 app:layout_constraintStart_toStartOf="parent"

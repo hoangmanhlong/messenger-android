@@ -12,6 +12,7 @@ data class PinnedMessage(
     val senderId: String? = null,
     val pinTime: Long? = null,
     val pinnedMediaData: MediaData? = null,
+    val text: String? = null,
     @Exclude var pinnedMessageData: Message? = null,
     @Exclude var senderName: String? = null
 ) : Parcelable

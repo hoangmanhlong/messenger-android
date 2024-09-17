@@ -158,4 +158,8 @@
     <string name="grant_access">Cấp quyền truy cập</string>
     <string name="qr_code_not_found">Mã QR không tồn tại. Vui lòng thử lại</string>
     <string name="share_image_with">Chia sẻ hình ảnh với</string>
+    <string name="user_deleted_a_message">%s đã xóa một tin nhắn</string>
+    <string name="unchangeable">Không thể thay đổi</string>
+    <string name="username_required">Tên người dùng (bắt buộc)</string>
+    <string name="phone_number_optional">Số điện thoại (tùy chọn)</string>
 </resources>

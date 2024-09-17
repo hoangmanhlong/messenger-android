@@ -55,6 +55,7 @@ fun bindChatRoomImage(imageView: ImageView, chatRoom: ChatRoom) {
     MediaUtils.loadImageFollowImageViewSize(
         imageView = imageView,
         photo = chatRoomImageUrl,
+        scaleType = ImageView.ScaleType.CENTER_CROP
     )
 }
 
@@ -77,11 +78,6 @@ fun <T> loadImageFollowImageViewSize(imageView: ImageView, image: T?) {
         .fitCenter()
         .diskCacheStrategy(DiskCacheStrategy.ALL)
         .into(imageView)
-}
-
-@BindingAdapter("bindPinnedBy")
-fun bindPinnedBy(textView: TextView, pinnedMessage: PinnedMessage) {
-
 }
 
 @BindingAdapter("bindChatRoomTypeStatus")
@@ -112,12 +108,6 @@ fun visibleViewGroupChatRoom(view: View, chatRoomType: String?) {
 fun visibleViewDoubleChatRoom(view: View, chatRoomType: String?) {
     if (chatRoomType.isNullOrEmpty()) return
     view.visibility = if (chatRoomType == ChatRoomType.Double.type) View.VISIBLE else View.GONE
-}
-
-@BindingAdapter("bindFormattedContentOfPinnedMessage")
-fun bindFormattedContentOfPinnedMessage(textView: TextView, pinnedMessage: PinnedMessage) {
-    val pinnedMessageData = pinnedMessage.pinnedMessageData
-    textView.text = StringUtils.showPinnedMessage(textView.context, pinnedMessageData)
 }
 
 @BindingAdapter("bindChatRoomName")

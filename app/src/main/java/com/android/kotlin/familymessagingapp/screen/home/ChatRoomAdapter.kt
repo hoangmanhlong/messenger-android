@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.kotlin.familymessagingapp.databinding.LayoutChatroomBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.utils.StringUtils
+import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
 
 class ChatRoomAdapter(
     private val onChatRoomClick: (ChatRoom) -> Unit,
@@ -18,12 +19,14 @@ class ChatRoomAdapter(
         private val binding: LayoutChatroomBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(chatRoom: ChatRoom) {
-            binding.chatroom = chatRoom
-            binding.tvLatestActivity.text =
-                StringUtils.getFormattedMessageOfLatestActivityInChatRoom(
-                    binding.root.context,
-                    chatRoom
-                )
+
+            bindChatRoomImage(binding.ivChatRoom, chatRoom)
+            binding.tvChatRoomName.text = chatRoom.chatRoomName
+
+            StringUtils.getFormattedMessageOfLatestActivityInChatRoom(
+                binding.tvLatestActivity,
+                chatRoom
+            )
 
             val latestActiveTime = chatRoom.chatRoomActivity?.latestActiveTime
             if (latestActiveTime != null) {
