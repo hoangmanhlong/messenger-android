@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.chatroom
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -10,7 +11,7 @@ import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.utils.bindPhotoMessage
 
 class ImageMessageAdapter(
-    private val onImageClick: (MediaData) -> Unit,
+    private val onImageClick: (Drawable, MediaData) -> Unit,
     private val onImageLongClick: (MediaData) -> Unit
 ): ListAdapter<MediaData, ImageMessageAdapter.ImageMessageViewHolder>(DiffCallback) {
 
@@ -31,7 +32,7 @@ class ImageMessageAdapter(
         fun bind(mediaData: MediaData) {
             bindPhotoMessage(binding.image, mediaData.url)
             binding.root.setOnClickListener {
-                onImageClick(mediaData)
+                onImageClick(binding.image.drawable, mediaData)
             }
 
             binding.root.setOnLongClickListener {

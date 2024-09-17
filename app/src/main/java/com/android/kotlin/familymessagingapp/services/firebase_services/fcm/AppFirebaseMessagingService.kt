@@ -14,6 +14,8 @@ import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.data.local.data_store.AppDataStore
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
+import com.android.kotlin.familymessagingapp.model.FileType
+import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.utils.DeviceUtils
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -21,6 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -54,7 +57,7 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
             val jsonPayload = JSONObject(remoteMessage.data as Map<*, *>)
             // Get values from JSON payload
-            val photo = jsonPayload.optString("photo")
+            val mediasJson = jsonPayload.optString("medias")
             val senderId = jsonPayload.optString("senderId")
             val text = jsonPayload.optString("text")
             val chatRoomId = jsonPayload.optString(ChatRoom.CHAT_ROOM_ID)
@@ -69,7 +72,20 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
                 )
             }
 
-            sendNotification(chatRoomName, senderName, chatRoomType, text, photo)
+            val medias: List<MediaData> = try {
+                // If the mediasJson string starts with square brackets [, decode directly
+                if (mediasJson.startsWith("[")) {
+                    Json.decodeFromString(mediasJson)
+                } else {
+                    // If the medias string is a JSON string containing an array (pre-stringified),
+                    // decode it again
+                    Json.decodeFromString(Json.decodeFromString<String>(mediasJson))
+                }
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            sendNotification(chatRoomName, senderName, chatRoomType, text, medias)
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
@@ -97,9 +113,9 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         senderName: String,
         chatRoomType: String,
         text: String,
-        photo: String,
+        medias: List<MediaData>,
     ) {
-        if (text.isNullOrEmpty() && photo.isNullOrEmpty()) return
+        if (text.isEmpty() && medias.isEmpty()) return
 
         val requestCode = System.currentTimeMillis().toInt()
         val intent = Intent(this, MainActivity::class.java)
@@ -113,11 +129,23 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
         var updatedChatRoomName = chatRoomName
 
+        val contentText: String = when {
+            text.isNotEmpty() -> text
+            medias.size == 1 -> {
+                if(medias[0].type == FileType.IMAGE.value) {
+                    applicationContext.getString(R.string.photo_last_message)
+                } else {
+                    applicationContext.getString(R.string.sent_a_file)
+                }
+            }
+            else -> applicationContext.getString(R.string.sent_many_file, medias.size.toString())
+        }
+
         val formatContentMessage = if (chatRoomType == ChatRoomType.Group.type) {
-            senderName + ": " + text.ifEmpty { applicationContext.getString(R.string.photo_last_message) }
+            "$senderName: $contentText"
         } else {
             updatedChatRoomName = senderName
-            text.ifEmpty { applicationContext.getString(R.string.photo_last_message) }
+            contentText
         }
 
         val channelId = getString(R.string.default_notification_channel_id)

@@ -191,12 +191,8 @@ class MessageAdapter(
                             if (imageMessageAdapter == null) {
                                 imageMessageAdapter = ImageMessageAdapter(
                                     onImageLongClick = { onImageLongClick(true, it, message) },
-                                    onImageClick = {
-                                        onImageClick(
-                                            binding.image.drawable,
-                                            it,
-                                            message
-                                        )
+                                    onImageClick = { drawable, mediaData ->
+                                        onImageClick(drawable, mediaData, message)
                                     }
                                 )
 
@@ -523,12 +519,8 @@ class MessageAdapter(
                             if (imageMessageAdapter == null) {
                                 imageMessageAdapter = ImageMessageAdapter(
                                     onImageLongClick = { onImageLongClick(false, it, message) },
-                                    onImageClick = {
-                                        onImageClick(
-                                            binding.image.drawable,
-                                            it,
-                                            message
-                                        )
+                                    onImageClick = { drawable, mediaData ->
+                                        onImageClick(drawable, mediaData, message)
                                     }
                                 )
 

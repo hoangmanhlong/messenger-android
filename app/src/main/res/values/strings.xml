@@ -179,4 +179,6 @@
     <string name="unchangeable">Unchangeable</string>
     <string name="username_required">Username (required)</string>
     <string name="phone_number_optional">Phone number (optional)</string>
+    <string name="sent_a_file">Sent a file</string>
+    <string name="sent_many_file">Sent %s files</string>
 </resources>

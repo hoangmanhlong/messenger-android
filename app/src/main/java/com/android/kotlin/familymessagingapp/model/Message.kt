@@ -29,7 +29,6 @@ data class Message(
     val messageId: String? = null,
     val senderId: String? = null,
     val text: String? = null,
-    val photo: String? = null,
     val timestamp: Long? = null,
     val reactions: Map<String, Map<String, Boolean>>? = null,
     val replyMessageId: String? = null,
@@ -57,7 +56,7 @@ fun Message.toMessageSocketEvent(): BackendEvent.Message = BackendEvent.Message(
     messageId = messageId,
     senderId = senderId,
     text = text,
-    photo = photo,
+    medias = medias,
     timestamp = timestamp.toString(),
     senderName = senderData?.username
 )

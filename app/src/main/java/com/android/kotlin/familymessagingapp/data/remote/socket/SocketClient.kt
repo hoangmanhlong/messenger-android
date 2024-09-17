@@ -4,6 +4,7 @@ import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
+import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.Message
 import com.android.kotlin.familymessagingapp.model.ServerErrorException
@@ -42,9 +43,7 @@ sealed class BackendEvent {
         val messageId: String? = null,
         val senderId: String? = null,
         val text: String? = null,
-        val photo: String? = null,
-        val video: String? = null,
-        val audio: String? = null,
+        val medias: List<MediaData>? = null,
         val timestamp: String? = null,
         val senderName: String? = null,
     ) : BackendEvent()

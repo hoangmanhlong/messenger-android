@@ -162,4 +162,6 @@
     <string name="unchangeable">Không thể thay đổi</string>
     <string name="username_required">Tên người dùng (bắt buộc)</string>
     <string name="phone_number_optional">Số điện thoại (tùy chọn)</string>
+    <string name="sent_a_file">Đã gửi tập tin</string>
+    <string name="sent_many_file">Đã gửi %s tập tin</string>
 </resources>
