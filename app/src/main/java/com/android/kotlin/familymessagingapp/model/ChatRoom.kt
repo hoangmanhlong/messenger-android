@@ -26,6 +26,7 @@ data class ChatRoom(
     val messages: Map<String, Message>? = null,
     val pinnedMessages: Map<String, PinnedMessage>? = null,
     val chatRoomType: String? = null,
+    val chatRoomDescription: String? = null,
     var chatRoomActivity: ChatRoomActivity? = null,
     var chatRoomImage: String? = null,
     var chatRoomName: String? = null,

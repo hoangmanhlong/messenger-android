@@ -38,7 +38,7 @@ class PinnedMessageAdapter(
             binding.tvPinnedBy.text = context.getString(
                 R.string.pinned_by,
                 pinnedMessage.senderName,
-                StringUtils.formatTime(pinnedMessage.pinTime!!, false)
+                StringUtils.formatTime(context, pinnedMessage.pinTime!!, false)
             )
 
             val text = pinnedMessage.text

@@ -233,7 +233,11 @@ class MessageAdapter(
                 }
             }
 
-            binding.tvMessageTime.text = StringUtils.formatTime(message.timestamp!!, false)
+            binding.tvMessageTime.text = StringUtils.formatTime(
+                binding.tvMessageTime.context,
+                message.timestamp!!,
+                false
+            )
             binding.tvMessageTime.visibility =
                 if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
         }
@@ -561,7 +565,11 @@ class MessageAdapter(
                 }
             }
 
-            binding.tvMessageTime.text = StringUtils.formatTime(message.timestamp!!, false)
+            binding.tvMessageTime.text = StringUtils.formatTime(
+                binding.tvMessageTime.context,
+                message.timestamp!!,
+                false
+            )
             binding.tvMessageTime.visibility =
                 if (bindingAdapterPosition == expandedMessagePosition) View.VISIBLE else View.GONE
         }

@@ -77,7 +77,7 @@
                         app:strokeWidth="0dp">
 
                         <ImageView
-                            bindChatRoomImage="@{chatroom}"
+                            android:id="@+id/ivChatRoomImage"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
@@ -92,8 +92,8 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvChatRoomName"
                             style="@style/TextAppearance.Material3.BodyLarge"
-                            bindChatRoomName="@{chatroom}"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
@@ -102,10 +102,12 @@
                             tools:text="@string/author" />
 
                         <TextView
-                            bindChatRoomTypeStatus="@{chatroom}"
+                            android:id="@+id/tvChatRoomMembers"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            tools:text="68 members" />
+                            android:visibility="gone"
+                            tools:text="68 members"
+                            tools:visibility="visible" />
 
                     </LinearLayout>
 
@@ -113,8 +115,9 @@
                         android:id="@+id/aiCreatingAnimation"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        app:lottie_rawRes="@raw/ai_initializing"
-                        app:lottie_loop="true"/>
+                        app:lottie_loop="true"
+                        android:visibility="gone"
+                        app:lottie_rawRes="@raw/ai_initializing" />
 
                     <!--                <Button-->
                     <!--                    android:id="@+id/btVideoCall"-->
@@ -166,6 +169,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible"
                     app:layout_constraintTop_toTopOf="parent">
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -209,22 +214,23 @@
                     android:layout_weight="1">
 
                     <TextView
+                        android:id="@+id/tvMessagesEmpty"
                         style="@style/TextAppearance.Material3.TitleMedium"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="@string/messages_empty"
-                        android:visibility="@{is_message_empty ? View.VISIBLE : View.GONE}"
+                        android:visibility="gone"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <LinearLayout
+                        android:id="@+id/messgesContainerView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:visibility="@{is_message_empty ? View.GONE : View.VISIBLE}">
+                        android:orientation="vertical">
 
                         <View
                             android:id="@+id/messagesBlankView"
@@ -256,12 +262,14 @@
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <LinearLayout
+                    android:id="@+id/replyMessageContainerView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/md_theme_surfaceContainer_mediumContrast"
                     android:gravity="center_vertical"
-                    android:padding="8dp"
-                    android:visibility="@{replyingMessage ? View.VISIBLE : View.GONE}">
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    android:padding="8dp">
 
                     <ImageView
                         android:layout_width="wrap_content"
@@ -344,12 +352,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_margin="8dp"
+                    android:visibility="gone"
                     app:cardBackgroundColor="@color/md_theme_tertiaryContainer"
                     app:cardCornerRadius="32dp"
-                    android:visibility="gone"
-                    tools:visibility="visible"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:strokeWidth="0dp">
+                    app:strokeWidth="0dp"
+                    tools:visibility="visible">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
@@ -360,12 +368,12 @@
                             android:id="@+id/ivAIAnimation"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
-                            app:lottie_rawRes="@raw/ai_initializing"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
                             app:lottie_autoPlay="true"
-                            app:lottie_loop="true"/>
+                            app:lottie_loop="true"
+                            app:lottie_rawRes="@raw/ai_initializing" />
 
                         <TextView
                             android:id="@+id/tvAItext"
@@ -404,6 +412,8 @@
                     android:clipToPadding="false"
                     android:orientation="horizontal"
                     android:paddingHorizontal="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:listitem="@layout/layout_selected_item" />
 
@@ -511,10 +521,10 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <androidx.emoji2.emojipicker.EmojiPickerView
-                    android:id="@+id/emoji_picker"
+                    android:id="@+id/emojiPicker"
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
-                    android:visibility="@{isEmojiPickerVisible ? View.VISIBLE : View.GONE}"
+                    android:visibility="gone"
                     app:emojiGridColumns="9" />
 
             </LinearLayout>

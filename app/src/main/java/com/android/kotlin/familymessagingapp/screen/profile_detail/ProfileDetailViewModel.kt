@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.screen.profile_detail
 
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,11 +20,17 @@ class ProfileDetailViewModel @Inject constructor(
 
     private var imageUri: Uri? = null
 
-    private var userData: UserData = UserData()
+    var initializedForTheFirstTime = false
+
+    val publicUserData = firebaseRealtimeDatabaseService.publicUserData
+
+    var userData: UserData = UserData()
+
+    var avatarDrawable: Drawable? = null
 
     private val _isEditingStatus = MutableLiveData(false)
     val isEditingStatus = _isEditingStatus
-    
+
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
@@ -41,16 +48,6 @@ class ProfileDetailViewModel @Inject constructor(
         this.imageUri = imageUri
     }
 
-    fun setUserData(userData: UserData) {
-        this.userData = UserData().copy(
-            uid = userData.uid,
-            username = userData.username,
-            email = userData.email,
-            phoneNumber = userData.phoneNumber,
-            userAvatar = userData.userAvatar
-        )
-    }
-
     fun setDisplayName(displayName: String) {
         userData = userData.copy(username = displayName)
         _saveButtonStatus.value = validInput()
@@ -64,13 +61,16 @@ class ProfileDetailViewModel @Inject constructor(
     private fun validInput(): Boolean {
         val userName = userData.username
         val phoneNumber = userData.phoneNumber
-        return !userName.isNullOrEmpty() && (phoneNumber.isNullOrEmpty() || StringUtils.isNumber(phoneNumber) && phoneNumber.length >= 10)
+        return !userName.isNullOrEmpty() && (phoneNumber.isNullOrEmpty() || StringUtils.isNumber(
+            phoneNumber
+        ) && phoneNumber.length >= 10)
     }
 
     fun saveUserData() {
         viewModelScope.launch {
             _isLoading.value = true
-            val saveUserDataResult = firebaseRealtimeDatabaseService.saveUserData(userData, imageUri)
+            val saveUserDataResult =
+                firebaseRealtimeDatabaseService.saveUserData(userData, imageUri)
             _isSaveSuccess.value = saveUserDataResult
             _isEditingStatus.value = !saveUserDataResult
             _isLoading.value = false

@@ -29,6 +29,8 @@ sealed class Screen(val screenId: Int) {
 
     data object ChatRoom: Screen(R.id.chatRoomFragment)
 
+    data object EditChatRoom : Screen(R.id.editChatRoomFragment)
+
     data object  CreateGroupChat: Screen(R.id.createGroupChatFragment)
 
     data object  ChatRoomDetail: Screen(R.id.chatRoomDetailFragment)

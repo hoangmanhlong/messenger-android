@@ -9,16 +9,15 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.InputType
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
-import android.widget.EditText
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.NestedScrollView
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -26,14 +25,19 @@ import androidx.navigation.fragment.navArgs
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.activity.MainActivity
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
-import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.bindUserAvatar
 import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ProfileDetailFragment : Fragment() {
+
+    companion object {
+        val TAG: String = ProfileDetailFragment::class.java.simpleName
+    }
 
     // Hold a reference to the current animator so that it can be canceled
     // midway.
@@ -50,7 +54,6 @@ class ProfileDetailFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             it?.let {
                 loadImageFollowImageViewSize(binding.ivAvatar, it)
-                _viewModel.setImageUri(it)
             }
         }
 
@@ -60,9 +63,9 @@ class ProfileDetailFragment : Fragment() {
 
     private val args: ProfileDetailFragmentArgs by navArgs()
 
-    private var etPhoneNumber: EditText? = null
+    private var userNameTextInputEditText: TextInputEditText? = null
 
-    private var etDisplayName: EditText? = null
+    private var phoneNumberTextInputEditText: TextInputEditText? = null
 
     private var nestedScrollView: NestedScrollView? = null
 
@@ -75,26 +78,18 @@ class ProfileDetailFragment : Fragment() {
         binding.fragment = this@ProfileDetailFragment
         // Retrieve and cache the system's default "short" animation time.
         shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
-        etPhoneNumber = binding.etPhoneNumber
-        etDisplayName = binding.etDisplayName
+        userNameTextInputEditText = binding.userNameTextInputEditText
+        phoneNumberTextInputEditText = binding.phoneNumberTextInputEditText
         nestedScrollView = binding.nestedScrollView
 
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
-
-        etDisplayName?.addTextChangedListener {
-            _viewModel.setDisplayName(it.toString().trim())
-        }
-
-        etPhoneNumber?.addTextChangedListener {
-            _viewModel.setPhoneNumber(it.toString().trim())
-        }
 
         binding.ivAvatar.setOnClickListener {
             // Hook up taps on the thumbnail views.
             zoomImageFromThumb(binding.ivAvatar, binding.ivAvatar.drawable)
         }
 
-        etPhoneNumber?.setOnFocusChangeListener { _, hasFocus ->
+        phoneNumberTextInputEditText?.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 // ScrollView will scroll to the bottom when focused
                 nestedScrollView?.post {
@@ -103,42 +98,71 @@ class ProfileDetailFragment : Fragment() {
             }
         }
 
+        binding.btSave.setOnClickListener {
+            activity?.let {
+                NetworkChecker.checkNetwork(it) { _viewModel.saveUserData() }
+            }
+        }
+
+        userNameTextInputEditText?.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                _viewModel.setDisplayName(s.toString().trim())
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+        })
+
+        phoneNumberTextInputEditText?.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                _viewModel.setPhoneNumber(s.toString().trim())
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+        })
+
+        binding.userAvatarMaterialCardView.setOnClickListener {
+            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
 
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        activity?.let { KeyBoardUtils.setupHideKeyboard(view, it) }
-        val userdata = args.userdata
-        _viewModel.setUserData(userdata)
-        binding.userData = userdata
+
+        _viewModel.publicUserData.observe(viewLifecycleOwner) { userdata ->
+            userdata?.let {
+                bindUserAvatar(binding.ivAvatar, if (_viewModel.avatarDrawable != null) _viewModel.avatarDrawable else userdata.userAvatar)
+                userNameTextInputEditText?.setText(
+                    if (!_viewModel.initializedForTheFirstTime) userdata.username
+                        ?: "" else _viewModel.userData.username
+                )
+                binding.emailTextInputEditText.setText(userdata.email ?: "")
+                phoneNumberTextInputEditText?.setText(
+                    if (!_viewModel.initializedForTheFirstTime) userdata.phoneNumber
+                        ?: "" else _viewModel.userData.phoneNumber
+                )
+            }
+        }
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
             (activity as MainActivity).isShowLoadingDialog(it)
         }
 
-        _viewModel.isEditingStatus.observe(this.viewLifecycleOwner) {
-            binding.isEditing = it
-            if (it) {
-                etPhoneNumber?.hint = getString(R.string.phone_number_optional)
-                binding.tvUnchangeable.visibility = View.VISIBLE
-                etPhoneNumber?.inputType = InputType.TYPE_CLASS_PHONE
-                etDisplayName?.inputType = InputType.TYPE_CLASS_TEXT
-            } else {
-                 activity?.let { KeyBoardUtils.hideSoftKeyboard(requireActivity()) }
-                etPhoneNumber?.hint = ""
-                binding.tvUnchangeable.visibility = View.GONE
-                etPhoneNumber?.clearFocus()
-                etDisplayName?.clearFocus()
-                etPhoneNumber?.inputType = InputType.TYPE_NULL
-                etDisplayName?.inputType = InputType.TYPE_NULL
-            }
-        }
-
         _viewModel.saveButtonStatus.observe(this.viewLifecycleOwner) {
-            binding.saveButton.isEnabled = it
+            binding.btSave.isEnabled = it
         }
     }
 
@@ -146,25 +170,19 @@ class ProfileDetailFragment : Fragment() {
         _viewModel.setEditingStatus(isEditing)
     }
 
-    fun onEditImageButtonClick() {
-        binding.etPhoneNumber.clearFocus()
-        binding.etDisplayName.clearFocus()
-        pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-    }
-
-    fun onSaveButtonClick() {
-        activity?.let {
-            NetworkChecker.checkNetwork(it) { _viewModel.saveUserData() }
-        }
+    override fun onResume() {
+        super.onResume()
+        _viewModel.initializedForTheFirstTime = true
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         (activity as MainActivity).isShowLoadingDialog(false)
-        etPhoneNumber = null
-        etDisplayName = null
+        userNameTextInputEditText = null
+        phoneNumberTextInputEditText = null
         nestedScrollView = null
         _binding = null
+        _viewModel.avatarDrawable = binding.ivAvatar.drawable
     }
 
     private fun zoomImageFromThumb(thumbView: View, imageDrawable: Drawable) {

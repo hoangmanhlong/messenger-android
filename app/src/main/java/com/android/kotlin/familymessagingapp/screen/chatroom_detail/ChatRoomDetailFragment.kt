@@ -5,16 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomDetailBinding
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.screen.chatroom.ChatRoomViewModel
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
+import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
 
 
 class ChatRoomDetailFragment : Fragment() {
@@ -32,11 +34,10 @@ class ChatRoomDetailFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             it?.let {
                 MediaUtils.loadImageFollowImageViewSize(
-                    imageView = binding.ivAvatar,
+                    imageView = binding.ivChatRoomImage,
                     photo = it,
                     scaleType = ImageView.ScaleType.CENTER_CROP
                 )
-                binding.ivAvatar.setImageURI(it)
             }
         }
 
@@ -69,6 +70,10 @@ class ChatRoomDetailFragment : Fragment() {
             }
         }
 
+        binding.editConversationInformationView.setOnClickListener {
+            findNavController().navigate(R.id.action_chatRoomDetailFragment_to_editChatRoomFragment)
+        }
+
 //        binding.ivAvatar.setOnClickListener {
 //            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 //        }
@@ -81,9 +86,40 @@ class ChatRoomDetailFragment : Fragment() {
 
         viewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatRoom ->
-                binding.chatRoom = chatRoom
+                bindChatRoomImage(binding.ivChatRoomImage, chatRoom)
+                binding.tvChatRoomName.text = chatRoom.chatRoomName
+                if (chatRoom.chatRoomType == ChatRoomType.Group.type) {
+                    if (chatRoom.chatRoomDescription.isNullOrEmpty()) {
+                        binding.tvChatRoomDescription.visibility = View.GONE
+                    } else {
+                        binding.tvChatRoomDescription.visibility = View.VISIBLE
+                        binding.tvChatRoomDescription.text = chatRoom.chatRoomDescription
+                    }
+                    val members = chatRoom.members
+                    if (members.isNullOrEmpty()) {
+                        binding.tvChatRoomMembers.visibility = View.GONE
+                    } else {
+                        binding.tvChatRoomMembers.text = getString(
+                            R.string.format_chatroom_members,
+                            members.size.toString()
+                        )
+                        binding.tvChatRoomMembers.visibility = View.VISIBLE
+                    }
+
+                    binding.editConversationInformationView.visibility = View.VISIBLE
+                    binding.addMembersView.visibility = View.VISIBLE
+                    binding.leaveChatRoomView.visibility = View.VISIBLE
+                    binding.blockView.visibility = View.GONE
+                    binding.chatRoomMembersView.visibility = View.VISIBLE
+                } else {
+                    binding.tvChatRoomDescription.visibility = View.GONE
+                    binding.editConversationInformationView.visibility = View.GONE
+                    binding.addMembersView.visibility = View.GONE
+                    binding.leaveChatRoomView.visibility = View.GONE
+                    binding.blockView.visibility = View.VISIBLE
+                    binding.chatRoomMembersView.visibility = View.GONE
+                }
             }
         }
     }
-
 }

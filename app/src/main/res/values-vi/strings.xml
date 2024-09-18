@@ -123,7 +123,7 @@
     <string name="leave_group">Rời nhóm</string>
     <string name="add_members">Thêm thành viên</string>
     <string name="members">Thành viên</string>
-    <string name="leave_chatroom_warning">Bạn có chắc muốn rời nhóm?</string>
+    <string name="leave_chatroom_warning">Bạn sẽ không thể tìm và tham gia lại cuộc trò chuyện này trừ khi người dùng khác thêm hoặc mời bạn.</string>
     <string name="block">Chặn</string>
     <string name="search_in_conversation">Tìm kiếm trong cuộc trò chuyện</string>
     <string name="pinned_messages">Tin nhắn được ghim</string>
@@ -164,4 +164,11 @@
     <string name="phone_number_optional">Số điện thoại (tùy chọn)</string>
     <string name="sent_a_file">Đã gửi tập tin</string>
     <string name="sent_many_file">Đã gửi %s tập tin</string>
+    <string name="yesterday">Hôm qua</string>
+    <string name="leave_this_conversation">Rời cuộc trò chuyện này?</string>
+    <string name="leave">Rời</string>
+    <string name="edit_conversation_information">Chỉnh sửa thông tin cuộc hội thoại</string>
+    <string name="chatroom_name">Tên phòng chat</string>
+    <string name="description">Mô tả</string>
+    <string name="chatroom_name_helper">Tên phòng chat không được để trống</string>
 </resources>

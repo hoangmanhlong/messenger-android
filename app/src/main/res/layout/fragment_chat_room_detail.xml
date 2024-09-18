@@ -56,12 +56,10 @@
                         app:strokeWidth="0dp">
 
                         <ImageView
-                            android:id="@+id/ivAvatar"
-                            bindChatRoomImage="@{chatRoom}"
+                            android:id="@+id/ivChatRoomImage"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:contentDescription="@null"
-                            android:scaleType="centerCrop"
                             tools:src="@tools:sample/avatars" />
 
                     </com.google.android.material.card.MaterialCardView>
@@ -78,12 +76,21 @@
                     android:ellipsize="end"
                     android:gravity="center_horizontal"
                     android:maxLines="2"
-                    android:text="@{chatRoom.chatRoomName}"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     tools:text="Hoang Manh Long" />
+
+                <TextView
+                    android:id="@+id/tvChatRoomDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="32dp"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="3"
+                    android:visibility="gone"
+                    tools:text="@string/leave_chatroom_warning"
+                    tools:visibility="visible" />
+
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -168,14 +175,15 @@
                 </LinearLayout>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/myQRCodeView"
-                    visibleViewGroupChatRoom="@{chatRoom.chatRoomType}"
+                    android:id="@+id/editConversationInformationView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:visibility="gone"
+                    tools:visibility="visible"
                     android:padding="16dp">
 
                     <LinearLayout
@@ -189,13 +197,13 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_info" />
+                            android:src="@drawable/ic_edit_outline" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="16dp"
-                            android:text="@string/add_chatroom_description"
+                            android:text="@string/edit_conversation_information"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="16sp" />
 
@@ -236,13 +244,14 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/feedbackView"
-                    visibleViewGroupChatRoom="@{chatRoom.chatRoomType}"
+                    android:id="@+id/chatRoomMembersView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:visibility="gone"
+                    tools:visibility="visible"
                     android:padding="16dp">
 
                     <LinearLayout
@@ -268,7 +277,7 @@
                     </LinearLayout>
 
                     <TextView
-                        bindChatRoomTypeStatus="@{chatRoom}"
+                        android:id="@+id/tvChatRoomMembers"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -280,12 +289,13 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/addMembersView"
-                    visibleViewGroupChatRoom="@{chatRoom.chatRoomType}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:visibility="gone"
+                    tools:visibility="visible"
                     android:padding="16dp">
 
                     <LinearLayout
@@ -346,7 +356,6 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/blockView"
-                    visibleViewDoubleChatRoom="@{chatRoom.chatRoomType}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
@@ -379,12 +388,13 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/leaveChatRoomView"
-                    visibleViewGroupChatRoom="@{chatRoom.chatRoomType}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:visibility="gone"
+                    tools:visibility="visible"
                     android:padding="16dp">
 
                     <LinearLayout

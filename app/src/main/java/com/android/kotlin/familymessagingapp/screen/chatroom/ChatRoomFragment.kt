@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import com.airbnb.lottie.LottieAnimationView
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomBinding
+import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.CountExceededException
 import com.android.kotlin.familymessagingapp.model.FileType
 import com.android.kotlin.familymessagingapp.model.Message
@@ -44,6 +45,7 @@ import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
+import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -283,7 +285,8 @@ class ChatRoomFragment : Fragment() {
 
         // When pressing the back button on the device, if Image Detail is showing, close Image Detail View
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
-            if (_viewModel.imageDetailShown.value == true) _viewModel.setImageDetailShown(false, null)
+            if (_viewModel.imageDetailShown.value == true)
+                _viewModel.setImageDetailShown(false, null)
             else findNavController().navigateUp()
         }
 
@@ -310,7 +313,7 @@ class ChatRoomFragment : Fragment() {
         }
 
         _viewModel.replying.observe(this.viewLifecycleOwner) {
-            binding.replyingMessage = it
+            binding.replyMessageContainerView.visibility = if (it) View.VISIBLE else View.GONE
         }
 
         _viewModel.pinnedMessages.observe(this.viewLifecycleOwner) {
@@ -323,9 +326,7 @@ class ChatRoomFragment : Fragment() {
                 if (it.size > 1) View.VISIBLE else View.GONE
             // If in expanded mode, show all messages, otherwise show only 1 message.
             pinnedMessageAdapter?.submitList(
-                if (_viewModel.isExpandPinnedMessage.value == true) it else it.take(
-                    1
-                )
+                if (_viewModel.isExpandPinnedMessage.value == true) it else it.take(1)
             )
         }
 
@@ -343,7 +344,7 @@ class ChatRoomFragment : Fragment() {
 
         _viewModel.emojiPickerVisible.observe(this.viewLifecycleOwner) {
             if (it) hideKeyboard()
-            binding.isEmojiPickerVisible = it
+            binding.emojiPicker.visibility = if (it) View.VISIBLE else View.GONE
             binding.ivOpenEmojiPicker.setImageResource(if (it) R.drawable.ic_emoji_filled else R.drawable.ic_mood)
         }
 
@@ -366,7 +367,23 @@ class ChatRoomFragment : Fragment() {
         _viewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatroom ->
                 messageAdapter?.setChatRoomType(chatroom.chatRoomType!!)
-                binding.chatroom = chatroom
+                binding.tvChatRoomName.text = chatroom.chatRoomName
+                bindChatRoomImage(binding.ivChatRoomImage, chatroom)
+                if (chatroom.chatRoomType == ChatRoomType.Group.type) {
+                    val members = chatroom.members
+                    if (members.isNullOrEmpty()) {
+                        binding.tvChatRoomMembers.visibility = View.GONE
+                    } else {
+                        binding.tvChatRoomMembers.visibility = View.VISIBLE
+                        binding.tvChatRoomMembers.text = getString(
+                            R.string.format_chatroom_members,
+                            members.size.toString()
+                        )
+                    }
+                } else {
+                    binding.tvChatRoomMembers.visibility = View.GONE
+                }
+
                 bindMessages(chatroom.messages)
             }
         }
@@ -431,11 +448,7 @@ class ChatRoomFragment : Fragment() {
                         message = R.string.pinned_successfully
                     }
                 }
-                Snackbar.make(
-                    binding.inputView,
-                    message,
-                    Constant.ONE_SECOND
-                ).show()
+                Snackbar.make(binding.inputView, message, Constant.ONE_SECOND).show()
             }
         }
 
@@ -618,7 +631,13 @@ class ChatRoomFragment : Fragment() {
      */
     private fun bindMessages(messages: Map<String, Message>?) {
         val list = messages?.values?.toList()
-        binding.isMessageEmpty = list.isNullOrEmpty()
+        if (list.isNullOrEmpty()) {
+            binding.tvMessagesEmpty.visibility = View.VISIBLE
+            binding.messgesContainerView.visibility = View.GONE
+        } else {
+            binding.tvMessagesEmpty.visibility = View.GONE
+            binding.messgesContainerView.visibility = View.VISIBLE
+        }
         val finalMessage = list?.sortedBy { message -> message.timestamp }
         messageAdapter?.submitList(finalMessage) {
             if (!finalMessage.isNullOrEmpty())
@@ -649,7 +668,7 @@ class ChatRoomFragment : Fragment() {
         super.onDestroy()
         val currentDestinationId = findNavController().currentDestination?.id
         // Since ChatRoomViewModel is managed by activity, data needs to be reset when ChatRoomFragment or ChatRoomDetail Destroy
-        if (currentDestinationId != Screen.ChatRoomDetail.screenId && currentDestinationId != Screen.ChatRoom.screenId) {
+        if (currentDestinationId != Screen.ChatRoomDetail.screenId && currentDestinationId != Screen.ChatRoom.screenId && currentDestinationId != Screen.EditChatRoom.screenId) {
             _viewModel.resetState()
         }
     }

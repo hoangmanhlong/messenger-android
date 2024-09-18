@@ -30,7 +30,11 @@ class ChatRoomAdapter(
 
             val latestActiveTime = chatRoom.chatRoomActivity?.latestActiveTime
             if (latestActiveTime != null) {
-                binding.tvLatestActiveTime.text = StringUtils.formatTime(latestActiveTime, true)
+                binding.tvLatestActiveTime.text = StringUtils.formatTime(
+                    binding.tvLatestActiveTime.context,
+                    latestActiveTime,
+                    true
+                )
                 binding.tvLatestActiveTime.visibility = ViewGroup.VISIBLE
             } else {
                 binding.tvLatestActiveTime.visibility = ViewGroup.GONE

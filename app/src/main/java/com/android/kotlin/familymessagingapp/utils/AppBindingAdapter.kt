@@ -82,20 +82,7 @@ fun <T> loadImageFollowImageViewSize(imageView: ImageView, image: T?) {
 
 @BindingAdapter("bindChatRoomTypeStatus")
 fun bindChatRoomTypeStatus(textView: TextView, chatRoom: ChatRoom) {
-    if (chatRoom.chatRoomType == ChatRoomType.Group.type) {
-        val members = chatRoom.members
-        if (members.isNullOrEmpty()) {
-            textView.visibility = View.GONE
-        } else {
-            textView.visibility = View.VISIBLE
-            textView.text = textView.context.getString(
-                R.string.format_chatroom_members,
-                members.size.toString()
-            )
-        }
-    } else {
-        textView.visibility = View.GONE
-    }
+
 }
 
 @BindingAdapter("visibleViewGroupChatRoom")

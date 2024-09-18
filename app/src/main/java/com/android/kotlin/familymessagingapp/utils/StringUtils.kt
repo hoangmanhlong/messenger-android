@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.utils
 
+import android.content.Context
 import android.graphics.Typeface
 import android.os.Build
 import android.widget.TextView
@@ -47,14 +48,17 @@ object StringUtils {
     fun getCurrentTime(): Long = System.currentTimeMillis()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun formatTime(milliseconds: Long, isChatRoomFormat: Boolean): String {
+    fun formatTime(context: Context, milliseconds: Long, isChatRoomFormat: Boolean): String {
         val now = LocalDate.now()
-        val dateTime =
-            Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime()
+        val yesterday = now.minusDays(1)
+        val dateTime = Instant.ofEpochMilli(milliseconds)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
         val date = dateTime.toLocalDate()
 
         return when {
             date.isEqual(now) -> dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+            date.isEqual(yesterday) && isChatRoomFormat -> context.getString(R.string.yesterday)
             date.year == now.year -> dateTime.format(DateTimeFormatter.ofPattern(if (isChatRoomFormat) "d MMM" else "HH:mm d/MM"))
             else -> dateTime.format(DateTimeFormatter.ofPattern(if (isChatRoomFormat) "d MMM yyyy" else "HH:mm d/MM/yyyy"))
         }

@@ -82,10 +82,10 @@ object DialogUtils {
     fun leaveChatRoomDialog(context: Context, onPositiveClick: () -> Unit?): AlertDialog {
         return createCommonDialog(
             context = context,
-            title = R.string.leave_group,
+            title = R.string.leave_this_conversation,
             message = R.string.leave_chatroom_warning,
             cancelable = true,
-            positiveButtonLabel = R.string.ok,
+            positiveButtonLabel = R.string.leave,
             negativeButtonLabel = R.string.cancel,
             onPositiveClick = onPositiveClick,
             onNegativeClick = {},

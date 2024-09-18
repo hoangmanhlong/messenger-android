@@ -134,9 +134,10 @@
     <string name="user">User</string>
     <string name="add_chatroom_description">Add group description</string>
     <string name="leave_group">Leave group</string>
+    <string name="leave_this_conversation">Leave this conversation?</string>
     <string name="add_members">Add members</string>
     <string name="members">Members</string>
-    <string name="leave_chatroom_warning">Are you sure you want to leave the group?</string>
+    <string name="leave_chatroom_warning">You won\'t be able to find and rejoin this conversation again unless another user adds or invites you.</string>
     <string name="block">Block</string>
     <string name="search_in_conversation">Search in conversation</string>
     <string name="pinned_messages">Pinned messages</string>
@@ -181,4 +182,10 @@
     <string name="phone_number_optional">Phone number (optional)</string>
     <string name="sent_a_file">Sent a file</string>
     <string name="sent_many_file">Sent %s files</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="leave">Leave</string>
+    <string name="edit_conversation_information">Edit conversation information</string>
+    <string name="chatroom_name">Chatroom name</string>
+    <string name="description">Description</string>
+    <string name="chatroom_name_helper">Chat room name cannot be blank</string>
 </resources>

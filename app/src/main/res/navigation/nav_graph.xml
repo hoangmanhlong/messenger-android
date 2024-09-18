@@ -126,5 +126,13 @@
         android:id="@+id/chatRoomDetailFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.chatroom_detail.ChatRoomDetailFragment"
         android:label="fragment_chat_room_detail"
-        tools:layout="@layout/fragment_chat_room_detail" />
+        tools:layout="@layout/fragment_chat_room_detail" >
+        <action
+            android:id="@+id/action_chatRoomDetailFragment_to_editChatRoomFragment"
+            app:destination="@id/editChatRoomFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/editChatRoomFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.edit_chatroom.EditChatRoomFragment"
+        android:label="EditChatRoomFragment" />
 </navigation>
