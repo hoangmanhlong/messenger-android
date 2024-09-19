@@ -378,7 +378,8 @@ class ChatRoomViewModel @Inject constructor(
             pinnedMessages = chatRoom.pinnedMessages,
             membersData = chatRoom.membersData,
             chatRoomType = chatRoom.chatRoomType,
-            chatRoomActivity = chatRoom.chatRoomActivity
+            chatRoomActivity = chatRoom.chatRoomActivity,
+            chatRoomDescription = chatRoom.chatRoomDescription
         )
         _chatRoom.value?.getReplyMessages()
         _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()
@@ -402,7 +403,8 @@ class ChatRoomViewModel @Inject constructor(
                     members = chatRoom?.members,
                     pinnedMessages = chatRoom?.pinnedMessages,
                     membersData = chatRoom?.membersData,
-                    chatRoomType = chatRoom?.chatRoomType
+                    chatRoomType = chatRoom?.chatRoomType,
+                    chatRoomDescription = chatRoom?.chatRoomDescription
                 )
                 _chatRoom.value?.getReplyMessages()
                 _pinnedMessages.value = _chatRoom.value?.getPinnedMessagesData()

@@ -447,18 +447,25 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    suspend fun saveUserData(userData: UserData, imageUri: Uri?): Boolean {
+    suspend fun saveUserData(userData: UserData): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                var updatedUserData = userData
+                var updatedUserData = UserData().copy(
+                    uid = publicUserData.value?.uid,
+                    username = userData.username,
+                    phoneNumber = userData.phoneNumber,
+                    email = publicUserData.value?.email,
+                    userAvatar = publicUserData.value?.userAvatar
+                )
+                val imageUri = userData.userAvatar?.toUri()
                 if (imageUri != null) {
                     val downloadUrl = firebaseStorageService.putUriToStorage(
                         imageUri,
-                        firebaseStorageService.userAvatarRef.child(userData.uid!!)
+                        firebaseStorageService.userAvatarRef.child(updatedUserData.uid!!)
                     )
-                    updatedUserData = userData.copy(userAvatar = downloadUrl)
+                    updatedUserData = updatedUserData.copy(userAvatar = downloadUrl)
                 }
-                publicUserDataRef.child(userData.uid!!).setValue(updatedUserData).await()
+                publicUserDataRef.child(updatedUserData.uid!!).setValue(updatedUserData).await()
                 true
             } catch (e: Exception) {
                 false
@@ -916,7 +923,11 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    suspend fun deleteMessage(chatroomId: String, message: Message, deletedMessageIsLatestMessage: Boolean): Result<Boolean> =
+    suspend fun deleteMessage(
+        chatroomId: String,
+        message: Message,
+        deletedMessageIsLatestMessage: Boolean
+    ): Result<Boolean> =
         withContext(Dispatchers.IO) {
             try {
                 val messageId = message.messageId!!
@@ -975,7 +986,7 @@ class FirebaseRealtimeDatabaseService(
         message: Message,
         text: String?,
         mediaData: MediaData?
-    ) : Result<Boolean> = withContext(Dispatchers.IO) {
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             val medias = message.medias
             val newMediaDataList = mutableListOf<MediaData>()

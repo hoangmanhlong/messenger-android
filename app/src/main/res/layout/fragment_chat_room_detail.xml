@@ -42,29 +42,23 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/chatRoomImageCardView"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="40dp"
+                    app:strokeWidth="0dp">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/userAvatarCard"
+                    <ImageView
+                        android:id="@+id/ivChatRoomImage"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        app:cardCornerRadius="40dp"
-                        app:strokeWidth="0dp">
+                        android:contentDescription="@null"
+                        tools:src="@tools:sample/avatars" />
 
-                        <ImageView
-                            android:id="@+id/ivChatRoomImage"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:contentDescription="@null"
-                            tools:src="@tools:sample/avatars" />
-
-                    </com.google.android.material.card.MaterialCardView>
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/tvChatRoomName"
@@ -182,9 +176,9 @@
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:padding="16dp"
                     android:visibility="gone"
-                    tools:visibility="visible"
-                    android:padding="16dp">
+                    tools:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -250,9 +244,9 @@
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:padding="16dp"
                     android:visibility="gone"
-                    tools:visibility="visible"
-                    android:padding="16dp">
+                    tools:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -294,9 +288,9 @@
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:padding="16dp"
                     android:visibility="gone"
-                    tools:visibility="visible"
-                    android:padding="16dp">
+                    tools:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -393,9 +387,9 @@
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
+                    android:padding="16dp"
                     android:visibility="gone"
-                    tools:visibility="visible"
-                    android:padding="16dp">
+                    tools:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="wrap_content"

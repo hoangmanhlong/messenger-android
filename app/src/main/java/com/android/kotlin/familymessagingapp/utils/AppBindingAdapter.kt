@@ -7,7 +7,6 @@ import androidx.databinding.BindingAdapter
 import com.android.kotlin.familymessagingapp.R
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
-import com.android.kotlin.familymessagingapp.model.PinnedMessage
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.Target
@@ -21,7 +20,8 @@ fun <T> bindUserAvatar(imageView: ImageView, photo: T?) {
         imageView = imageView,
         photo = photo,
         fallback = R.drawable.ic_user_default,
-        placeholder = R.drawable.ic_user_default
+        placeholder = R.drawable.ic_user_default,
+        scaleType = ImageView.ScaleType.CENTER_CROP
     )
 }
 

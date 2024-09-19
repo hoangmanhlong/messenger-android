@@ -9,26 +9,28 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toUri
 import androidx.core.widget.NestedScrollView
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.android.kotlin.familymessagingapp.R
-import com.android.kotlin.familymessagingapp.activity.MainActivity
+import com.android.kotlin.familymessagingapp.activity.MainViewModel
 import com.android.kotlin.familymessagingapp.databinding.FragmentProfileDetailBinding
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import com.android.kotlin.familymessagingapp.utils.bindUserAvatar
-import com.android.kotlin.familymessagingapp.utils.loadImageFollowImageViewSize
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -49,11 +51,14 @@ class ProfileDetailFragment : Fragment() {
 
     private val _viewModel: ProfileDetailViewModel by viewModels()
 
+    private val mainViewModel: MainViewModel by activityViewModels()
+
     // Registers a photo picker activity launcher in single-select mode.
     private val pickMultipleMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             it?.let {
-                loadImageFollowImageViewSize(binding.ivAvatar, it)
+                bindUserAvatar(binding.ivAvatar, it)
+                _viewModel.updateImage(it)
             }
         }
 
@@ -68,6 +73,8 @@ class ProfileDetailFragment : Fragment() {
     private var phoneNumberTextInputEditText: TextInputEditText? = null
 
     private var nestedScrollView: NestedScrollView? = null
+
+    private var errorDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,10 +91,16 @@ class ProfileDetailFragment : Fragment() {
 
         binding.btNavigateUp.setOnClickListener { findNavController().navigateUp() }
 
-        binding.ivAvatar.setOnClickListener {
-            // Hook up taps on the thumbnail views.
-            zoomImageFromThumb(binding.ivAvatar, binding.ivAvatar.drawable)
+        binding.userAvatarMaterialCardView.setOnClickListener {
+            pickMultipleMedia.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
         }
+
+//        binding.ivAvatar.setOnClickListener {
+//            // Hook up taps on the thumbnail views.
+//            zoomImageFromThumb(binding.ivAvatar, binding.ivAvatar.drawable)
+//        }
 
         phoneNumberTextInputEditText?.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -95,6 +108,18 @@ class ProfileDetailFragment : Fragment() {
                 nestedScrollView?.post {
                     nestedScrollView?.smoothScrollTo(0, nestedScrollView!!.bottom)
                 }
+
+                phoneNumberTextInputEditText?.setSelection(
+                    phoneNumberTextInputEditText?.text?.length ?: 0
+                )
+            }
+        }
+
+        userNameTextInputEditText?.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                userNameTextInputEditText?.setSelection(
+                    userNameTextInputEditText?.text?.length ?: 0
+                )
             }
         }
 
@@ -104,36 +129,12 @@ class ProfileDetailFragment : Fragment() {
             }
         }
 
-        userNameTextInputEditText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
+        userNameTextInputEditText?.addTextChangedListener {
+            _viewModel.setDisplayName(it.toString().trim())
+        }
 
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                _viewModel.setDisplayName(s.toString().trim())
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-        })
-
-        phoneNumberTextInputEditText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                _viewModel.setPhoneNumber(s.toString().trim())
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-        })
-
-        binding.userAvatarMaterialCardView.setOnClickListener {
-            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        phoneNumberTextInputEditText?.addTextChangedListener {
+            _viewModel.setPhoneNumber(it.toString().trim())
         }
 
         return binding.root
@@ -142,47 +143,65 @@ class ProfileDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        _viewModel.publicUserData.observe(viewLifecycleOwner) { userdata ->
+        mainViewModel.currentUserLiveData.observe(viewLifecycleOwner) { userdata ->
             userdata?.let {
-                bindUserAvatar(binding.ivAvatar, if (_viewModel.avatarDrawable != null) _viewModel.avatarDrawable else userdata.userAvatar)
+                val currentUserName = _viewModel.userData.username
+                val currentPhoneNumber = _viewModel.userData.phoneNumber
+                val currentUserAvatar = _viewModel.userData.userAvatar
+                bindUserAvatar(
+                    binding.ivAvatar,
+                    if (currentUserAvatar.isNullOrEmpty()) userdata.userAvatar else currentUserAvatar.toUri()
+                )
                 userNameTextInputEditText?.setText(
-                    if (!_viewModel.initializedForTheFirstTime) userdata.username
-                        ?: "" else _viewModel.userData.username
+                    if (_viewModel.initializedForTheFirstTime) userdata.username else currentUserName
                 )
-                binding.emailTextInputEditText.setText(userdata.email ?: "")
+                binding.emailTextInputEditText.setText(userdata.email)
                 phoneNumberTextInputEditText?.setText(
-                    if (!_viewModel.initializedForTheFirstTime) userdata.phoneNumber
-                        ?: "" else _viewModel.userData.phoneNumber
+                    if (_viewModel.initializedForTheFirstTime) userdata.phoneNumber else currentPhoneNumber
                 )
+
             }
         }
 
         _viewModel.isLoading.observe(this.viewLifecycleOwner) {
-            (activity as MainActivity).isShowLoadingDialog(it)
+            mainViewModel.setIsLoading(it)
         }
 
         _viewModel.saveButtonStatus.observe(this.viewLifecycleOwner) {
             binding.btSave.isEnabled = it
         }
-    }
 
-    fun isEditing(isEditing: Boolean) {
-        _viewModel.setEditingStatus(isEditing)
+        _viewModel.isSaveSuccess.observe(this.viewLifecycleOwner) {
+            if (it == false) showErrorDialog()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        _viewModel.initializedForTheFirstTime = true
+        _viewModel.initializedForTheFirstTime = false
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        (activity as MainActivity).isShowLoadingDialog(false)
+        mainViewModel.setIsLoading(false)
         userNameTextInputEditText = null
         phoneNumberTextInputEditText = null
         nestedScrollView = null
+        errorDialog = null
         _binding = null
-        _viewModel.avatarDrawable = binding.ivAvatar.drawable
+    }
+
+    private fun showErrorDialog() {
+        if (activity == null) return
+
+        if (errorDialog == null) {
+            errorDialog = DialogUtils.showNotificationDialog(
+                context = requireActivity(),
+                message = R.string.error_occurred,
+                cancelable = false
+            )
+        }
+        errorDialog?.show()
     }
 
     private fun zoomImageFromThumb(thumbView: View, imageDrawable: Drawable) {

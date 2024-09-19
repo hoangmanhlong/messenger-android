@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -21,25 +22,13 @@ import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
 
 class ChatRoomDetailFragment : Fragment() {
 
-    private val viewModel: ChatRoomViewModel by activityViewModels()
+    private val chatRoomViewModel: ChatRoomViewModel by activityViewModels()
 
     private var _binding: FragmentChatRoomDetailBinding? = null
 
     private val binding get() = _binding!!
 
     private var leaveChatRoomDialog: AlertDialog? = null
-
-    // Registers a photo picker activity launcher in single-select mode.
-    private val pickMultipleMedia =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
-            it?.let {
-                MediaUtils.loadImageFollowImageViewSize(
-                    imageView = binding.ivChatRoomImage,
-                    photo = it,
-                    scaleType = ImageView.ScaleType.CENTER_CROP
-                )
-            }
-        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,7 +51,7 @@ class ChatRoomDetailFragment : Fragment() {
                     leaveChatRoomDialog = DialogUtils.leaveChatRoomDialog(
                         context = requireContext(),
                         onPositiveClick = {
-                            viewModel.leaveChatRoom()
+                            chatRoomViewModel.leaveChatRoom()
                         }
                     )
                 }
@@ -71,12 +60,10 @@ class ChatRoomDetailFragment : Fragment() {
         }
 
         binding.editConversationInformationView.setOnClickListener {
-            findNavController().navigate(R.id.action_chatRoomDetailFragment_to_editChatRoomFragment)
+            navigateToEditChatRoomInformation()
         }
 
-//        binding.ivAvatar.setOnClickListener {
-//            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-//        }
+        binding.chatRoomImageCardView.setOnClickListener { navigateToEditChatRoomInformation() }
 
         return binding.root
     }
@@ -84,7 +71,7 @@ class ChatRoomDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.chatRoom.observe(this.viewLifecycleOwner) {
+        chatRoomViewModel.chatRoom.observe(this.viewLifecycleOwner) {
             it?.let { chatRoom ->
                 bindChatRoomImage(binding.ivChatRoomImage, chatRoom)
                 binding.tvChatRoomName.text = chatRoom.chatRoomName
@@ -121,5 +108,9 @@ class ChatRoomDetailFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun navigateToEditChatRoomInformation() {
+        findNavController().navigate(R.id.action_chatRoomDetailFragment_to_editChatRoomFragment)
     }
 }

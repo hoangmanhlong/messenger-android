@@ -35,52 +35,19 @@
             android:paddingBottom="32dp">
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/chatRoomImageCardView"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:layout_gravity="center"
                 app:cardCornerRadius="100dp"
                 app:strokeWidth="0dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <ImageView
+                    android:id="@+id/ivChatRoomImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_gravity="center_horizontal"
-                    android:background="?attr/selectableItemBackgroundBorderless">
-
-                    <ImageView
-                        android:id="@+id/ivChatRoomImage"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:contentDescription="@null"
-                        android:scaleType="centerCrop"
-                        tools:src="@tools:sample/avatars" />
-
-<!--                    <FrameLayout-->
-<!--                        android:layout_width="match_parent"-->
-<!--                        android:layout_height="0dp"-->
-<!--                        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                        app:layout_constraintEnd_toEndOf="parent"-->
-<!--                        app:layout_constraintHeight_percent="0.3"-->
-<!--                        app:layout_constraintStart_toStartOf="parent">-->
-
-<!--                        <View-->
-<!--                            android:layout_width="match_parent"-->
-<!--                            android:layout_height="match_parent"-->
-<!--                            android:alpha="0.3"-->
-<!--                            android:background="#000"-->
-<!--                            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                            app:layout_constraintEnd_toEndOf="parent"-->
-<!--                            app:layout_constraintStart_toStartOf="parent" />-->
-
-<!--                        <ImageView-->
-<!--                            android:layout_width="wrap_content"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_gravity="center"-->
-<!--                            android:src="@drawable/ic_camera_alt" />-->
-
-<!--                    </FrameLayout>-->
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:contentDescription="@null"
+                    tools:src="@tools:sample/avatars" />
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -118,7 +85,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/description"
-                        android:maxLines="3" />
+                        android:maxLines="5" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
