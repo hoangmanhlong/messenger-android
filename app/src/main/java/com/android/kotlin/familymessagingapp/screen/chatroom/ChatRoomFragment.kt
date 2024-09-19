@@ -283,6 +283,14 @@ class ChatRoomFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         getSharedData()
 
+        _viewModel.leaveChatRoomStatus.observe(this.viewLifecycleOwner) {
+            if (it is Result.Success) {
+                _viewModel.updateLeaveChatRoomStatus(null)
+                _viewModel.updateLoadingStatus(false)
+                findNavController().navigateUp()
+            }
+        }
+
         // When pressing the back button on the device, if Image Detail is showing, close Image Detail View
         activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
             if (_viewModel.imageDetailShown.value == true)
@@ -296,7 +304,7 @@ class ChatRoomFragment : Fragment() {
                     if (positionStart > 0) {
                         messageAdapter?.notifyItemChanged(positionStart - 1)
                     }
-                    if (positionStart < messageAdapter!!.itemCount - 1) {
+                    if (messageAdapter != null && positionStart < messageAdapter!!.itemCount - 1) {
                         messageAdapter?.notifyItemChanged(positionStart + 1)
                     }
                 }

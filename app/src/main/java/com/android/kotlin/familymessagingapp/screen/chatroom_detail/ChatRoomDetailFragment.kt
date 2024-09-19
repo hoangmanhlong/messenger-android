@@ -4,19 +4,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainViewModel
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomDetailBinding
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.screen.chatroom.ChatRoomViewModel
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
-import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.bindChatRoomImage
 
 
@@ -24,11 +22,15 @@ class ChatRoomDetailFragment : Fragment() {
 
     private val chatRoomViewModel: ChatRoomViewModel by activityViewModels()
 
+    private val mainViewModel: MainViewModel by activityViewModels()
+
     private var _binding: FragmentChatRoomDetailBinding? = null
 
     private val binding get() = _binding!!
 
     private var leaveChatRoomDialog: AlertDialog? = null
+
+    private var errorDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,9 +110,40 @@ class ChatRoomDetailFragment : Fragment() {
                 }
             }
         }
+
+        chatRoomViewModel.leaveChatRoomStatus.observe(this.viewLifecycleOwner) {
+            when(it) {
+                is Result.Success -> {
+                    findNavController().navigateUp()
+                }
+                is Result.Error -> {
+                    showErrorDialog()
+                }
+                else -> {}
+            }
+        }
+
+        chatRoomViewModel.isLoading.observe(viewLifecycleOwner) {
+            mainViewModel.setIsLoading(it)
+        }
     }
 
     private fun navigateToEditChatRoomInformation() {
+        if(chatRoomViewModel.chatRoom.value?.chatRoomType != ChatRoomType.Group.type) return
         findNavController().navigate(R.id.action_chatRoomDetailFragment_to_editChatRoomFragment)
+    }
+
+    private fun showErrorDialog() {
+        if (activity == null) return
+
+        if (errorDialog == null) {
+            errorDialog = DialogUtils.showNotificationDialog(
+                context = requireActivity(),
+                message = R.string.error_occurred,
+                cancelable = false,
+                onOkButtonClick = null
+            )
+        }
+        errorDialog?.show()
     }
 }

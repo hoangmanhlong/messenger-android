@@ -91,6 +91,12 @@ class ChatRoomViewModel @Inject constructor(
     private val _saveImageState: MutableLiveData<Boolean?> = MutableLiveData(null)
     val saveImageState: LiveData<Boolean?> = _saveImageState
 
+    private val _leaveChatRoomStatus: MutableLiveData<Result<Boolean>?> = MutableLiveData(null)
+    val leaveChatRoomStatus: LiveData<Result<Boolean>?> = _leaveChatRoomStatus
+
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
     var selectedImage: Any? = null
         private set
 
@@ -150,6 +156,14 @@ class ChatRoomViewModel @Inject constructor(
         }
     }
 
+    fun updateLeaveChatRoomStatus(status: Result<Boolean>?) {
+        _leaveChatRoomStatus.value = status
+    }
+
+    fun updateLoadingStatus(status: Boolean) {
+        _isLoading.value = status
+    }
+
     fun createUriOfTheImageBeingCapturedByTheCamera(context: Context): Uri? {
         return MediaUtils.createTempImageFile(context).also { uri ->
             if (uri == null) return null
@@ -196,6 +210,8 @@ class ChatRoomViewModel @Inject constructor(
         goToSettingToGrantCameraPermission = false
         currentMediaDataOfReplyMessage = null
         latestMessage = null
+        _leaveChatRoomStatus.value = null
+        _isLoading.value = false
     }
 
     fun setSelectMediaData(mediaData: MediaData?) {
@@ -399,6 +415,8 @@ class ChatRoomViewModel @Inject constructor(
                 _chatRoom.value = _chatRoom.value?.copy(
                     chatRoomId = chatRoom?.chatRoomId,
                     messages = chatRoom?.messages,
+                    chatRoomName = chatRoom?.chatRoomName,
+                    chatRoomImage = chatRoom?.chatRoomImage,
                     chatRoomActivity = chatRoom?.chatRoomActivity,
                     members = chatRoom?.members,
                     pinnedMessages = chatRoom?.pinnedMessages,
@@ -569,7 +587,13 @@ class ChatRoomViewModel @Inject constructor(
     }
 
     fun leaveChatRoom() {
-
+        viewModelScope.launch {
+            _isLoading.value = true
+            _leaveChatRoomStatus.value = firebaseServiceRepository
+                .firebaseRealtimeDatabaseService
+                .leaveChatRoom(_chatRoom.value)
+            _isLoading.value = false
+        }
     }
 
     companion object {

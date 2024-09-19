@@ -11,6 +11,7 @@ import com.android.kotlin.familymessagingapp.data.remote.socket.SocketClient
 import com.android.kotlin.familymessagingapp.model.ChatActivityType
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.ChatRoomActivity
+import com.android.kotlin.familymessagingapp.model.ChatRoomNotFoundException
 import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.Contact
 import com.android.kotlin.familymessagingapp.model.MediaData
@@ -1013,6 +1014,93 @@ class FirebaseRealtimeDatabaseService(
                 .child(message.messageId!!)
                 .setValue(updateMessage)
                 .await()
+
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    suspend fun updateChatRoomData(chatRoom: ChatRoom): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            var chatRoomImage = chatRoom.chatRoomImage
+            val chatRoomName = chatRoom.chatRoomName
+            val chatRoomDescription = chatRoom.chatRoomDescription
+
+            val chatRoomUpdates = mutableMapOf<String, Any?>()
+
+            chatRoomUpdates[ChatRoom.CHAT_ROOM_DESCRIPTION] = chatRoomDescription
+
+            if (!chatRoomImage.isNullOrEmpty()) {
+                chatRoomImage = firebaseStorageService.putUriToStorage(
+                    chatRoom.chatRoomImage!!.toUri(),
+                    firebaseStorageService.initializeChatRoomImageRefInStorage(chatRoom.chatRoomId!!)
+                )
+            }
+
+            if (!chatRoomName.isNullOrEmpty()) {
+                chatRoomUpdates[ChatRoom.CHAT_ROOM_NAME] = chatRoomName
+            }
+
+            if (!chatRoomImage.isNullOrEmpty()) {
+                chatRoomUpdates[ChatRoom.CHAT_ROOM_IMAGE] = chatRoomImage
+            }
+
+            val chatRoomActivity = ChatRoomActivity(
+                latestActiveTime = StringUtils.getCurrentTime(),
+                activityType = ChatActivityType.UPDATE_CHATROOM_INFO.value,
+                performedByUser = auth.uid,
+                dataOfUserPerformingTheActivity = null,
+                newMessage = null
+            )
+
+            chatRoomUpdates[ChatRoom.CHAT_ROOM_ACTIVITY] = chatRoomActivity
+
+            // Update chat room to Firebase Realtime Database
+            chatRoomsRef.child(chatRoom.chatRoomId!!).updateChildren(chatRoomUpdates).await()
+
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    suspend fun leaveChatRoom(chatRoom: ChatRoom?): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val chatRoomId = chatRoom?.chatRoomId
+            if (chatRoom == null || chatRoomId.isNullOrEmpty())
+                return@withContext Result.Error(ChatRoomNotFoundException())
+
+            val chatRoomMembers = chatRoom.members?.toMutableList()
+            chatRoomMembers?.remove(auth.uid)
+
+            val chatRoomListOfCurrentUser = _privateUserData.value?.chatRooms?.toMutableList()
+            chatRoomListOfCurrentUser?.remove(chatRoomId)
+
+            coroutineScope {
+                val updateChatRoomMembersTask = async {
+                    if (chatRoomMembers.isNullOrEmpty()) {
+                        chatRoomsRef.child(chatRoomId)
+                            .removeValue()
+                            .await()
+                    } else {
+                        chatRoomsRef.child(chatRoomId)
+                            .child(ChatRoom.MEMBERS)
+                            .setValue(chatRoomMembers)
+                            .await()
+                    }
+                }
+
+                val updateChatRoomListOfCurrentUserTask = async {
+                    privateUserDataRef.child(auth.uid!!)
+                        .child(PrivateUserData.CHAT_ROOMS)
+                        .setValue(chatRoomListOfCurrentUser)
+                        .await()
+                }
+
+                updateChatRoomMembersTask.await()
+                updateChatRoomListOfCurrentUserTask.await()
+            }
 
             Result.Success(true)
         } catch (e: Exception) {

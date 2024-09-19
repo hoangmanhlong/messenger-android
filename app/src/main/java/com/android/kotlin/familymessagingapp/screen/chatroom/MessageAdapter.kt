@@ -93,7 +93,7 @@ class MessageAdapter(
                     binding.tvReplyMessageTitle.text = context.getString(
                         R.string.replied_to,
                         you,
-                        if (replyMessage.senderData?.uid == Firebase.auth.uid) you else replyMessage.senderData?.username
+                        if (replyMessage.senderData?.uid == Firebase.auth.uid) you else replyMessage.senderData?.username ?: context.getString(R.string.unknown_user)
                     )
 
                     if (replyMessage.removedByIsEmpty()) {
@@ -423,8 +423,8 @@ class MessageAdapter(
                     // Set the title of the reply message
                     binding.tvReplyMessageTitle.text = context.getString(
                         R.string.replied_to,
-                        if (message.senderData?.uid == Firebase.auth.uid) you else message.senderData?.username,
-                        if (replyMessage.senderData?.uid == Firebase.auth.uid) you else replyMessage.senderData?.username
+                        if (message.senderData?.uid == Firebase.auth.uid) you else message.senderData?.username ?: context.getString(R.string.unknown_user),
+                        if (replyMessage.senderData?.uid == Firebase.auth.uid) you else replyMessage.senderData?.username ?: context.getString(R.string.unknown_user)
                     )
 
                     if (replyMessage.removedByIsEmpty()) {
@@ -656,7 +656,7 @@ class MessageAdapter(
                 )
 
                 val senderName =
-                    message.senderData?.username ?: context.getString(R.string.app_user)
+                    message.senderData?.username ?: context.getString(R.string.unknown_user)
                 binding.tvReceiverName.text = senderName
 
                 receiverAvatarCardViewLayoutParams.topMargin =

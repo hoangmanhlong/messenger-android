@@ -42,6 +42,8 @@ data class ChatRoom(
         const val CHAT_ROOM_NAME = "chatRoomName"
         const val CHAT_ROOM_TYPE = "chatRoomType"
         const val CHAT_ROOM_ACTIVITY = "chatRoomActivity"
+        const val CHAT_ROOM_DESCRIPTION = "chatRoomDescription"
+        const val MEMBERS = "members"
     }
 
     @Exclude

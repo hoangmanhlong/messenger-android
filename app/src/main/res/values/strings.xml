@@ -154,7 +154,6 @@
     <string name="camera_access_denied_title">Camera permission required</string>
     <string name="camera_access_denied_message">Camera permission is needed to use this feature. Please grant the permission in the app settings.</string>
     <string name="go_to_setting">Go to setting</string>
-    <string name="user_update_chatroom_info">%s has updated the chat room information</string>
     <string name="user_created_group_chat">%s created group chat</string>
 
     <string name="photo">Photo</string>
@@ -188,4 +187,7 @@
     <string name="chatroom_name">Chatroom name</string>
     <string name="description">Description</string>
     <string name="chatroom_name_helper">Chat room name cannot be blank</string>
+    <string name="user_update_chatroom_info">%s updated conversation information</string>
+    <string name="anonymous">Anonymous</string>
+    <string name="unknown_user">Unknown user</string>
 </resources>

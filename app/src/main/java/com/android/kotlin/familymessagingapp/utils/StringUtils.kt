@@ -75,6 +75,14 @@ object StringUtils {
         var result = context.getString(R.string.connected)
         val chatRoomActivity = chatRoom.chatRoomActivity
 
+        val userdata = chatRoomActivity?.dataOfUserPerformingTheActivity
+        val senderName =
+            if (userdata?.uid == Firebase.auth.uid) context.getString(R.string.sender_you)
+            else if (userdata == null || userdata.uid.isNullOrEmpty() || userdata.username.isNullOrEmpty())
+                context.getString(R.string.unknown_user)
+            else
+                userdata.username
+
         var isNewMessageActivity = false
         if (chatRoomActivity != null) {
             when (chatRoomActivity.activityType) {
@@ -94,16 +102,7 @@ object StringUtils {
                         result =
                             context.getString(if (isAllImage) R.string.photo_last_message else R.string.sent_file)
                     }
-
-                    // Add sender name at the beginning
-                    val senderName = chatRoomActivity.dataOfUserPerformingTheActivity?.username
-                    if (senderName != null) {
-                        result = if (message.senderId == Firebase.auth.uid) {
-                            context.getString(R.string.sender_you) + ": $result"
-                        } else {
-                            "$senderName: $result"
-                        }
-                    }
+                    result = "$senderName: $result"
                 }
 
                 ChatActivityType.LEAVE_CHATROOM.value -> {
@@ -115,9 +114,6 @@ object StringUtils {
                 }
 
                 ChatActivityType.REMOVE_MESSAGE.value -> {
-                    val userdata = chatRoomActivity.dataOfUserPerformingTheActivity
-                    val senderName =
-                        if (userdata?.uid == Firebase.auth.uid) context.getString(R.string.sender_you) else userdata?.username
                     result = context.getString(R.string.user_deleted_a_message, senderName)
                 }
 
@@ -126,19 +122,13 @@ object StringUtils {
                 }
 
                 ChatActivityType.UPDATE_CHATROOM_INFO.value -> {
-
+                    result = context
+                        .getString(R.string.user_update_chatroom_info, senderName)
+                        .trim()
                 }
 
                 ChatActivityType.CREATE_CHATROOM.value -> {
-                    val senderName = chatRoomActivity.dataOfUserPerformingTheActivity?.username
-                    if (senderName != null) {
-                        result = context.getString(
-                            R.string.user_created_group_chat,
-                            if (chatRoomActivity.performedByUser == Firebase.auth.uid) context.getString(
-                                R.string.sender_you
-                            ) else senderName
-                        )
-                    }
+                    result = context.getString(R.string.user_created_group_chat, senderName)
                 }
 
                 else -> {

@@ -139,7 +139,6 @@
     <string name="camera_access_denied_title">Cần có sự cho phép của máy ảnh</string>
     <string name="camera_access_denied_message">Cần có quyền sử dụng máy ảnh để sử dụng tính năng này. Vui lòng cấp quyền trong cài đặt ứng dụng.</string>
     <string name="go_to_setting">Đi tới cài đặt</string>
-    <string name="user_update_chatroom_info">%s đã cập nhật thông tin phòng chat</string>
     <string name="user_created_group_chat">%s đã tạo nhóm chat</string>
     <string name="sent_file">đã gửi tập tin</string>
     <string name="open_file_with">Mở tập tin với</string>
@@ -171,4 +170,7 @@
     <string name="chatroom_name">Tên phòng chat</string>
     <string name="description">Mô tả</string>
     <string name="chatroom_name_helper">Tên phòng chat không được để trống</string>
+    <string name="user_update_chatroom_info">%s đã cập nhật thông tin cuộc trò chuyện</string>
+    <string name="anonymous">Anonymous</string>
+    <string name="unknown_user">Người dùng không xác định</string>
 </resources>
