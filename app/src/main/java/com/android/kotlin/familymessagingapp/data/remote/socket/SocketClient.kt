@@ -1,12 +1,10 @@
 package com.android.kotlin.familymessagingapp.data.remote.socket
 
-import android.util.Log
 import com.android.kotlin.familymessagingapp.BuildConfig
 import com.android.kotlin.familymessagingapp.model.ChatRoom
-import com.android.kotlin.familymessagingapp.model.ChatRoomType
 import com.android.kotlin.familymessagingapp.model.MediaData
-import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.Message
+import com.android.kotlin.familymessagingapp.model.Result
 import com.android.kotlin.familymessagingapp.model.ServerErrorException
 import com.android.kotlin.familymessagingapp.model.toMessageSocketEvent
 import com.android.kotlin.familymessagingapp.utils.Constant

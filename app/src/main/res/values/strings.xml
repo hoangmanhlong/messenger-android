@@ -190,4 +190,6 @@
     <string name="user_update_chatroom_info">%s updated conversation information</string>
     <string name="anonymous">Anonymous</string>
     <string name="unknown_user">Unknown user</string>
+    <string name="chatroom_members">Members (%d)</string>
+    <string name="no_members">No members</string>
 </resources>

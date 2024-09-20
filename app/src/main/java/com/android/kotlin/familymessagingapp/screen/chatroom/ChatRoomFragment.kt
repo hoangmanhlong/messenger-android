@@ -152,9 +152,9 @@ class ChatRoomFragment : Fragment() {
                 _viewModel.setSelectMediaData(mediaData)
                 openMessageOptions()
             },
-            onImageClick = { drawable, _, _ ->
+            onImageClick = { _, mediaData, _ ->
                 hideKeyboard()
-                _viewModel.setImageDetailShown(true, drawable)
+                _viewModel.setImageDetailShown(true, mediaData.url)
             },
             onReplyMessageClick = {
                 if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {

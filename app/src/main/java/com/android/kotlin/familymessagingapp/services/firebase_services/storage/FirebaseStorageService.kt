@@ -58,6 +58,7 @@ class FirebaseStorageService(private val application: Application) {
                 storageRef.putFile(uri).await()
                 storageRef.downloadUrl.await().toString()
             } catch (e: Exception) {
+                e.stackTrace
                 null
             }
         }

@@ -31,7 +31,6 @@ import com.android.kotlin.familymessagingapp.screen.video_call.CallFragment
 import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.TimeUtils
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -66,8 +65,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var usernameTextView: TextView
 
     private lateinit var userEmailTextView: TextView
-
-    private lateinit var verifiedMaterialCardView: MaterialCardView
 
     private val binding get() = _binding!!
 
@@ -121,8 +118,6 @@ class MainActivity : AppCompatActivity() {
                 MediaUtils.loadImageFollowImageViewSize(userImageView, userdata.userAvatar)
                 usernameTextView.text = userdata.username
                 userEmailTextView.text = userdata.email
-                verifiedMaterialCardView.visibility =
-                    if (userdata.verified()) View.VISIBLE else View.GONE
             }
         }
 
@@ -162,7 +157,6 @@ class MainActivity : AppCompatActivity() {
         userImageView = navigationViewHeader.findViewById(R.id.userAvatar)
         usernameTextView = navigationViewHeader.findViewById(R.id.tvUsername)
         userEmailTextView = navigationViewHeader.findViewById(R.id.tvEmail)
-        verifiedMaterialCardView = navigationViewHeader.findViewById(R.id.verifiedMaterialCardView)
         navigationViewHeader.setOnClickListener {
             closeDrawer()
             navController.navigate(Screen.ProfileScreen.screenId)
@@ -288,10 +282,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             _viewModel.saveCurrentNotificationStatus()
         }
-    }
-
-    fun saveNotificationStatus(enabled: Boolean) {
-        _viewModel.saveNotificationStatus(enabled)
     }
 
     fun openDrawer() = binding.drawerLayout.open()

@@ -75,31 +75,7 @@
         <!--                tools:node="remove" />-->
         <!--        </provider>-->
 
-        <!-- https://developer.android.com/develop/ui/views/notifications/bubbles#bubble-api        -->
-        <!-- Bubble Activity-->
-        <!-- android:allowEmbedded="true" Cho phép Activity này có thể được nhúng vào một Activity
-         khác dưới dạng một thành phần con. Ví dụ, Activity này có thể được hiển thị dưới dạng một
-          phần của một Task khác-->
-        <activity
-            android:name=".activity.BubbleActivity"
-            android:allowEmbedded="true"
-            android:documentLaunchMode="always"
-            android:exported="true"
-            android:label="@string/send"
-            android:resizeableActivity="true"
-            android:theme="@style/AppThemeGreen">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:host="@string/bubble_host"
-                    android:pathPattern="/chatroom/*"
-                    android:scheme="https" />
-            </intent-filter>
-        </activity>
-
-        <receiver
-            android:name="com.android.kotlin.familymessagingapp.receiver.ReplyReceiver" />
+        <receiver android:name="com.android.kotlin.familymessagingapp.receiver.ReplyReceiver" />
 
         <service
             android:name=".services.firebase_services.fcm.AppFirebaseMessagingService"
@@ -182,7 +158,9 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <receiver android:name=".receiver.DownloadCompleteReceiver" android:exported="true">
+        <receiver
+            android:name=".receiver.DownloadCompleteReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
             </intent-filter>

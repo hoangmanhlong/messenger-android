@@ -43,10 +43,6 @@ class ChatRoomDetailFragment : Fragment() {
             findNavController().navigateUp()
         }
 
-        binding.addMembersView.setOnClickListener {
-
-        }
-
         binding.leaveChatRoomView.setOnClickListener {
             activity?.let {
                 if (leaveChatRoomDialog == null) {
@@ -63,6 +59,18 @@ class ChatRoomDetailFragment : Fragment() {
 
         binding.editConversationInformationView.setOnClickListener {
             navigateToEditChatRoomInformation()
+        }
+
+        binding.tvChatRoomName.setOnClickListener {
+            navigateToEditChatRoomInformation()
+        }
+
+        binding.tvChatRoomDescription.setOnClickListener {
+            navigateToEditChatRoomInformation()
+        }
+
+        binding.chatRoomMembersView.setOnClickListener {
+            findNavController().navigate(R.id.chatRoomMemberFragment)
         }
 
         binding.chatRoomImageCardView.setOnClickListener { navigateToEditChatRoomInformation() }
@@ -85,25 +93,18 @@ class ChatRoomDetailFragment : Fragment() {
                         binding.tvChatRoomDescription.text = chatRoom.chatRoomDescription
                     }
                     val members = chatRoom.members
-                    if (members.isNullOrEmpty()) {
-                        binding.tvChatRoomMembers.visibility = View.GONE
-                    } else {
-                        binding.tvChatRoomMembers.text = getString(
-                            R.string.format_chatroom_members,
-                            members.size.toString()
-                        )
-                        binding.tvChatRoomMembers.visibility = View.VISIBLE
-                    }
+                    binding.tvChatRoomMembers.text = getString(
+                        if (members.isNullOrEmpty()) R.string.members else R.string.chatroom_members,
+                        members?.size ?: 0
+                    )
 
                     binding.editConversationInformationView.visibility = View.VISIBLE
-                    binding.addMembersView.visibility = View.VISIBLE
                     binding.leaveChatRoomView.visibility = View.VISIBLE
                     binding.blockView.visibility = View.GONE
                     binding.chatRoomMembersView.visibility = View.VISIBLE
                 } else {
                     binding.tvChatRoomDescription.visibility = View.GONE
                     binding.editConversationInformationView.visibility = View.GONE
-                    binding.addMembersView.visibility = View.GONE
                     binding.leaveChatRoomView.visibility = View.GONE
                     binding.blockView.visibility = View.VISIBLE
                     binding.chatRoomMembersView.visibility = View.GONE
@@ -112,13 +113,15 @@ class ChatRoomDetailFragment : Fragment() {
         }
 
         chatRoomViewModel.leaveChatRoomStatus.observe(this.viewLifecycleOwner) {
-            when(it) {
+            when (it) {
                 is Result.Success -> {
                     findNavController().navigateUp()
                 }
+
                 is Result.Error -> {
                     showErrorDialog()
                 }
+
                 else -> {}
             }
         }
@@ -129,7 +132,7 @@ class ChatRoomDetailFragment : Fragment() {
     }
 
     private fun navigateToEditChatRoomInformation() {
-        if(chatRoomViewModel.chatRoom.value?.chatRoomType != ChatRoomType.Group.type) return
+        if (chatRoomViewModel.chatRoom.value?.chatRoomType != ChatRoomType.Group.type) return
         findNavController().navigate(R.id.action_chatRoomDetailFragment_to_editChatRoomFragment)
     }
 

@@ -1,6 +1,5 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.realtime_database
 
-import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -37,7 +36,6 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.google.zxing.qrcode.decoder.Version.ECB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -56,7 +54,6 @@ import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.w3c.dom.Text
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -98,8 +95,6 @@ class FirebaseRealtimeDatabaseService(
 
     private val registerPrivateUserDataListener =
         mutableMapOf<DatabaseReference, ValueEventListener>()
-
-    private val registerChatroomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
 
     private var currentChatRoomListener = mutableMapOf<DatabaseReference, ValueEventListener>()
 
@@ -173,7 +168,7 @@ class FirebaseRealtimeDatabaseService(
      *
      * Add chatroom listener when chatroom id list from user not empty and chatroom id list is changed
      *
-     * @param userData latest userdata from current user
+     * @param chatRooms chatroom id list of current user
      */
     private suspend fun chatroomObserver(chatRooms: List<String>?) {
         if (chatRooms.isNullOrEmpty()) {
@@ -266,9 +261,6 @@ class FirebaseRealtimeDatabaseService(
                         membersData.add(_publicUserData.value!!)
                         if (!listOfOtherMembers.isNullOrEmpty()) {
                             val deferredList = listOfOtherMembers.map { memberId ->
-                                // async và awaitAll: Để lấy dữ liệu của các memberId khác song song,
-                                // bạn có thể sử dụng async để tạo các tác vụ không đồng bộ cho từng truy
-                                // vấn Firebase và sau đó sử dụng awaitAll để chờ tất cả các truy vấn hoàn thành.
                                 async {
                                     val userData = getUserData(memberId)
                                     userData?.let { membersData.add(it) }
@@ -325,9 +317,9 @@ class FirebaseRealtimeDatabaseService(
                         membersData.add(_publicUserData.value!!)
                         if (!listOfOtherMembers.isNullOrEmpty()) {
                             val deferredList = listOfOtherMembers.map { memberId ->
-                                // async và awaitAll: Để lấy dữ liệu của các memberId khác song song,
-                                // bạn có thể sử dụng async để tạo các tác vụ không đồng bộ cho từng truy
-                                // vấn Firebase và sau đó sử dụng awaitAll để chờ tất cả các truy vấn hoàn thành.
+                                // async and awaitAll: To fetch data of different memberIds in parallel,
+                                // you can use async to create asynchronous tasks for each Firebase
+                                // query and then use awaitAll to wait for all queries to complete.
                                 async {
                                     val userData = getUserData(memberId)
                                     userData?.let { membersData.add(it) }
@@ -376,8 +368,8 @@ class FirebaseRealtimeDatabaseService(
     }
 
     /**
-     * suspendCoroutine: Hàm này chuyển đổi callback của Firebase thành một hàm suspend,
-     * giúp dễ dàng sử dụng trong coroutine.
+     * suspendCoroutine: This function converts Firebase callbacks into a suspend function, making
+     * it easier to use in coroutines.
      */
     private suspend fun getUserData(uid: String): UserData? = suspendCoroutine { continuation ->
         publicUserDataRef.child(uid).addListenerForSingleValueEvent(object : ValueEventListener {
@@ -510,36 +502,6 @@ class FirebaseRealtimeDatabaseService(
         }
     }
 
-    fun addChatRoomListener(chatroomId: String): Flow<ChatRoom?> = callbackFlow {
-        val messageRef = chatRoomsRef.child(chatroomId)
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val chatroom = snapshot.getValue(ChatRoom::class.java)
-                trySend(chatroom).isSuccess
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                trySend(null)
-                close(error.toException())
-            }
-        }
-        messageRef.addValueEventListener(listener)
-        registerChatroomListener[messageRef] = listener
-        awaitClose { messageRef.removeEventListener(listener) }
-    }
-
-    fun removeChatRoomListener() {
-        registerChatroomListener.forEach { (ref, listener) -> ref.removeEventListener(listener) }
-        registerChatroomListener.clear()
-    }
-
-    /**
-     * Problem: Với trường username
-     * Chỉ tìm kiếm được được khi keyword giống 100% username
-     * Ví dụ: keyword = "long", username trên server = "Long" => kết quả sẽ sai
-     * Solution: thêm trường usernameLowercase vào UserData
-     * usernameLowercase = username.toLoweCase
-     */
     suspend fun search(keyword: String, searchByUid: Boolean): List<UserData> {
         return try {
             if (searchByUid) {
@@ -588,7 +550,8 @@ class FirebaseRealtimeDatabaseService(
     /**
      * #### Create new message
      *
-     * @param message The message object consists only of content fields such as [Message.text, Message.audio, Message.photo, Message.video]
+     * @param message The message object consists only of content fields such as
+     * [Message.text, Message.audio, Message.photo, Message.video]
      */
     private suspend fun createNewMessage(chatroomId: String, message: Message): Message {
         return withContext(Dispatchers.IO) {
@@ -608,7 +571,7 @@ class FirebaseRealtimeDatabaseService(
             val medias = mutableListOf<MediaData>()
             val fileDataList = message.fileDataList
             if (!fileDataList.isNullOrEmpty()) {
-                // Tạo danh sách các deferred coroutines để xử lý tải lên đồng thời
+                // Create a list of deferred coroutines to handle concurrent uploads
                 val uploadJobs = fileDataList.map { fileData ->
                     async {
                         val storageRef = firebaseStorageService
@@ -633,7 +596,7 @@ class FirebaseRealtimeDatabaseService(
                     }
                 }
 
-                // Chờ tất cả các tác vụ upload hoàn thành và lọc bỏ null
+                // Wait for all uploads to complete and filter out nulls
                 medias.addAll(uploadJobs.awaitAll().filterNotNull())
             }
 

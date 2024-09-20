@@ -85,6 +85,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/description"
+                        android:overScrollMode="always"
+                        android:scrollbarStyle="insideInset"
+                        android:scrollbars="vertical"
                         android:maxLines="5" />
 
                 </com.google.android.material.textfield.TextInputLayout>

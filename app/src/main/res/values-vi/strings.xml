@@ -173,4 +173,6 @@
     <string name="user_update_chatroom_info">%s đã cập nhật thông tin cuộc trò chuyện</string>
     <string name="anonymous">Anonymous</string>
     <string name="unknown_user">Người dùng không xác định</string>
+    <string name="chatroom_members">Thành viên (%d)</string>
+    <string name="no_members">Không có thành viên nào</string>
 </resources>

@@ -130,9 +130,21 @@
         <action
             android:id="@+id/action_chatRoomDetailFragment_to_editChatRoomFragment"
             app:destination="@id/editChatRoomFragment" />
+        <action
+            android:id="@+id/action_chatRoomDetailFragment_to_chatRoomMemberFragment"
+            app:destination="@id/chatRoomMemberFragment" />
     </fragment>
     <fragment
         android:id="@+id/editChatRoomFragment"
         android:name="com.android.kotlin.familymessagingapp.screen.edit_chatroom.EditChatRoomFragment"
         android:label="EditChatRoomFragment" />
+    <fragment
+        android:id="@+id/chatRoomMemberFragment"
+        android:name="com.android.kotlin.familymessagingapp.screen.members.ChatRoomMemberFragment"
+        android:label="fragment_chat_room_member"
+        tools:layout="@layout/fragment_chat_room_member" >
+        <action
+            android:id="@+id/action_chatRoomMemberFragment_to_chatRoomFragment"
+            app:destination="@id/chatRoomFragment" />
+    </fragment>
 </navigation>

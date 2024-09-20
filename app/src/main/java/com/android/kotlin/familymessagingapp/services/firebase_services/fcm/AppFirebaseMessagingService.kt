@@ -1,5 +1,6 @@
 package com.android.kotlin.familymessagingapp.services.firebase_services.fcm
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -58,7 +59,6 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
             val jsonPayload = JSONObject(remoteMessage.data as Map<*, *>)
             // Get values from JSON payload
             val mediasJson = jsonPayload.optString("medias")
-            val senderId = jsonPayload.optString("senderId")
             val text = jsonPayload.optString("text")
             val chatRoomId = jsonPayload.optString(ChatRoom.CHAT_ROOM_ID)
             val senderName = jsonPayload.optString("senderName")
@@ -106,8 +106,8 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
     /**
      * Create and show a simple notification containing the received FCM message.
-     *
      */
+    @SuppressLint("ObsoleteSdkInt")
     private fun sendNotification(
         chatRoomName: String,
         senderName: String,

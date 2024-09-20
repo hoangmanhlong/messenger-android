@@ -1,9 +1,11 @@
 package com.android.kotlin.familymessagingapp.screen.edit_chatroom
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.activity.result.PickVisualMediaRequest
@@ -25,6 +27,7 @@ import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
+
 
 @AndroidEntryPoint
 class EditChatRoomFragment : Fragment() {
@@ -64,6 +67,7 @@ class EditChatRoomFragment : Fragment() {
             }
         }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -93,6 +97,19 @@ class EditChatRoomFragment : Fragment() {
                 )
             }
         }
+
+        chatRoomDescriptionTextInputEditText?.setOnTouchListener(OnTouchListener { v, event ->
+            if (chatRoomDescriptionTextInputEditText?.hasFocus() == true) {
+                v.parent.requestDisallowInterceptTouchEvent(true)
+                when (event.action and MotionEvent.ACTION_MASK) {
+                    MotionEvent.ACTION_SCROLL -> {
+                        v.parent.requestDisallowInterceptTouchEvent(false)
+                        return@OnTouchListener true
+                    }
+                }
+            }
+            false
+        })
 
         binding.chatRoomImageCardView.setOnClickListener {
             pickMultipleMedia.launch(

@@ -59,16 +59,6 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Hoang Manh Long" />
 
-            <ImageView
-                android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:layout_marginStart="4dp"
-                android:src="@drawable/ic_verified"
-                android:visibility="@{userdata.verified == true ? View.VISIBLE : View.GONE}"
-                app:layout_constraintBottom_toBottomOf="@id/tvChatRoomName"
-                app:layout_constraintStart_toEndOf="@id/tvChatRoomName"
-                app:layout_constraintTop_toTopOf="@id/tvChatRoomName" />
-
             <TextView
                 android:id="@+id/tvLastMessage"
                 android:layout_width="wrap_content"
