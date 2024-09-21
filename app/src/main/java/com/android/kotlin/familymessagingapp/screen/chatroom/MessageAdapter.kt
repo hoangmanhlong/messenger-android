@@ -72,6 +72,7 @@ class MessageAdapter(
                 binding.imageMessageCardView.visibility = View.GONE
                 binding.reactionsRecyclerView.visibility = View.GONE
                 binding.replyMessageContainer.visibility = View.GONE
+                binding.fileRecyclerView.visibility = View.GONE
                 updateRemovedMessageOfSenderBackground(binding, message, bindingAdapterPosition)
                 binding.removedMessageView.visibility = View.VISIBLE
                 binding.removedMessageView.setOnClickListener {
@@ -403,6 +404,7 @@ class MessageAdapter(
                 binding.imageMessageCardView.visibility = View.GONE
                 binding.reactionsRecyclerView.visibility = View.GONE
                 binding.replyMessageContainer.visibility = View.GONE
+                binding.fileRecyclerView.visibility = View.GONE
                 updateRemovedMessageOfReceiverBackground(binding, message, bindingAdapterPosition)
                 binding.removedMessageView.visibility = View.VISIBLE
                 binding.removedMessageView.setOnClickListener {

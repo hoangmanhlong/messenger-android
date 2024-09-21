@@ -371,7 +371,8 @@ class FirebaseRealtimeDatabaseService(
      * suspendCoroutine: This function converts Firebase callbacks into a suspend function, making
      * it easier to use in coroutines.
      */
-    private suspend fun getUserData(uid: String): UserData? = suspendCoroutine { continuation ->
+    private suspend fun getUserData(uid: String?): UserData? = suspendCoroutine { continuation ->
+        if (uid.isNullOrEmpty()) return@suspendCoroutine continuation.resume(null)
         publicUserDataRef.child(uid).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val userData = snapshot.getValue(UserData::class.java)
@@ -955,7 +956,10 @@ class FirebaseRealtimeDatabaseService(
             val medias = message.medias
             val newMediaDataList = mutableListOf<MediaData>()
 
+            var isRemoveMedia = false
+
             if (mediaData != null && medias != null) {
+                isRemoveMedia = true
                 newMediaDataList.addAll(medias)
                 newMediaDataList.remove(mediaData)
             }
@@ -963,8 +967,8 @@ class FirebaseRealtimeDatabaseService(
             val updateMessage = Message().copy(
                 messageId = message.messageId,
                 senderId = message.senderId,
-                text = text,
-                medias = newMediaDataList,
+                text = if (!isRemoveMedia && !text.isNullOrEmpty()) null else text,
+                medias = if(isRemoveMedia) newMediaDataList else medias,
                 reactions = message.reactions,
                 removedBy = message.removedBy,
                 repliedMediaData = message.repliedMediaData,
@@ -1041,6 +1045,21 @@ class FirebaseRealtimeDatabaseService(
             chatRoomListOfCurrentUser?.remove(chatRoomId)
 
             coroutineScope {
+
+                val updateChatRoomActivityTask = async {
+                    val updateChatActivity = ChatRoomActivity(
+                        latestActiveTime = StringUtils.getCurrentTime(),
+                        activityType = ChatActivityType.LEAVE_CHATROOM.value,
+                        performedByUser = auth.uid,
+                        userPerformingName = publicUserData.value?.username
+                    )
+
+                    chatRoomsRef.child(chatRoomId)
+                        .child(ChatRoom.CHAT_ROOM_ACTIVITY)
+                        .setValue(updateChatActivity)
+                        .await()
+                }
+
                 val updateChatRoomMembersTask = async {
                     if (chatRoomMembers.isNullOrEmpty()) {
                         chatRoomsRef.child(chatRoomId)
@@ -1061,6 +1080,7 @@ class FirebaseRealtimeDatabaseService(
                         .await()
                 }
 
+                updateChatRoomActivityTask.await()
                 updateChatRoomMembersTask.await()
                 updateChatRoomListOfCurrentUserTask.await()
             }
@@ -1068,6 +1088,26 @@ class FirebaseRealtimeDatabaseService(
             Result.Success(true)
         } catch (e: Exception) {
             Result.Error(e)
+        }
+    }
+
+    suspend fun updateChatRoomActivityWhenNewMemberJoined(chatroomId: String, numberOfMembers: Int) {
+        return withContext(Dispatchers.IO) {
+            try {
+                val chatRoomActivity = ChatRoomActivity(
+                    latestActiveTime = StringUtils.getCurrentTime(),
+                    activityType = if(numberOfMembers == 1) ChatActivityType.ONE_MEMBER_JOINED.value else ChatActivityType.MANY_MEMBERS_JOINED.value,
+                    performedByUser = auth.uid,
+                    numberOfMembersJoined = numberOfMembers
+                )
+
+                chatRoomsRef.child(chatroomId)
+                    .child(ChatRoom.CHAT_ROOM_ACTIVITY)
+                    .setValue(chatRoomActivity)
+                    .await()
+            } catch (e: Exception) {
+
+            }
         }
     }
 }

@@ -154,7 +154,7 @@ class ChatRoomFragment : Fragment() {
             },
             onImageClick = { _, mediaData, _ ->
                 hideKeyboard()
-                _viewModel.setImageDetailShown(true, mediaData.url)
+                _viewModel.setImageDetailShown(true, mediaData.url, mediaData, true)
             },
             onReplyMessageClick = {
                 if (messageRecyclerview != null && messageAdapter != null && it.messageId != null) {

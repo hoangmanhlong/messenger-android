@@ -6,16 +6,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import androidx.activity.addCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.android.kotlin.familymessagingapp.R
+import com.android.kotlin.familymessagingapp.activity.MainViewModel
 import com.android.kotlin.familymessagingapp.databinding.FragmentChatRoomMemberBinding
 import com.android.kotlin.familymessagingapp.screen.chatroom.ChatRoomViewModel
+import com.android.kotlin.familymessagingapp.screen.create_group_chat.ContactAdapter
 import com.android.kotlin.familymessagingapp.screen.home.UserAdapter
+import com.android.kotlin.familymessagingapp.utils.DialogUtils
 import com.android.kotlin.familymessagingapp.utils.KeyBoardUtils
+import com.android.kotlin.familymessagingapp.utils.NetworkChecker
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -25,6 +32,8 @@ class ChatRoomMemberFragment : Fragment() {
 
     private val chatRoomViewModel: ChatRoomViewModel by activityViewModels()
 
+    private val mainViewModel: MainViewModel by activityViewModels()
+
     private var _binding: FragmentChatRoomMemberBinding? = null
 
     private val binding get() = _binding!!
@@ -33,7 +42,13 @@ class ChatRoomMemberFragment : Fragment() {
 
     private var chatRoomMemberRecyclerView: RecyclerView? = null
 
+    private var contactsRecyclerView: RecyclerView? = null
+
+    private var contactAdapter: ContactAdapter? = null
+
     private var etSearch: EditText? = null
+
+    private var errorDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,14 +68,14 @@ class ChatRoomMemberFragment : Fragment() {
         }
         chatRoomMemberRecyclerView?.adapter = memberAdapter
 
+        contactAdapter = ContactAdapter { chatRoomMemberViewModel.updateMember(it) }
+        contactsRecyclerView = binding.contactsRecyclerView
+        contactsRecyclerView?.adapter = contactAdapter
+
         etSearch = binding.etSearch
 
         binding.btNavigateUp.setOnClickListener {
             findNavController().navigateUp()
-        }
-
-        binding.btSearch.setOnClickListener {
-            chatRoomMemberViewModel.updateSearchStatus()
         }
 
         etSearch?.addTextChangedListener {
@@ -79,26 +94,78 @@ class ChatRoomMemberFragment : Fragment() {
             false
         }
 
+        binding.btAddMember.setOnClickListener {
+            chatRoomMemberViewModel.updateAddMemberStatus(true)
+        }
+
+        binding.btClose.setOnClickListener {
+            chatRoomMemberViewModel.updateAddMemberStatus(false)
+        }
+
+        binding.btSave.setOnClickListener {
+            etSearch?.clearFocus()
+            hideKeyboard()
+            activity?.let {
+                NetworkChecker.checkNetwork(it) {
+                    chatRoomMemberViewModel.saveNewChatRoomMember()
+                }
+            }
+        }
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        chatRoomViewModel.chatRoom.observe(viewLifecycleOwner) {
-            chatRoomMemberViewModel.setChatRoomMembers(it?.membersData)
+        // When pressing the back button on the device, if the add member status is true then change status
+        activity?.onBackPressedDispatcher?.addCallback(this.viewLifecycleOwner) {
+            if (chatRoomMemberViewModel.isAddMemberStatus.value == true)
+                chatRoomMemberViewModel.updateAddMemberStatus(false)
+            else findNavController().navigateUp()
         }
 
-        chatRoomMemberViewModel.isSearching.observe(viewLifecycleOwner) {
+        chatRoomViewModel.chatRoom.observe(viewLifecycleOwner) {
+            chatRoomMemberViewModel.setChatRoom(it)
+        }
+
+        chatRoomMemberViewModel.isAddMemberStatus.observe(viewLifecycleOwner) {
+            etSearch?.clearFocus()
+            hideKeyboard()
             if (it) {
-                binding.searchUserView.visibility = View.VISIBLE
-                etSearch?.requestFocus()
-                showKeyboard()
+                binding.tvScreenTitle.text = getString(R.string.add_members)
+                contactsRecyclerView?.visibility = View.VISIBLE
+                chatRoomMemberRecyclerView?.visibility = View.GONE
+                binding.btClose.visibility = View.VISIBLE
+                binding.btNavigateUp.visibility = View.GONE
+                binding.btSave.visibility = View.VISIBLE
+                binding.btAddMember.visibility = View.GONE
+                binding.chatRoomMemberRecyclerView.visibility = View.GONE
+                binding.contactsView.visibility = View.VISIBLE
             } else {
-                hideKeyboard()
-                binding.searchUserView.visibility = View.GONE
+                binding.tvScreenTitle.text = getString(R.string.members)
+                contactsRecyclerView?.visibility = View.GONE
+                chatRoomMemberRecyclerView?.visibility = View.VISIBLE
+                binding.btClose.visibility = View.GONE
+                binding.btNavigateUp.visibility = View.VISIBLE
+                binding.btSave.visibility = View.GONE
+                binding.btAddMember.visibility = View.VISIBLE
+                binding.chatRoomMemberRecyclerView.visibility = View.VISIBLE
+                binding.contactsView.visibility = View.GONE
             }
         }
+
+//        chatRoomMemberViewModel.isSearching.observe(viewLifecycleOwner) {
+//            if (it) {
+//                binding.searchUserView.visibility = View.VISIBLE
+//                binding.contactsRecyclerView
+//                etSearch?.requestFocus()
+//                showKeyboard()
+//            } else {
+//                hideKeyboard()
+//                binding.searchUserView.visibility = View.GONE
+//            }
+//        }
 
         chatRoomMemberViewModel.clearInputButtonStatus.observe(viewLifecycleOwner) {
             binding.ivClearSearchInput.visibility = if (it) View.VISIBLE else View.GONE
@@ -107,7 +174,29 @@ class ChatRoomMemberFragment : Fragment() {
         chatRoomMemberViewModel.displayedChatRoomMembers.observe(viewLifecycleOwner) {
             memberAdapter?.submitList(it)
             binding.tvNoResult.visibility = if (it.isNullOrEmpty()) View.VISIBLE else View.GONE
+        }
 
+        chatRoomMemberViewModel.displayedContacts.observe(viewLifecycleOwner) {
+            contactAdapter?.submitList(it)
+            binding.tvContactEmpty.visibility = if (it.isNullOrEmpty()) View.VISIBLE else View.GONE
+        }
+
+        chatRoomMemberViewModel.addButtonVisibilityState.observe(viewLifecycleOwner) {
+            binding.btSave.isEnabled = it
+        }
+
+        chatRoomMemberViewModel.saveNewChatRoomMemberSuccess.observe(viewLifecycleOwner) {
+            it?.let {
+                if (it) {
+                    chatRoomMemberViewModel.updateAddMemberStatus(false)
+                } else {
+                    showErrorDialog()
+                }
+            }
+        }
+
+        chatRoomMemberViewModel.isLoading.observe(viewLifecycleOwner) {
+            mainViewModel.setIsLoading(it)
         }
     }
 
@@ -119,5 +208,19 @@ class ChatRoomMemberFragment : Fragment() {
         etSearch?.let {
             KeyBoardUtils.showSoftKeyboard(it)
         }
+    }
+
+    private fun showErrorDialog() {
+        if (activity == null) return
+
+        if (errorDialog == null) {
+            errorDialog = DialogUtils.showNotificationDialog(
+                context = requireActivity(),
+                message = R.string.error_occurred,
+                cancelable = false,
+                onOkButtonClick = null
+            )
+        }
+        errorDialog?.show()
     }
 }

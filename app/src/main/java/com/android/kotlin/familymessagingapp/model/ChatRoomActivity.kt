@@ -10,6 +10,8 @@ data class ChatRoomActivity(
     val activityType: String? = null,
     val performedByUser: String? = null,
     val newMessage: Message? = null,
+    val userPerformingName: String? = null,
+    val numberOfMembersJoined: Int? = null,
     @Exclude val dataOfUserPerformingTheActivity: UserData? = null
 ) : Parcelable
 
@@ -18,9 +20,10 @@ enum class ChatActivityType(val value: String) {
     LEAVE_CHATROOM("1"),
     PIN_MESSAGE("2"),
     REMOVE_MESSAGE("3"),
-    JOIN_CHATROOM("4"),
+    ONE_MEMBER_JOINED("4"),
     UPDATE_CHATROOM_NAME("5"),
     UPDATE_CHATROOM_IMAGE("6"),
     UPDATE_CHATROOM_INFO("7"),
     CREATE_CHATROOM("8"),
+    MANY_MEMBERS_JOINED("9")
 }

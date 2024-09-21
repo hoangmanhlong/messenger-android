@@ -76,8 +76,9 @@ object StringUtils {
         val chatRoomActivity = chatRoom.chatRoomActivity
 
         val userdata = chatRoomActivity?.dataOfUserPerformingTheActivity
+        val you = context.getString(R.string.sender_you)
         val senderName =
-            if (userdata?.uid == Firebase.auth.uid) context.getString(R.string.sender_you)
+            if (userdata?.uid == Firebase.auth.uid) you
             else if (userdata == null || userdata.uid.isNullOrEmpty() || userdata.username.isNullOrEmpty())
                 context.getString(R.string.unknown_user)
             else
@@ -106,7 +107,12 @@ object StringUtils {
                 }
 
                 ChatActivityType.LEAVE_CHATROOM.value -> {
-
+                    val userPerformingName = chatRoomActivity.userPerformingName
+                    result = if (userPerformingName.isNullOrEmpty()) {
+                        context.getString(R.string.a_member_left_group)
+                    } else {
+                        context.getString(R.string.member_left_group, if (userdata?.uid == Firebase.auth.uid) you else userPerformingName)
+                    }
                 }
 
                 ChatActivityType.PIN_MESSAGE.value -> {
@@ -117,8 +123,8 @@ object StringUtils {
                     result = context.getString(R.string.user_deleted_a_message, senderName)
                 }
 
-                ChatActivityType.JOIN_CHATROOM.value -> {
-
+                ChatActivityType.ONE_MEMBER_JOINED.value -> {
+                    result = context.getString(R.string.user_joined_group, 1)
                 }
 
                 ChatActivityType.UPDATE_CHATROOM_INFO.value -> {
@@ -129,6 +135,11 @@ object StringUtils {
 
                 ChatActivityType.CREATE_CHATROOM.value -> {
                     result = context.getString(R.string.user_created_group_chat, senderName)
+                }
+
+                ChatActivityType.MANY_MEMBERS_JOINED.value -> {
+                    val numberOfMembersJoined = chatRoomActivity.numberOfMembersJoined ?: 1
+                    result = context.getString(R.string.user_joined_group, numberOfMembersJoined)
                 }
 
                 else -> {

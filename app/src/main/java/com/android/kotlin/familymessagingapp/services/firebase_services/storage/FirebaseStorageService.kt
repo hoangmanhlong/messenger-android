@@ -3,8 +3,8 @@ package com.android.kotlin.familymessagingapp.services.firebase_services.storage
 import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
-import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.android.kotlin.familymessagingapp.utils.Constant
+import com.android.kotlin.familymessagingapp.utils.MediaUtils
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
@@ -15,6 +15,10 @@ import java.io.File
 import java.io.FileOutputStream
 
 class FirebaseStorageService(private val application: Application) {
+    
+    companion object {
+        val TAG: String = FirebaseStorageService::class.java.simpleName
+    }
 
     private val storageRef = Firebase.storage.reference
 
@@ -58,7 +62,6 @@ class FirebaseStorageService(private val application: Application) {
                 storageRef.putFile(uri).await()
                 storageRef.downloadUrl.await().toString()
             } catch (e: Exception) {
-                e.stackTrace
                 null
             }
         }

@@ -1,6 +1,7 @@
 package com.android.kotlin.familymessagingapp.data.remote.socket
 
 import com.android.kotlin.familymessagingapp.BuildConfig
+import com.android.kotlin.familymessagingapp.data.remote.ServerCode
 import com.android.kotlin.familymessagingapp.model.ChatRoom
 import com.android.kotlin.familymessagingapp.model.MediaData
 import com.android.kotlin.familymessagingapp.model.Message
@@ -56,7 +57,13 @@ sealed class BackendEvent {
     ) : BackendEvent()
 
     @Serializable
-    data class Response(val status: Boolean?) : BackendEvent()
+    data class Response(val responseStatusCode: Int) : BackendEvent()
+
+    @Serializable
+    data class NewChatRoomMemberRequest(
+        val chatRoomId: String,
+        val members: List<String>
+    ) : BackendEvent()
 }
 
 class SocketClient {
@@ -67,6 +74,7 @@ class SocketClient {
         const val USER_VERIFIED_STATUS_SOCKET_EVENT = Constant.USER_VERIFIED_STATUS_SOCKET_EVENT
         const val NEW_MESSAGE_SOCKET_EVENT = Constant.NEW_MESSAGE_SOCKET_EVENT
         const val NEW_CHATROOM_SOCKET_EVENT = Constant.NEW_CHATROOM_SOCKET_EVENT
+        const val NEW_CHATROOM_MEMBERS_SOCKET_EVENT = Constant.NEW_CHATROOM_MEMBERS_SOCKET_EVENT
     }
 
     private var socket: Socket? = null
@@ -99,6 +107,18 @@ class SocketClient {
         )
         chatroom = null
         socket?.off(NEW_CHATROOM_SOCKET_EVENT)
+    }
+
+    private val addNewChatRoomMemberSocketEventListener = Emitter.Listener {args ->
+        // Kiểm tra nếu args.getOrNull(0) là một JSONObject và chuyển đổi nó thành String
+        var responseStatusCode = ServerCode.ERROR.code
+        val data = (args.getOrNull(0) as? JSONObject)?.toString()
+        if (data != null) {
+            val response = Json.decodeFromString<BackendEvent.Response>(data)
+            responseStatusCode = response.responseStatusCode
+        }
+        EventBus.getDefault().postSticky(AddNewChatRoomMembersSocketEventbus(responseStatusCode))
+        socket?.off(NEW_CHATROOM_MEMBERS_SOCKET_EVENT)
     }
 
     init {
@@ -153,6 +173,19 @@ class SocketClient {
             socket?.on(NEW_CHATROOM_SOCKET_EVENT, createNewChatRoomSocketEventListener)
             emitStatus(NEW_CHATROOM_SOCKET_EVENT, chatroomDto)
             Result.Success(true)
+        }
+    }
+
+    fun emitNewChatRoomMembers(chatRoomId: String, members: List<String>) {
+        if (socket == null || socket?.connected() == false) {
+            EventBus.getDefault().postSticky(AddNewChatRoomMembersSocketEventbus(ServerCode.ERROR.code))
+        } else {
+            val newChatRoomMemberRequest = BackendEvent.NewChatRoomMemberRequest(
+                chatRoomId = chatRoomId,
+                members = members
+            )
+            socket?.on(NEW_CHATROOM_MEMBERS_SOCKET_EVENT, addNewChatRoomMemberSocketEventListener)
+            emitStatus(NEW_CHATROOM_MEMBERS_SOCKET_EVENT, newChatRoomMemberRequest)
         }
     }
 

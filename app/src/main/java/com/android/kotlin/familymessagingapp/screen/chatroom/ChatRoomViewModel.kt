@@ -147,6 +147,8 @@ class ChatRoomViewModel @Inject constructor(
 
     private var latestMessage: Message? = null
 
+    private var isOpenedFromDetailImage: Boolean = false
+
     fun resetIsOpenFromNotificationFlag() {
         viewModelScope.launch(Dispatchers.IO) {
             localDatabaseRepository.appDataStore.saveString(
@@ -212,6 +214,7 @@ class ChatRoomViewModel @Inject constructor(
         latestMessage = null
         _leaveChatRoomStatus.value = null
         _isLoading.value = false
+        isOpenedFromDetailImage = false
     }
 
     fun setSelectMediaData(mediaData: MediaData?) {
@@ -251,9 +254,20 @@ class ChatRoomViewModel @Inject constructor(
         _isExpandPinnedMessage.value = !_isExpandPinnedMessage.value!!
     }
 
-    fun <T> setImageDetailShown(shown: Boolean, image: T?) {
+    fun <T> setImageDetailShown(
+        shown: Boolean,
+        image: T?,
+        mediaData: MediaData? = null,
+        isOpenedFromDetailImage: Boolean = false
+    ) {
         selectedImage = image
         _imageDetailShown.value = shown
+        this.isOpenedFromDetailImage = isOpenedFromDetailImage
+        if (isOpenedFromDetailImage) _selectedMediaData.value = mediaData
+        if (!shown && isOpenedFromDetailImage) {
+            _selectedMediaData.value = null
+            this.isOpenedFromDetailImage = false
+        }
     }
 
     fun setAIGeneratedText(text: String?) {
@@ -321,8 +335,9 @@ class ChatRoomViewModel @Inject constructor(
         viewModelScope.launch {
             val chatRoomId = _chatRoom.value?.chatRoomId
             if (_selectedMessage.value?.senderId == Firebase.auth.uid && !chatRoomId.isNullOrEmpty()) {
-                val text = _selectedMessage.value?.text
-                val mediasOfCurrentMessage = _selectedMessage.value?.medias
+                val message = _chatRoom.value?.messages?.values?.first { it.messageId == _selectedMessage.value?.messageId }
+                val text = message?.text
+                val mediasOfCurrentMessage = message?.medias
                 val textNotNullAndMediaDataIsNull =
                     !text.isNullOrEmpty() && mediasOfCurrentMessage == null && _selectedMediaData.value == null
                 val textIsNullAndMediaDataNotNull =
@@ -336,7 +351,7 @@ class ChatRoomViewModel @Inject constructor(
                 } else {
                     firebaseServiceRepository.firebaseRealtimeDatabaseService.deleteItemInMessage(
                         chatroomId = chatRoomId,
-                        message = _selectedMessage.value!!,
+                        message = message!!,
                         text = text,
                         mediaData = _selectedMediaData.value
                     )
@@ -556,6 +571,7 @@ class ChatRoomViewModel @Inject constructor(
                         _sendMessageStatus.value = SendMessageStatus.Error(sendResult.exception)
                     }
                 }
+                deleteTakenPhotoFromCamera(uriOfTakenPhotos)
             }
         }
     }
@@ -563,7 +579,6 @@ class ChatRoomViewModel @Inject constructor(
     private fun clearInput() {
         clearEditText(true)
         message = Message()
-        deleteTakenPhotoFromCamera(uriOfTakenPhotos)
         _selectedItems.value = emptyList()
         setReplyingMessage(false)
     }
@@ -615,6 +630,7 @@ class ChatRoomViewModel @Inject constructor(
                 _sendMessageStatus.value = SendMessageStatus.Error(result.exception)
             }
         }
+        deleteTakenPhotoFromCamera(uriOfTakenPhotos)
         EventBus.getDefault().unregister(this@ChatRoomViewModel)
         EventBus.getDefault().removeStickyEvent(newChatRoomEventBus)
     }

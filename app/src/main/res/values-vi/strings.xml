@@ -175,4 +175,9 @@
     <string name="unknown_user">Người dùng không xác định</string>
     <string name="chatroom_members">Thành viên (%d)</string>
     <string name="no_members">Không có thành viên nào</string>
+    <string name="add">Thêm</string>
+    <string name="add_member_description">Các liên hệ của bạn có trong cuộc trò chuyện này sẽ không được hiển thị</string>
+    <string name="a_member_left_group">Một thành viên đã rời nhóm</string>
+    <string name="member_left_group">%s đã rời nhóm</string>
+    <string name="user_joined_group">%d thành viên vừa tham gia</string>
 </resources>

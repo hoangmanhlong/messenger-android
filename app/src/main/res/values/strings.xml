@@ -2,9 +2,8 @@
     <string name="author">Hoang Manh Long</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="fcm_message" translatable="false">FCM Message</string>
-    <string name="app_name" translatable="false">Callback</string>
+    <string name="app_name" translatable="false">JChat</string>
     <string name="bubble_host" translatable="false">hoang.manh.long.com</string>
-
 
     <string name="facebook_app_id" translatable="false">1508563699738609</string>
     <string name="fb_login_protocol_scheme" translatable="false">fb1234</string>
@@ -16,7 +15,7 @@
     <string name="channel_new_messages_description" translatable="false">All new incoming messages.</string>
     <!--    Login Screen-->
     <string name="or">Or</string>
-    <string name="vietnam" translatable="false"> Việt Nam</string>
+    <string name="vietnam" translatable="false">Việt Nam</string>
     <string name="email" translatable="false">Email</string>
     <string name="login_with_google_account">Login with Google</string>
     <string name="login_intro">Connect easily with your family and friends over countries</string>
@@ -192,4 +191,9 @@
     <string name="unknown_user">Unknown user</string>
     <string name="chatroom_members">Members (%d)</string>
     <string name="no_members">No members</string>
+    <string name="add">Add</string>
+    <string name="add_member_description">Your contacts in this chat room will not be displayed</string>
+    <string name="a_member_left_group">A member has left the group</string>
+    <string name="member_left_group">%s has left the group</string>
+    <string name="user_joined_group">%d member just joined</string>
 </resources>

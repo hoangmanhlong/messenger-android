@@ -81,9 +81,9 @@ class FirebaseServiceRepository(
      */
     fun signOut() {
         try {
+            firebaseRealtimeDatabaseService.removeAllListener()
             firebaseRealtimeDatabaseService.updateVerifiedStatus(false)
             backendServiceRepository.disconnectSocket()
-            firebaseRealtimeDatabaseService.removeAllListener()
             auth.signOut()
         } catch (e: Exception) {
             e.printStackTrace()

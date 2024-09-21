@@ -152,7 +152,8 @@ class EditChatRoomFragment : Fragment() {
             MediaUtils.loadImageFollowImageViewSize(
                 imageView = binding.ivChatRoomImage,
                 photo = image,
-                scaleType = ImageView.ScaleType.CENTER_CROP
+                scaleType = ImageView.ScaleType.CENTER_CROP,
+                fallback = R.drawable.group
             )
             chatRoomNameTextInputEditText?.setText(
                 if (editChatRoomViewModel.initializedForTheFirstTime) chatRoom.chatRoomName else chatRoomName
